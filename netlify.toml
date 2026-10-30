@@ -23,3 +23,13 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "DENY"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Payment functions (Flutterwave). See README → "Ticket payments".
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[headers]]
+  for = "/tickets/*"
+  [headers.values]
+    Cache-Control = "no-store"

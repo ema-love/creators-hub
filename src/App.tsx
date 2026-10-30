@@ -10,6 +10,7 @@ import { HomePage } from './pages/HomePage'
 
 const FirstRoomPage = lazy(() => import('./pages/FirstRoomPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const TicketConfirmationPage = lazy(() => import('./pages/TicketConfirmationPage'))
 
 export function App() {
   return (
@@ -40,6 +41,7 @@ function Shell() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/the-first-room" element={<FirstRoomPage />} />
+              <Route path="/tickets/confirmation" element={<TicketConfirmationPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>

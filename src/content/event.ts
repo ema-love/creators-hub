@@ -20,9 +20,9 @@ export const firstRoom = {
     'The inaugural Creators Hub gathering. One day, one room, every discipline at the same table.',
 
   // ——— Unconfirmed: rendered as placeholders ———
+  // Ticket tiers and prices live in ./tickets.ts.
   venue: null as string | null,
   time: null as string | null,
-  tickets: null as { label: string; href: string } | null,
   speakers: [] as Array<{ name: string; role: string }>,
   programme: [] as Array<{ time: string; title: string }>,
   partners: [] as Array<{ name: string }>,

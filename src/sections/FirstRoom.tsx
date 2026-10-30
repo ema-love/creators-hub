@@ -93,11 +93,11 @@ export function FirstRoom() {
             </dl>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <ArrowLink to="/the-first-room" variant="rust">
-                Explore The First Room
+              <ArrowLink to="/the-first-room#tickets" variant="rust">
+                Get tickets
               </ArrowLink>
-              <ArrowLink to="/#volunteer" variant="text">
-                Volunteer at 001
+              <ArrowLink to="/the-first-room" variant="text">
+                Explore The First Room
               </ArrowLink>
             </div>
           </div>

@@ -10,6 +10,7 @@ npm run dev        # http://localhost:5173
 npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build
 npm run lint
+npm test           # payment logic tests
 ```
 
 Add `?intro` to any URL to force the opening sequence (it otherwise plays once per browser session, on the homepage only).
@@ -135,6 +136,38 @@ Photos, taglines, focus areas, the text-tile line and alt text all live in `src/
 To swap a photo, replace its file with a WebP of similar shape (keep the name), or point the entry at a new file and update its alt text. `position` sets which part of the photo stays in frame when it is cropped.
 
 ---
+
+## Ticket payments (Flutterwave)
+
+Regular and Premium tickets for The First Room are sold on `/the-first-room#tickets` and paid through **Flutterwave's hosted checkout** (card, bank transfer, USSD). Card details never touch this site.
+
+### How it works
+
+1. The buyer picks a tier and quantity and enters their name and email.
+2. `netlify/functions/checkout.ts` validates the request, **sets the price on the server** from `src/content/tickets.ts`, saves a pending order, and asks Flutterwave for a checkout link.
+3. The buyer pays on Flutterwave and is sent back to `/tickets/confirmation`.
+4. `netlify/functions/verify-payment.ts` checks the transaction with Flutterwave. The ticket is confirmed only if the status is successful **and** the reference, currency and amount match the order.
+5. `netlify/functions/flutterwave-webhook.ts` receives Flutterwave's webhook, so payments are recorded even if the buyer closes the tab. Each webhook is authenticated with the secret hash and re-verified with Flutterwave.
+
+Orders are stored in **Netlify Blobs** (store `ticket-orders`, keyed by the payment reference such as `CH001-…`). Browse them in Netlify under **Blobs**; every payment also appears in the Flutterwave dashboard.
+
+### Setting prices and perks
+
+Edit `src/content/tickets.ts`. Set `price` in whole naira and replace `perks: null` with the confirmed list. While `price` is `null`, the tier shows "Price to be announced" and **cannot be bought**: the button is disabled and the server refuses the order.
+
+### Setup
+
+1. Create or sign in to a Flutterwave business account. Use **test mode** until launch.
+2. In Netlify, go to **Site configuration → Environment variables** and add:
+   - `FLW_SECRET_KEY`: your Flutterwave secret key (**Settings → API keys**).
+   - `FLW_SECRET_HASH`: a long random string you choose.
+3. In Flutterwave, go to **Settings → Webhooks**, set the URL to `https://<your-site>/.netlify/functions/flutterwave-webhook`, and enter the same secret hash.
+4. Redeploy, then buy a ticket using Flutterwave's test cards.
+5. To go live, complete Flutterwave's business verification, swap in the **live** secret key, update the webhook in live mode, and redeploy.
+
+### Testing
+
+`npm test` runs the payment tests: price tampering, mismatched amounts and currencies, failed payments, repeated confirmations and forged webhooks. To run the functions locally, install the Netlify CLI, copy `.env.example` to `.env` with test keys, and run `netlify dev`.
 
 ## Deployment (Netlify)
 
