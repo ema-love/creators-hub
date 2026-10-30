@@ -20,7 +20,8 @@ function shouldAutoplay(): boolean {
   // Allow ?intro to force it during review.
   if (new URLSearchParams(window.location.search).has('intro')) return true
   // Only on the homepage, and only once per browser session.
-  if (window.location.pathname !== '/' || window.location.hash) return false
+  const onHome = import.meta.env.VITE_PREVIEW || (window.location.pathname === '/' && !window.location.hash)
+  if (!onHome) return false
   try {
     return sessionStorage.getItem(SEEN_KEY) !== '1'
   } catch {
