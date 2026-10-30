@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { SkipForward, Volume2, VolumeX } from 'lucide-react'
-import { montage } from '../../content/media'
+import { disciplines } from '../../content/site'
+import { disciplineStories } from '../../content/disciplineStories'
 import { gsap } from '../../lib/gsap'
 import { useIsMobile, usePrefersReducedMotion } from '../../hooks/useMediaQuery'
 import { useIntro } from './IntroContext'
@@ -31,7 +32,12 @@ export function Intro() {
 
   // Freeze the configuration for this run so a resize mid-play does not rebuild it.
   const [config] = useState(() => ({ isMobile, reduce }))
-  const frames = montage
+  const frames = disciplines.map((d) => ({
+    id: d.id,
+    name: d.name,
+    tagline: disciplineStories[d.id].tagline,
+    photos: disciplineStories[d.id].montage,
+  }))
 
   const rootRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLSpanElement>(null)

@@ -1,7 +1,6 @@
-import type { MediaItem } from '../../content/media'
+import type { Photo } from '../../content/disciplineStories'
 import { firstRoom } from '../../content/event'
 import { Wordmark } from '../brand/Wordmark'
-import { MediaFrame } from '../ui/MediaFrame'
 
 /*
  * Presentational layers for each intro scene. They render in their starting
@@ -57,22 +56,46 @@ export function PossibilityLayer() {
   )
 }
 
+export type MontageFrame = { id: string; name: string; tagline: string; photos: Photo[] }
+
+/* Spread layout: two tall photos, then two stacked. */
+const SPREAD = [
+  'col-[1/2] row-[1/3] rounded-tl-[48px] md:rounded-tl-[88px]',
+  'col-[2/3] row-[1/3]',
+  'col-[3/4] row-[1/2]',
+  'col-[3/4] row-[2/3] rounded-br-[48px] md:rounded-br-[88px]',
+]
+
 /**
- * Scene 3 — The Creators: the four discipline moodboards, shown whole at
- * their own 3:2 ratio (they carry their own titles, so no overlay text).
+ * Scene 3 — The Creators: one photo spread per discipline, cut from the
+ * Creators Hub moodboards and set in the site's own type.
  */
-export function MontageLayer({ frames }: { frames: MediaItem[] }) {
+export function MontageLayer({ frames }: { frames: MontageFrame[] }) {
   return (
     <div className="i-montage absolute inset-0 grid place-items-center opacity-0" aria-hidden="true">
-      <div className="relative aspect-[3/2] w-[min(90vw,calc(76svh*1.5))]">
-        {frames.map((item, i) => (
+      <div className="relative aspect-[4/5] w-[min(88vw,calc(64svh*0.8))] md:aspect-[3/2] md:w-[min(84vw,calc(64svh*1.5))]">
+        {frames.map((f, i) => (
           <div
-            key={item.id}
-            className="i-frame absolute inset-0 overflow-hidden rounded-[6px] will-change-transform"
+            key={f.id}
+            className="i-frame absolute inset-0 overflow-hidden bg-ink will-change-transform"
             style={{ zIndex: i + 1, clipPath: 'inset(50% 0% 50% 0%)' }}
           >
-            <div className="i-frame-media absolute inset-0">
-              <MediaFrame item={item} fill priority sizes="90vw" className="h-full w-full" />
+            <div className="i-frame-media absolute inset-0 grid grid-cols-[1.15fr_1fr_0.85fr] grid-rows-2 gap-1.5 md:gap-2.5">
+              {f.photos.map((p, j) => (
+                <div key={p.src} className={`relative overflow-hidden rounded-[14px] ${SPREAD[j]}`}>
+                  <img
+                    src={p.src}
+                    alt=""
+                    decoding="async"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    style={p.position ? { objectPosition: p.position } : undefined}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent p-4 pt-16 md:p-7 md:pt-24">
+              <p className="font-display text-headline font-medium text-cream">{f.name}</p>
+              <p className="mt-1 text-sm text-cream/80 md:text-base">{f.tagline}</p>
             </div>
           </div>
         ))}

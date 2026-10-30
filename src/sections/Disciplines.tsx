@@ -1,22 +1,21 @@
 import { useState } from 'react'
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { disciplines, disciplinesSection, type Discipline } from '../content/site'
-import { mediaFor } from '../content/media'
+import { disciplineStories } from '../content/disciplineStories'
 import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { MaskText } from '../components/ui/MaskText'
-import { MediaFrame } from '../components/ui/MediaFrame'
+import { DisciplineMosaic } from '../components/ui/DisciplineMosaic'
 import { ease } from '../lib/motion'
 import { cn } from '../lib/cn'
 
 /**
- * Four disciplines. Choosing one brings its studio into view; the small map
- * shows it connected to every other discipline through Creators Hub.
+ * Four disciplines. Choosing one recomposes its photographs into a mosaic;
+ * the small map shows it connected to every other discipline.
  */
 export function Disciplines() {
   const [activeId, setActiveId] = useState(disciplines[0]!.id)
   const active = disciplines.find((d) => d.id === activeId) ?? disciplines[0]!
-  const reduce = useReducedMotion()
 
   return (
     <Section id="disciplines" surface="forest" aria-labelledby="disciplines-title" className="overflow-hidden py-28 md:py-40">
@@ -59,15 +58,25 @@ export function Disciplines() {
                   </button>
                   <AnimatePresence initial={false}>
                     {isActive && (
-                      <motion.p
-                        className="overflow-hidden pl-11 text-cream/75"
+                      <motion.div
+                        className="overflow-hidden pl-11"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.5, ease: ease.out }}
                       >
-                        <span className="block pb-6">{d.line}</span>
-                      </motion.p>
+                        <div className="pb-6">
+                          <p className="font-display text-lg text-electric">{disciplineStories[d.id].tagline}</p>
+                          <p className="mt-2 text-cream/75">{d.line}</p>
+                          <ul className="mt-4 flex flex-wrap gap-1.5" aria-label={`${d.name} focus areas`}>
+                            {disciplineStories[d.id].areas.map((a) => (
+                              <li key={a} className="rounded-full border border-cream/20 px-2.5 py-1 text-xs text-cream/80">
+                                {a}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </motion.div>
                     )}
                   </AnimatePresence>
                 </li>
@@ -76,20 +85,7 @@ export function Disciplines() {
           </ul>
 
           <figure className="md:col-span-8">
-            <div className="relative aspect-[3/2] overflow-hidden rounded-[6px] bg-cream shadow-[0_40px_80px_-30px_rgba(0,0,0,0.6)]">
-              <AnimatePresence initial={false}>
-                <motion.div
-                  key={active.id}
-                  className="absolute inset-0"
-                  initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.06, clipPath: 'inset(0% 0% 0% 100%)' }}
-                  animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, clipPath: 'inset(0% 0% 0% 0%)' }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.9, ease: ease.out }}
-                >
-                  <MediaFrame item={mediaFor(active.id)} fill sizes="(min-width: 768px) 62vw, 92vw" className="h-full w-full" />
-                </motion.div>
-              </AnimatePresence>
-            </div>
+            <DisciplineMosaic key={active.id} story={disciplineStories[active.id]} name={active.name} />
             <figcaption className="mt-4 flex items-center justify-between gap-4 text-sm text-cream/60">
               <span className="flex items-center gap-4">
                 <EcosystemMap active={active} />

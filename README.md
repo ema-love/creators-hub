@@ -26,7 +26,7 @@ The repository started empty. **No brand assets were supplied**, so the site use
 | Favicon / app icon | Green "spark" dot | `public/favicon.svg` |
 | Brand colours | Working references from the brief | `src/styles/index.css` `@theme` block (single source) |
 | Typography | Space Grotesk (display) + Inter (body), self-hosted | `src/styles/index.css` + `package.json` fontsource packages |
-| Discipline imagery | Supplied: one moodboard per discipline (see below) | `src/assets/disciplines/` + `src/content/media.ts` |
+| Discipline imagery | Photos cut from the supplied moodboards (see below) | `src/assets/crops/` + `src/content/disciplineStories.ts` |
 | Intro sound | Synthesised with Web Audio (no files), off by default | `src/components/intro/introSound.ts` |
 | Social share image (`og:image`) | Not set | `index.html` |
 | Contact email, social handles | Rendered as `TBC` placeholders | `src/content/site.ts` → `contact` |
@@ -47,7 +47,7 @@ src/
   content/                ALL copy and data (no copy hard-coded in components)
     site.ts               nav, hero, manifesto, sections, contact
     event.ts              The First Room (confirmed vs. unconfirmed fields)
-    media.ts              discipline moodboards (imports, alt text, sizes)
+    disciplineStories.ts  per-discipline photos, taglines, focus areas, alt text
     forms.ts              Netlify form names
   lib/
     motion.ts             easing/duration tokens: the motion language
@@ -97,7 +97,7 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 | --- | --- | --- |
 | 0–2s | Spark | A pulsing point of electric green; ambient light and depth particles (canvas) |
 | 2–4s | Possibility | Light becomes drawn ribbons and dimensional planes; "Imagine. Make. Share." |
-| 4–7s | The Creators | Montage of the four discipline moodboards with clip-path cuts |
+| 4–7s | The Creators | A four-photo spread per discipline, with its name and tagline, cut in with clip-paths |
 | 7–9s | Convergence | Frames gather into a grid, then collapse into the light as particles converge |
 | 9–12s | Reveal | Wordmark letters rise from a mask, rule draws, hand-off to the homepage |
 
@@ -121,20 +121,18 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 - Media reserves its aspect ratio (no layout shift) and lazy-loads below the fold. There are no autoplay video backgrounds.
 - Animations use transforms and opacity. The canvas caps device pixel ratio at 2.
 
-### Disciplines and moodboards
+### Disciplines and photography
 
-Creators Hub presents four disciplines: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`). Each is represented by a moodboard supplied by Creators Hub, stored in `src/assets/disciplines/`:
+Creators Hub presents four disciplines: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`).
 
-| File | Discipline |
-| --- | --- |
-| `fashion.webp` | Fashion: style, identity and culture in motion |
-| `technology.webp` | Technology: building tools for creative futures |
-| `film.webp` | Film & Storytelling: voices, perspectives and new narratives |
-| `artdesign.webp` | Arts & Design: ideas, expression and creative practice |
+The photographs were cut from the Creators Hub moodboards and recomposed in the site's own layouts, so they share its type, colour and shapes:
 
-Each has a 1536×1024 version and a 960×640 version for phones; the browser picks the right one. They appear in the intro montage and the Disciplines section.
+- **Disciplines section**: a mosaic per discipline (`src/components/ui/DisciplineMosaic.tsx`) with five photos and a text tile, beside the discipline's tagline and focus areas.
+- **Intro montage**: a four-photo spread per discipline with its name and tagline.
 
-To replace a board, export it at 1536×1024 (3:2) as WebP at about 80% quality, add a 960×640 copy named `<name>-960.webp`, and keep the same file names. Update the alt text in `src/content/media.ts` to describe the new image.
+Photos, taglines, focus areas, the text-tile line and alt text all live in `src/content/disciplineStories.ts`. The image files are in `src/assets/crops/` (named like `fashion-portrait.webp`).
+
+To swap a photo, replace its file with a WebP of similar shape (keep the name), or point the entry at a new file and update its alt text. `position` sets which part of the photo stays in frame when it is cropped.
 
 ---
 
