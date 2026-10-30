@@ -1,0 +1,176 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/inter';
+
+/*
+  Creators Hub design tokens.
+  Colour values are the working brand references from the brief. Confirm them
+  against the official brand guidelines before launch and change them here only.
+*/
+@theme {
+  --color-ink: #0a0a0a;
+  --color-ink-2: #121412;
+  --color-cream: #f5f0e8;
+  --color-offwhite: #e8e4dc;
+  --color-forest: #1a4a3a;
+  --color-forest-deep: #10301f;
+  --color-electric: #00e5a0;
+  --color-bright: #2d7a5f;
+  --color-silver: #a4b2c0;
+  --color-rust: #c4622d;
+
+  --font-display: 'Space Grotesk Variable', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Fluid editorial type scale */
+  --text-mega: clamp(3.5rem, 13vw, 13rem);
+  --text-mega--line-height: 0.86;
+  --text-mega--letter-spacing: -0.045em;
+  --text-display: clamp(2.75rem, 8vw, 7.5rem);
+  --text-display--line-height: 0.92;
+  --text-display--letter-spacing: -0.04em;
+  --text-headline: clamp(2rem, 4.6vw, 4.25rem);
+  --text-headline--line-height: 1;
+  --text-headline--letter-spacing: -0.03em;
+  --text-title: clamp(1.5rem, 2.6vw, 2.25rem);
+  --text-title--line-height: 1.1;
+  --text-title--letter-spacing: -0.02em;
+  --text-lede: clamp(1.125rem, 1.6vw, 1.375rem);
+  --text-lede--line-height: 1.5;
+
+  /* Motion tokens (mirrored in src/lib/motion.ts) */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --breakpoint-xs: 26rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-padding-top: 5rem;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    @apply bg-ink text-cream font-sans;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-electric);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-electric);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  [data-surface='light'] :focus-visible {
+    outline-color: var(--color-forest);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Intro lock: prevents scroll behind the opening sequence without blocking keyboard skip. */
+  html[data-intro='playing'] body {
+    overflow: hidden;
+  }
+}
+
+@layer components {
+  .container-edge {
+    width: 100%;
+    margin-inline: auto;
+    max-width: 96rem;
+    padding-inline: clamp(1rem, 4vw, 3.5rem);
+  }
+
+  .eyebrow {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+
+  .hairline {
+    border-color: color-mix(in oklab, currentColor 18%, transparent);
+  }
+
+  /* Underline that draws in from the left on hover and focus. */
+  .link-draw {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.5s var(--ease-out-expo);
+  }
+  .link-draw:hover,
+  .link-draw:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* Subtle film grain, used sparingly on dark cinematic surfaces. */
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.07;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  .skip-link {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 100;
+    transform: translateY(-200%);
+    background: var(--color-electric);
+    color: var(--color-ink);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    border-radius: 999px;
+  }
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}

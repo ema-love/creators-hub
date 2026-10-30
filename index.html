@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Creators Hub</title>
+    <meta
+      name="description"
+      content="Creators Hub is a multidisciplinary creative organisation and community bringing together people across technology, fashion, film, art, design and entrepreneurship."
+    />
+    <meta name="theme-color" content="#0A0A0A" />
+    <meta name="color-scheme" content="dark light" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Creators Hub" />
+    <meta
+      property="og:description"
+      content="A multidisciplinary creative community. Creators Hub 001: The First Room — 19 December 2026, Lagos."
+    />
+    <!-- TODO: add og:image once an approved social share image is supplied. -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <div style="padding:2rem;font-family:system-ui,sans-serif;background:#0A0A0A;color:#F5F0E8;min-height:100vh">
+        <h1>Creators Hub</h1>
+        <p>A multidisciplinary creative organisation and community.</p>
+        <p>Creators Hub 001: The First Room — 19 December 2026, Lagos, Nigeria.</p>
+        <p>Please enable JavaScript for the full experience.</p>
+      </div>
+    </noscript>
+
+    <!--
+      Static copies of the site's forms so Netlify Forms can detect them at deploy time.
+      The React forms submit to the same form names. Keep field names in sync with
+      src/content/forms.ts.
+    -->
+    <form name="volunteer" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input name="name" /><input name="email" /><input name="discipline" /><input name="interest" /><textarea name="message"></textarea><input name="bot-field" />
+    </form>
+    <form name="partnership" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input name="name" /><input name="organisation" /><input name="email" /><input name="type" /><textarea name="message"></textarea><input name="bot-field" />
+    </form>
+    <form name="contact" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input name="name" /><input name="email" /><textarea name="message"></textarea><input name="bot-field" />
+    </form>
+
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
