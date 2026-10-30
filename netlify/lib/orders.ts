@@ -17,6 +17,10 @@ export type Order = {
   createdAt: string
   paidAt?: string
   transactionId?: string
+  /** Set once the ticket email has been accepted by the email service. */
+  emailSentAt?: string
+  /** Set when the ticket is admitted at the door. */
+  checkedInAt?: string
 }
 
 export type OrderStore = {

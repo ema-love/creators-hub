@@ -19,6 +19,9 @@ type Ticket = {
   currency: string
   name: string
   email: string
+  emailSent?: boolean
+  passUrl?: string | null
+  qrUrl?: string | null
 }
 
 type View =
@@ -96,9 +99,13 @@ function renderView(view: View, txRef: string | null) {
             Your payment is confirmed. Keep your reference: you’ll need it at the door for {firstRoom.fullName} on{' '}
             {firstRoom.dateLabel} in {firstRoom.city}.
           </p>
+          <TicketQr ticket={view.ticket} />
           <TicketSummary ticket={view.ticket} />
-          <div className="mt-10 flex flex-wrap gap-6">
-            <ArrowLink to="/the-first-room">Back to The First Room</ArrowLink>
+          <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
+            {view.ticket.passUrl && <ArrowLink to={view.ticket.passUrl}>Open your ticket</ArrowLink>}
+            <ArrowLink to="/the-first-room" variant="text">
+              Back to The First Room
+            </ArrowLink>
           </div>
         </Status>
       )
@@ -164,6 +171,31 @@ function Reference({ value }: { value: string }) {
       <span className="eyebrow text-cream/50">Reference</span>
       <span className="mt-1 block select-all font-mono text-lg text-cream">{value}</span>
     </p>
+  )
+}
+
+function TicketQr({ ticket }: { ticket: Ticket }) {
+  return (
+    <div className="mt-8 flex flex-col gap-6 rounded-[20px] border border-cream/15 bg-cream/[0.03] p-6 sm:flex-row sm:items-center">
+      {ticket.qrUrl && (
+        <div className="shrink-0 self-center rounded-[14px] bg-cream p-2.5">
+          <img src={ticket.qrUrl} width={160} height={160} alt={`QR code for ticket ${ticket.reference}`} className="block h-40 w-40" />
+        </div>
+      )}
+      <p className="text-base text-cream/80">
+        {ticket.emailSent ? (
+          <>
+            We’ve emailed your ticket and QR code to <strong className="text-cream">{ticket.email}</strong>. Show the code at
+            the door.
+          </>
+        ) : (
+          <>
+            Your ticket email to <strong className="text-cream">{ticket.email}</strong> is on its way. In the meantime, save
+            this page or screenshot the QR code.
+          </>
+        )}
+      </p>
+    </div>
   )
 }
 

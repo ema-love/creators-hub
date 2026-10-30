@@ -2,6 +2,8 @@ import { confirmOrder } from '../lib/confirm'
 import { createFlutterwave, isAuthenticWebhook } from '../lib/flutterwave'
 import { blobOrderStore } from '../lib/orders'
 import { json, requireEnv } from '../lib/http'
+import { ensureTicketEmailed } from '../lib/deliver'
+import { deliveryConfig } from '../lib/delivery'
 
 /**
  * POST /.netlify/functions/flutterwave-webhook
@@ -20,10 +22,12 @@ export default async (req: Request) => {
   if (payload?.event !== 'charge.completed' || !txRef) return json({ received: true })
 
   try {
-    const result = await confirmOrder(blobOrderStore(), createFlutterwave(requireEnv('FLW_SECRET_KEY')), {
+    const store = blobOrderStore()
+    const result = await confirmOrder(store, createFlutterwave(requireEnv('FLW_SECRET_KEY')), {
       txRef,
       transactionId: payload.data?.id ? String(payload.data.id) : null,
     })
+    if (result.state === 'paid') await ensureTicketEmailed(store, result.order, deliveryConfig(req))
     return json({ received: true, state: result.state })
   } catch (err) {
     console.error('webhook failed', err)

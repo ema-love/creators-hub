@@ -149,6 +149,8 @@ Regular and Premium tickets for The First Room are sold on `/the-first-room#tick
 4. `netlify/functions/verify-payment.ts` checks the transaction with Flutterwave. The ticket is confirmed only if the status is successful **and** the reference, currency and amount match the order.
 5. `netlify/functions/flutterwave-webhook.ts` receives Flutterwave's webhook, so payments are recorded even if the buyer closes the tab. Each webhook is authenticated with the secret hash and re-verified with Flutterwave.
 
+6. Once a payment is confirmed, the buyer is emailed a **branded ticket with a QR code** (see below).
+
 Orders are stored in **Netlify Blobs** (store `ticket-orders`, keyed by the payment reference such as `CH001-…`). Browse them in Netlify under **Blobs**; every payment also appears in the Flutterwave dashboard.
 
 ### Setting prices and perks
@@ -165,9 +167,29 @@ Edit `src/content/tickets.ts`. Set `price` in whole naira and replace `perks: nu
 4. Redeploy, then buy a ticket using Flutterwave's test cards.
 5. To go live, complete Flutterwave's business verification, swap in the **live** secret key, update the webhook in live mode, and redeploy.
 
+### Ticket email, QR code and door check-in
+
+- **Email**: `netlify/lib/email.ts` renders the branded ticket email, which `netlify/lib/deliver.ts` sends through [Resend](https://resend.com) once per order. If sending fails, the next confirmation (page refresh or webhook) retries, and Resend's idempotency key prevents duplicates.
+- **QR code**: encodes a signed link to `/tickets/pass?ref=…&sig=…`. The signature (HMAC with `TICKET_SIGNING_SECRET`) stops anyone forging a ticket from a guessed reference. `netlify/functions/ticket-qr.ts` serves the PNG.
+- **Ticket pass** (`/tickets/pass`): attendees see their QR code and details. Staff tap **Staff check-in**, enter `CHECKIN_PIN` once per phone, then scan tickets with the phone camera. Each scan shows **Admit N people**, and a ticket can only be admitted once; a repeat scan shows when it was first checked in. Unpaid orders are never admitted.
+
+Without `RESEND_API_KEY` and `TICKET_EMAIL_FROM`, payments still work and buyers still see their QR code on the confirmation page, but no email is sent.
+
+#### Setting up email (Resend)
+
+1. Create a free account at https://resend.com.
+2. Go to **Domains → Add domain** and add the domain you'll send from (for example `creatorshub.com`). Add the DNS records Resend shows at your domain registrar, then wait until it says **Verified**.
+3. Go to **API keys → Create API key** with **Sending access**.
+4. In Netlify, add these environment variables:
+   - `RESEND_API_KEY`: the key from step 3.
+   - `TICKET_EMAIL_FROM`: for example `Creators Hub <tickets@creatorshub.com>`, using the verified domain.
+   - `TICKET_SIGNING_SECRET`: a long random string. **Never change it after sales open**, or issued QR codes stop working.
+   - `CHECKIN_PIN`: the PIN door staff will use.
+5. Redeploy.
+
 ### Testing
 
-`npm test` runs the payment tests: price tampering, mismatched amounts and currencies, failed payments, repeated confirmations and forged webhooks. To run the functions locally, install the Netlify CLI, copy `.env.example` to `.env` with test keys, and run `netlify dev`.
+`npm test` runs the payment, email and check-in tests: price tampering, mismatched amounts and currencies, failed payments, repeated confirmations and forged webhooks. To run the functions locally, install the Netlify CLI, copy `.env.example` to `.env` with test keys, and run `netlify dev`.
 
 ## Deployment (Netlify)
 

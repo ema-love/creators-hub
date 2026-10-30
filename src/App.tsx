@@ -11,6 +11,7 @@ import { HomePage } from './pages/HomePage'
 const FirstRoomPage = lazy(() => import('./pages/FirstRoomPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const TicketConfirmationPage = lazy(() => import('./pages/TicketConfirmationPage'))
+const TicketPassPage = lazy(() => import('./pages/TicketPassPage'))
 
 export function App() {
   return (
@@ -42,6 +43,7 @@ function Shell() {
               <Route path="/" element={<HomePage />} />
               <Route path="/the-first-room" element={<FirstRoomPage />} />
               <Route path="/tickets/confirmation" element={<TicketConfirmationPage />} />
+              <Route path="/tickets/pass" element={<TicketPassPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>
