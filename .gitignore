@@ -6,3 +6,6 @@ dist
 .env
 .env.*
 !.env.example
+
+# Local preview recordings and screenshots
+website-preview
