@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { SkipForward, Volume2, VolumeX } from 'lucide-react'
 import { montage } from '../../content/media'
@@ -9,7 +9,7 @@ import { createFieldState, ParticleField, type FieldState } from './ParticleFiel
 import { IntroSound } from './introSound'
 import { MontageLayer, PossibilityLayer, RevealLayer } from './scenes'
 
-/** Mobile plays the same story in roughly 7 seconds with fewer frames and particles. */
+/** Mobile plays the same story in roughly 7 seconds with fewer particles. */
 const MOBILE_TIME_SCALE = 1.7
 
 /**
@@ -17,7 +17,7 @@ const MOBILE_TIME_SCALE = 1.7
  *
  *   0–2s   Spark        a point of light pulses; atmosphere and particles arrive
  *   2–4s   Possibility  light becomes ribbons, dimensional planes, brief words
- *   4–7s   Creators     a montage of creative disciplines
+ *   4–7s   Creators     fashion, technology, film & storytelling, arts & design
  *   7–9s   Convergence  the montage gathers into a grid and collapses into the light
  *   9–12s  Reveal       wordmark, then a hand-off to the homepage
  *
@@ -31,7 +31,7 @@ export function Intro() {
 
   // Freeze the configuration for this run so a resize mid-play does not rebuild it.
   const [config] = useState(() => ({ isMobile, reduce }))
-  const frames = useMemo(() => (config.isMobile ? montage.slice(0, 4) : montage), [config.isMobile])
+  const frames = montage
 
   const rootRef = useRef<HTMLDivElement>(null)
   const progressRef = useRef<HTMLSpanElement>(null)
@@ -197,7 +197,7 @@ function buildTimeline(state: FieldState, frameCount: number, sound: React.RefOb
   const cols = frameCount > 4 ? 3 : 2
   const rows = Math.ceil(frameCount / cols)
   tl.addLabel('converge', 7)
-    .to('.i-frame-label, .i-montage-note', { opacity: 0, duration: 0.3 }, 'converge')
+    .to('.i-frame-label', { opacity: 0, duration: 0.3 }, 'converge')
     .to(
       '.i-frame',
       {

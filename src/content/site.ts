@@ -16,9 +16,9 @@ export const nav = [
 export const hero = {
   eyebrow: 'A multidisciplinary creative organisation and community',
   // Working headline, not an approved tagline.
-  headline: ['Technology, fashion,', 'film, art, design', '& enterprise —', 'in one room.'],
+  headline: ['Fashion, technology,', 'film & storytelling,', 'arts & design —', 'in one room.'],
   statement:
-    'Creators Hub brings together the people who make things — engineers and image-makers, designers and founders, tailors and storytellers — and gives them a room to meet in.',
+    'Creators Hub brings together the people who make things — engineers and image-makers, painters and designers, tailors and storytellers — and gives them a room to meet in.',
 }
 
 export const manifesto = {
@@ -58,8 +58,10 @@ export const represents = {
   ],
 }
 
+export type DisciplineId = 'fashion' | 'technology' | 'film' | 'artdesign'
+
 export type Discipline = {
-  id: string
+  id: DisciplineId
   name: string
   line: string
   /** Angle (degrees) on the ecosystem diagram. */
@@ -67,18 +69,16 @@ export type Discipline = {
 }
 
 export const disciplines: Discipline[] = [
-  { id: 'technology', name: 'Technology', line: 'Software, hardware and the systems that shape everyday life.', angle: -90 },
-  { id: 'fashion', name: 'Fashion', line: 'Textiles, tailoring and the language of what we wear.', angle: -30 },
-  { id: 'film', name: 'Film', line: 'Moving image, sound and the craft of telling stories at scale.', angle: 30 },
-  { id: 'art', name: 'Art', line: 'Painting, sculpture, performance — work that asks questions.', angle: 90 },
-  { id: 'design', name: 'Design', line: 'Visual, product and spatial design: ideas given form.', angle: 150 },
-  { id: 'entrepreneurship', name: 'Entrepreneurship', line: 'Building the ventures that let creative work last.', angle: 210 },
+  { id: 'fashion', name: 'Fashion', line: 'Textiles, tailoring, pattern-making and the language of what we wear.', angle: -90 },
+  { id: 'technology', name: 'Technology', line: 'Software, hardware and the products that shape everyday life.', angle: 0 },
+  { id: 'film', name: 'Film & Storytelling', line: 'Moving image, sound and writing — the craft of telling stories that travel.', angle: 90 },
+  { id: 'artdesign', name: 'Arts & Design', line: 'Painting, illustration, visual and product design: ideas given form.', angle: 180 },
 ]
 
 export const disciplinesSection = {
   eyebrow: 'Disciplines & ecosystem',
-  title: 'Six starting points. One shared room.',
-  body: 'The list is not closed. Music, writing, architecture, photography and more all belong here — these are simply where the conversation begins.',
+  title: 'Four disciplines. One shared room.',
+  body: 'Fashion, technology, film and storytelling, arts and design — four ways of making, gathered around the same table.',
 }
 
 export const community = {

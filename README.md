@@ -26,7 +26,7 @@ The repository started empty. **No brand assets were supplied**, so the site use
 | Favicon / app icon | Green "spark" dot | `public/favicon.svg` |
 | Brand colours | Working references from the brief | `src/styles/index.css` `@theme` block (single source) |
 | Typography | Space Grotesk (display) + Inter (body), self-hosted | `src/styles/index.css` + `package.json` fontsource packages |
-| Photography (African creative environments, hands at work) | Abstract, labelled placeholders, each with an art-direction brief | `src/content/media.ts` → set `src`, `width`, `height` |
+| Photography (African creative environments, hands at work) | Original illustrations for each discipline (see below); a photography brief is kept for each | `src/content/media.ts` → set `src`, `width`, `height` |
 | Intro sound | Synthesised with Web Audio (no files), off by default | `src/components/intro/introSound.ts` |
 | Social share image (`og:image`) | Not set | `index.html` |
 | Contact email, social handles | Rendered as `TBC` placeholders | `src/content/site.ts` → `contact` |
@@ -58,7 +58,8 @@ src/
     brand/Wordmark.tsx    logo swap point
     intro/                cinematic opening (see below)
     layout/               Header, MobileMenu, Footer, Section, ScrollManager
-    ui/                   ArrowLink, Reveal, MaskText, MediaFrame, DisciplineGlyph, Placeholder, Marquee, Eyebrow
+    art/                  illustrations: Fashion, Technology, Film & Storytelling, Arts & Design
+    ui/                   ArrowLink, Reveal, MaskText, MediaFrame, Placeholder, Marquee, Eyebrow
     forms/Fields.tsx      editorial form fields
   sections/               one file per homepage section
   pages/                  HomePage, FirstRoomPage (/the-first-room), NotFoundPage
@@ -69,7 +70,7 @@ src/
 1. **Hero**: brand statement, pointer-following ambient light, link to the event, replay intro
 2. **Manifesto**: words brighten as you read (GSAP scrub)
 3. **What Creators Hub represents**: numbered editorial list with a sticky title
-4. **Disciplines & ecosystem**: interactive map; choosing a discipline shows its connections to all the others
+4. **Disciplines & ecosystem**: the four disciplines; choosing one brings its illustrated studio into view, with a small map showing its connections to the others
 5. **The First Room 001**: pinned scroll sequence where a doorway opens into the event (own rust-and-ink treatment)
 6. **Community & opportunities**: stated as intentions, not confirmed programmes
 7. **Volunteer**: interest form
@@ -97,14 +98,14 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 | --- | --- | --- |
 | 0–2s | Spark | A pulsing point of electric green; ambient light and depth particles (canvas) |
 | 2–4s | Possibility | Light becomes drawn ribbons and dimensional planes; "Imagine. Make. Share." |
-| 4–7s | The Creators | Montage of six disciplines (photography slots) with clip-path cuts |
+| 4–7s | The Creators | Montage of the four discipline illustrations with clip-path cuts |
 | 7–9s | Convergence | Frames gather into a grid, then collapse into the light as particles converge |
 | 9–12s | Reveal | Wordmark letters rise from a mask, rule draws, hand-off to the homepage |
 
 - The site is rendered underneath the whole time (`inert` while the intro plays). It is never a gate.
 - **Skip intro** is focused on load. **Escape** also skips. **Replay intro** is in the hero and the footer.
 - Plays once per session, homepage only.
-- **Mobile**: four frames, fewer particles, ~7s.
+- **Mobile**: fewer particles, ~7s.
 - **Reduced motion**: never autoplays. Replay runs a ~5s cross-fade-only version with static particles.
 - **Sound**: off by default, starts only from the toggle.
 - A safety timeout ends the intro if anything stalls.
@@ -121,9 +122,20 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 - Media reserves its aspect ratio (no layout shift) and lazy-loads below the fold. There are no autoplay video backgrounds.
 - Animations use transforms and opacity. The canvas caps device pixel ratio at 2.
 
+### Disciplines and illustrations
+
+Creators Hub presents four disciplines: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`). Each has an original SVG illustration in the brand palette in `src/components/art/`:
+
+- **Fashion**: an atelier with a dress form in wax-print-inspired cloth, a tape measure, swatches, pattern pieces, scissors and thread
+- **Technology**: a laptop with code, a phone prototype, a terminal and a circuit board
+- **Film & Storytelling**: a cinema camera, a clapperboard, a screenplay page and a film strip
+- **Arts & Design**: a painting on an easel, a palette and brushes, a vector artboard, a type specimen and brand swatches
+
+The illustrations are vector, so they stay sharp at any size and need no image downloads. They appear in the intro montage and the Disciplines section.
+
 ### Adding photography
 
-Export each image at about 1600px on the long edge, plus about 800px for mobile, as AVIF or WebP. Put the files in `public/media/`, then set `src`, `srcMobile`, `width` and `height` in `src/content/media.ts`. Prefer authentic, candid, art-directed photography of African creatives at work. Avoid generic stock.
+Export each image at about 1600px on the long edge, plus about 800px for mobile, as AVIF or WebP. Put the files in `public/media/`, then set `src`, `srcMobile`, `width` and `height` in `src/content/media.ts`. A photograph replaces that discipline's illustration everywhere. Prefer authentic, candid, art-directed photography of African creatives at work. Avoid generic stock.
 
 ---
 

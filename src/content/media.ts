@@ -1,21 +1,18 @@
-/**
- * Media manifest.
- *
- * No authentic photography has been supplied yet. Each entry describes the
- * art direction for an image; while `src` is null the site renders a labelled,
- * abstract placeholder instead of stock imagery.
- *
- * To add real imagery: place optimised files (AVIF/WebP, ~1600px long edge,
- * plus a ~800px variant for mobile) in /public/media and set `src` / `srcMobile`.
- * Keep `width` / `height` accurate so the layout never shifts.
- */
-export type MediaKind = 'technology' | 'fashion' | 'film' | 'art' | 'design' | 'entrepreneurship' | 'community'
+import type { DisciplineId } from './site'
 
+/**
+ * Media manifest — one entry per discipline.
+ *
+ * Each discipline is represented by an original illustration
+ * (src/components/art). To use photography instead, place optimised files
+ * (AVIF/WebP, ~1600px long edge, plus ~800px for mobile) in /public/media
+ * and set `src` / `srcMobile`. Keep `width` / `height` accurate so the
+ * layout never shifts. `direction` is the brief for that photography.
+ */
 export type MediaItem = {
   id: string
-  kind: MediaKind
+  kind: DisciplineId
   label: string
-  /** Art direction brief for the photographer / picture editor. */
   direction: string
   alt: string
   src: string | null
@@ -26,63 +23,45 @@ export type MediaItem = {
 
 export const montage: MediaItem[] = [
   {
-    id: 'fashion-hands',
+    id: 'fashion',
     kind: 'fashion',
     label: 'Fashion',
     direction: 'Close-up: hands guiding fabric through a sewing machine in a working Lagos studio. Natural light.',
-    alt: 'Hands guiding fabric through a sewing machine',
+    alt: 'A fashion atelier: a dress form draped in patterned fabric, a tape measure, pattern pieces, scissors and thread',
     src: null,
     width: 1600,
     height: 1000,
   },
   {
-    id: 'art-studio',
-    kind: 'art',
-    label: 'Art',
-    direction: 'Painter mid-stroke, paint on knuckles, canvas edge in frame. Avoid posed smiles.',
-    alt: 'A painter mid-stroke in a studio',
-    src: null,
-    width: 1600,
-    height: 1000,
-  },
-  {
-    id: 'film-set',
-    kind: 'film',
-    label: 'Film',
-    direction: 'Cinematographer’s hand on a focus ring; monitor glow on face. Real set, real crew.',
-    alt: 'A cinematographer adjusting a camera focus ring',
-    src: null,
-    width: 1600,
-    height: 1000,
-  },
-  {
-    id: 'technology-build',
+    id: 'technology',
     kind: 'technology',
     label: 'Technology',
     direction: 'Two developers pairing over a laptop and a prototype board. Candid, mid-conversation.',
-    alt: 'Two developers working together on a hardware prototype',
+    alt: 'A technology workspace: a laptop showing code, a phone app, a terminal and a circuit board',
     src: null,
     width: 1600,
     height: 1000,
   },
   {
-    id: 'design-desk',
-    kind: 'design',
-    label: 'Design',
-    direction: 'Overhead: sketches, swatches and type specimens being arranged by hand.',
-    alt: 'Hands arranging design sketches and colour swatches',
+    id: 'film',
+    kind: 'film',
+    label: 'Film & Storytelling',
+    direction: 'Cinematographer’s hand on a focus ring; monitor glow on face. Real set, real crew.',
+    alt: 'A film set: a cinema camera on a tripod, a clapperboard, a screenplay page and a strip of film',
     src: null,
     width: 1600,
     height: 1000,
   },
   {
-    id: 'enterprise-market',
-    kind: 'entrepreneurship',
-    label: 'Entrepreneurship',
-    direction: 'A founder showing a product to a customer at a market stall or pop-up. Genuine exchange.',
-    alt: 'A founder presenting a product to a customer',
+    id: 'artdesign',
+    kind: 'artdesign',
+    label: 'Arts & Design',
+    direction: 'Painter mid-stroke beside a designer arranging swatches and type specimens by hand.',
+    alt: 'An art and design studio: a painting on an easel, a palette and brushes, a vector artboard, type specimen and colour swatches',
     src: null,
     width: 1600,
     height: 1000,
   },
 ]
+
+export const mediaFor = (kind: DisciplineId) => montage.find((m) => m.kind === kind)!

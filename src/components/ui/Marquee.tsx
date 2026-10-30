@@ -4,8 +4,8 @@ import { cn } from '../../lib/cn'
 export function Marquee({ items, className }: { items: string[]; className?: string }) {
   const row = (
     <div className="flex shrink-0 items-center gap-10 pr-10">
-      {items.map((item) => (
-        <span key={item} className="flex items-center gap-10">
+      {items.map((item, i) => (
+        <span key={`${item}-${i}`} className="flex items-center gap-10">
           <span>{item}</span>
           <span aria-hidden="true" className="h-2 w-2 rounded-full bg-current opacity-40" />
         </span>

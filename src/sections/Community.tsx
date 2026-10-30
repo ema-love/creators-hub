@@ -9,7 +9,7 @@ export function Community() {
   return (
     <Section id="community" surface="light" aria-labelledby="community-title" className="overflow-hidden pb-28 md:pb-40">
       <Marquee
-        items={[...disciplines.map((d) => d.name), 'Music', 'Writing', 'Photography', 'Architecture']}
+        items={[...disciplines, ...disciplines].map((d) => d.name)}
         className="border-b border-ink/10 py-6 font-display text-title font-medium text-forest"
       />
 

@@ -57,9 +57,8 @@ export function PossibilityLayer() {
   )
 }
 
-/** Scene 3 — The Creators: a montage of disciplines (photography slots). */
+/** Scene 3 — The Creators: a montage of the four disciplines. */
 export function MontageLayer({ frames }: { frames: MediaItem[] }) {
-  const hasPlaceholders = frames.some((f) => !f.src)
   return (
     <div className="i-montage absolute inset-0 opacity-0" aria-hidden="true">
       <div className="absolute inset-x-[5vw] inset-y-[14vh] md:inset-x-[8vw] md:inset-y-[12vh]">
@@ -70,10 +69,10 @@ export function MontageLayer({ frames }: { frames: MediaItem[] }) {
             style={{ zIndex: i + 1, clipPath: 'inset(50% 0% 50% 0%)' }}
           >
             <div className="i-frame-media absolute inset-0">
-              <MediaFrame item={item} bare fill priority className="h-full w-full" />
+              <MediaFrame item={item} fill priority className="h-full w-full" />
             </div>
             <div className="i-frame-label absolute inset-x-0 bottom-0 flex items-end justify-between p-5 text-cream md:p-8">
-              <span className="font-display text-headline font-medium mix-blend-difference">{item.label}</span>
+              <span className="font-display text-headline font-medium drop-shadow-[0_2px_16px_rgba(0,0,0,0.6)]">{item.label}</span>
               <span className="eyebrow tabular-nums opacity-80">
                 {String(i + 1).padStart(2, '0')} / {String(frames.length).padStart(2, '0')}
               </span>
@@ -81,11 +80,6 @@ export function MontageLayer({ frames }: { frames: MediaItem[] }) {
           </div>
         ))}
       </div>
-      {hasPlaceholders && (
-        <p className="i-montage-note eyebrow absolute bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.625rem] text-silver/70">
-          Imagery placeholders — authentic photography to follow
-        </p>
-      )}
     </div>
   )
 }

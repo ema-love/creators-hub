@@ -15,7 +15,7 @@ export const firstRoom = {
   city: 'Lagos',
   country: 'Nigeria',
   direction:
-    'A multidisciplinary conference bringing together people across technology, arts, fashion, design, film, entrepreneurship and other creative disciplines.',
+    'A multidisciplinary conference bringing together people across fashion, technology, film and storytelling, arts and design.',
   intro:
     'The inaugural Creators Hub gathering. One day, one room, every discipline at the same table.',
 

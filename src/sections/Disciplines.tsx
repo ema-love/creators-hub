@@ -1,29 +1,22 @@
 import { useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { disciplines, disciplinesSection, type Discipline } from '../content/site'
+import { mediaFor } from '../content/media'
 import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { MaskText } from '../components/ui/MaskText'
-import { DisciplineGlyph } from '../components/ui/DisciplineGlyph'
-import type { MediaKind } from '../content/media'
+import { MediaFrame } from '../components/ui/MediaFrame'
 import { ease } from '../lib/motion'
 import { cn } from '../lib/cn'
 
-const C = 300
-const R = 205
-
-function point(angle: number, radius = R) {
-  const a = (angle * Math.PI) / 180
-  return { x: C + Math.cos(a) * radius, y: C + Math.sin(a) * radius }
-}
-
 /**
- * Ecosystem map. Choosing a discipline shows that it connects to every other
- * one through the centre — the idea of Creators Hub as a diagram.
+ * Four disciplines. Choosing one brings its studio into view; the small map
+ * shows it connected to every other discipline through Creators Hub.
  */
 export function Disciplines() {
   const [activeId, setActiveId] = useState(disciplines[0]!.id)
   const active = disciplines.find((d) => d.id === activeId) ?? disciplines[0]!
+  const reduce = useReducedMotion()
 
   return (
     <Section id="disciplines" surface="forest" aria-labelledby="disciplines-title" className="overflow-hidden py-28 md:py-40">
@@ -38,7 +31,7 @@ export function Disciplines() {
           <p className="text-cream/75 md:col-span-4 md:col-start-9">{disciplinesSection.body}</p>
         </div>
 
-        <div className="mt-16 grid gap-12 md:mt-24 md:grid-cols-12 md:items-center">
+        <div className="mt-16 grid gap-10 md:mt-24 md:grid-cols-12 md:items-center md:gap-12">
           <ul className="md:col-span-5" aria-label="Disciplines">
             {disciplines.map((d, i) => {
               const isActive = d.id === activeId
@@ -50,7 +43,7 @@ export function Disciplines() {
                     onClick={() => setActiveId(d.id)}
                     onMouseEnter={() => setActiveId(d.id)}
                     onFocus={() => setActiveId(d.id)}
-                    className="group flex w-full items-baseline gap-5 py-4 text-left md:py-5"
+                    className="group flex w-full items-baseline gap-5 py-5 text-left md:py-6"
                   >
                     <span className={cn('w-6 font-display text-xs tabular-nums transition-colors', isActive ? 'text-electric' : 'text-cream/50')}>
                       {String(i + 1).padStart(2, '0')}
@@ -73,7 +66,7 @@ export function Disciplines() {
                         exit={{ height: 0, opacity: 0 }}
                         transition={{ duration: 0.5, ease: ease.out }}
                       >
-                        <span className="block pb-5">{d.line}</span>
+                        <span className="block pb-6">{d.line}</span>
                       </motion.p>
                     )}
                   </AnimatePresence>
@@ -82,57 +75,56 @@ export function Disciplines() {
             })}
           </ul>
 
-          <div className="md:col-span-7">
-            <EcosystemMap active={active} />
-          </div>
+          <figure className="md:col-span-7">
+            <div className="relative aspect-[16/10] overflow-hidden rounded-[4px] bg-ink shadow-[0_40px_80px_-30px_rgba(0,0,0,0.6)]">
+              <AnimatePresence initial={false}>
+                <motion.div
+                  key={active.id}
+                  className="absolute inset-0"
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 1.06, clipPath: 'inset(0% 0% 0% 100%)' }}
+                  animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, clipPath: 'inset(0% 0% 0% 0%)' }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.9, ease: ease.out }}
+                >
+                  <MediaFrame item={mediaFor(active.id)} fill className="h-full w-full" />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            <figcaption className="mt-4 flex items-center justify-between gap-4 text-sm text-cream/60">
+              <span className="flex items-center gap-4">
+                <EcosystemMap active={active} />
+                <span>{active.name}</span>
+              </span>
+              <span className="tabular-nums">
+                {String(disciplines.indexOf(active) + 1).padStart(2, '0')} / {String(disciplines.length).padStart(2, '0')}
+              </span>
+            </figcaption>
+          </figure>
         </div>
       </div>
     </Section>
   )
 }
 
+const C = 60
+const R = 40
+
+function point(angle: number) {
+  const a = (angle * Math.PI) / 180
+  return { x: C + Math.cos(a) * R, y: C + Math.sin(a) * R }
+}
+
+/** Compact ecosystem map: every discipline linked through the centre and to each other. */
 function EcosystemMap({ active }: { active: Discipline }) {
-  const reduce = useReducedMotion()
-  const draw = (delay: number) =>
-    reduce
-      ? {}
-      : {
-          initial: { pathLength: 0, opacity: 0 },
-          whileInView: { pathLength: 1, opacity: 1 },
-          viewport: { once: true, margin: '-15%' },
-          transition: { duration: 1.4, ease: ease.out, delay },
-        }
-
-  const activePoint = point(active.angle)
-
+  const ap = point(active.angle)
   return (
-    <figure className="relative mx-auto aspect-square w-full max-w-[38rem]">
-      <svg viewBox="0 0 600 600" className="h-full w-full overflow-visible" role="img" aria-labelledby="eco-desc">
-        <desc id="eco-desc">
-          Diagram: six disciplines arranged in a circle around Creators Hub, each connected to the centre and to one
-          another. Currently highlighted: {active.name}.
-        </desc>
-
-        <motion.circle cx={C} cy={C} r={R} fill="none" stroke="rgba(245,240,232,0.18)" {...draw(0)} />
-        <motion.circle cx={C} cy={C} r={R * 0.48} fill="none" stroke="rgba(245,240,232,0.1)" strokeDasharray="2 6" {...draw(0.2)} />
-
-        {/* Spokes */}
-        {disciplines.map((d, i) => {
+    <div className="shrink-0">
+      <svg viewBox="0 0 120 120" className="h-14 w-14 md:h-16 md:w-16" role="img" aria-label={`${active.name}, connected to every other discipline through Creators Hub`}>
+        <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(245,240,232,0.2)" />
+        {disciplines.map((d) => {
           const p = point(d.angle)
-          return (
-            <motion.line
-              key={`spoke-${d.id}`}
-              x1={C}
-              y1={C}
-              x2={p.x}
-              y2={p.y}
-              stroke="rgba(245,240,232,0.22)"
-              {...draw(0.3 + i * 0.06)}
-            />
-          )
+          return <line key={`s-${d.id}`} x1={C} y1={C} x2={p.x} y2={p.y} stroke="rgba(245,240,232,0.25)" />
         })}
-
-        {/* Cross-connections from the active discipline to every other */}
         {disciplines
           .filter((d) => d.id !== active.id)
           .map((d) => {
@@ -140,73 +132,34 @@ function EcosystemMap({ active }: { active: Discipline }) {
             return (
               <motion.line
                 key={`${active.id}-${d.id}`}
-                x1={activePoint.x}
-                y1={activePoint.y}
+                x1={ap.x}
+                y1={ap.y}
                 x2={p.x}
                 y2={p.y}
                 stroke="#00E5A0"
-                strokeWidth={1}
-                initial={reduce ? { opacity: 0.55 } : { pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.55 }}
-                transition={{ duration: 0.7, ease: ease.out }}
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.6, ease: ease.out }}
               />
             )
           })}
-
-        {/* Centre */}
-        <circle cx={C} cy={C} r={46} fill="#0A0A0A" stroke="#00E5A0" strokeOpacity={0.6} />
-        <text x={C} y={C - 4} textAnchor="middle" className="fill-cream font-display text-[13px] font-semibold tracking-[-0.02em]">
-          Creators
-        </text>
-        <text x={C} y={C + 13} textAnchor="middle" className="fill-cream font-display text-[13px] font-semibold tracking-[-0.02em]">
-          Hub
-        </text>
-
-        {/* Nodes */}
+        <circle cx={C} cy={C} r={9} fill="#0A0A0A" stroke="#00E5A0" />
         {disciplines.map((d) => {
           const p = point(d.angle)
-          const label = point(d.angle, R + 44)
-          const isActive = d.id === active.id
+          const on = d.id === active.id
           return (
-            <g key={d.id}>
-              <motion.circle
-                cx={p.x}
-                cy={p.y}
-                fill={isActive ? '#00E5A0' : '#1A4A3A'}
-                stroke={isActive ? '#00E5A0' : 'rgba(245,240,232,0.5)'}
-                animate={{ r: isActive ? 11 : 6 }}
-                transition={{ duration: 0.5, ease: ease.out }}
-              />
-              <text
-                x={label.x}
-                y={label.y + 4}
-                textAnchor="middle"
-                className={cn(
-                  'font-display text-[19px] transition-[fill] duration-500 md:text-[14px]',
-                  isActive ? 'fill-cream' : 'fill-cream/50',
-                )}
-              >
-                {d.name}
-              </text>
-            </g>
+            <motion.circle
+              key={d.id}
+              cx={p.x}
+              cy={p.y}
+              fill={on ? '#00E5A0' : '#1A4A3A'}
+              stroke={on ? '#00E5A0' : 'rgba(245,240,232,0.6)'}
+              animate={{ r: on ? 7 : 4.5 }}
+              transition={{ duration: 0.4, ease: ease.out }}
+            />
           )
         })}
       </svg>
-
-      <div className="pointer-events-none absolute right-0 bottom-0 h-24 w-36 text-electric/70 md:h-28 md:w-44" aria-hidden="true">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={active.id}
-            className="h-full w-full"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.4, ease: ease.out }}
-          >
-            <DisciplineGlyph kind={active.id as MediaKind} className="h-full w-full" />
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </figure>
+    </div>
   )
 }
