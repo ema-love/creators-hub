@@ -186,18 +186,15 @@ function buildTimeline(state: FieldState, frameCount: number, sound: React.RefOb
   gsap.utils.toArray<HTMLElement>('.i-frame').forEach((frame, i) => {
     const at = 4 + i * step
     const media = frame.querySelector('.i-frame-media')
-    const label = frame.querySelector('.i-frame-label')
     tl.call(cue('cut'), [], at)
       .to(frame, { clipPath: 'inset(0% 0% 0% 0%)', duration: Math.min(0.55, step * 0.9), ease: 'power4.inOut' }, at)
-      .fromTo(media, { scale: 1.18 }, { scale: 1, duration: step + 0.6, ease: 'power2.out' }, at)
-      .fromTo(label, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5 }, at + 0.15)
+      .fromTo(media, { scale: 1.06 }, { scale: 1, duration: step + 0.6, ease: 'power2.out' }, at)
   })
 
   // ——— Scene 4: Convergence (7–9s) ———
   const cols = frameCount > 4 ? 3 : 2
   const rows = Math.ceil(frameCount / cols)
   tl.addLabel('converge', 7)
-    .to('.i-frame-label', { opacity: 0, duration: 0.3 }, 'converge')
     .to(
       '.i-frame',
       {

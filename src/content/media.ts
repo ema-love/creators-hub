@@ -1,19 +1,24 @@
 import type { DisciplineId } from './site'
+import fashion from '../assets/disciplines/fashion.webp'
+import fashionSm from '../assets/disciplines/fashion-960.webp'
+import technology from '../assets/disciplines/technology.webp'
+import technologySm from '../assets/disciplines/technology-960.webp'
+import film from '../assets/disciplines/film.webp'
+import filmSm from '../assets/disciplines/film-960.webp'
+import artdesign from '../assets/disciplines/artdesign.webp'
+import artdesignSm from '../assets/disciplines/artdesign-960.webp'
 
 /**
- * Media manifest — one entry per discipline.
+ * Media manifest — one moodboard per discipline, supplied by Creators Hub.
  *
- * Each discipline is represented by an original illustration
- * (src/components/art). To use photography instead, place optimised files
- * (AVIF/WebP, ~1600px long edge, plus ~800px for mobile) in /public/media
- * and set `src` / `srcMobile`. Keep `width` / `height` accurate so the
- * layout never shifts. `direction` is the brief for that photography.
+ * To replace one, add an optimised WebP (1536×1024 plus a 960×640 phone
+ * version) to src/assets/disciplines and update the imports above. Keep
+ * `width` / `height` accurate so the layout never shifts.
  */
 export type MediaItem = {
   id: string
   kind: DisciplineId
   label: string
-  direction: string
   alt: string
   src: string | null
   srcMobile?: string | null
@@ -26,41 +31,41 @@ export const montage: MediaItem[] = [
     id: 'fashion',
     kind: 'fashion',
     label: 'Fashion',
-    direction: 'Close-up: hands guiding fabric through a sewing machine in a working Lagos studio. Natural light.',
-    alt: 'A fashion atelier: a dress form draped in patterned fabric, a tape measure, pattern pieces, scissors and thread',
-    src: null,
-    width: 1600,
-    height: 1000,
+    alt: 'Fashion moodboard: portraits, a runway, a designer’s studio wall, green silk and gold jewellery — style, identity and culture in motion',
+    src: fashion,
+    srcMobile: fashionSm,
+    width: 1536,
+    height: 1024,
   },
   {
     id: 'technology',
     kind: 'technology',
     label: 'Technology',
-    direction: 'Two developers pairing over a laptop and a prototype board. Candid, mid-conversation.',
-    alt: 'A technology workspace: a laptop showing code, a phone app, a terminal and a circuit board',
-    src: null,
-    width: 1600,
-    height: 1000,
+    alt: 'Technology moodboard: young African developers coding and collaborating, a product-planning sketch and a city skyline — building tools for creative futures',
+    src: technology,
+    srcMobile: technologySm,
+    width: 1536,
+    height: 1024,
   },
   {
     id: 'film',
     kind: 'film',
     label: 'Film & Storytelling',
-    direction: 'Cinematographer’s hand on a focus ring; monitor glow on face. Real set, real crew.',
-    alt: 'A film set: a cinema camera on a tripod, a clapperboard, a screenplay page and a strip of film',
-    src: null,
-    width: 1600,
-    height: 1000,
+    alt: 'Film & Storytelling moodboard: a camera operator on set, a clapperboard dated Lagos, a sound recordist, an editor at work and a script — voices, perspectives and new narratives',
+    src: film,
+    srcMobile: filmSm,
+    width: 1536,
+    height: 1024,
   },
   {
     id: 'artdesign',
     kind: 'artdesign',
     label: 'Arts & Design',
-    direction: 'Painter mid-stroke beside a designer arranging swatches and type specimens by hand.',
-    alt: 'An art and design studio: a painting on an easel, a palette and brushes, a vector artboard, type specimen and colour swatches',
-    src: null,
-    width: 1600,
-    height: 1000,
+    alt: 'Arts & Design moodboard: a painter at a large canvas, sketches, a palette knife on green paint and a designer drawing — ideas, expression and creative practice',
+    src: artdesign,
+    srcMobile: artdesignSm,
+    width: 1536,
+    height: 1024,
   },
 ]
 

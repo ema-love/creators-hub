@@ -26,7 +26,7 @@ The repository started empty. **No brand assets were supplied**, so the site use
 | Favicon / app icon | Green "spark" dot | `public/favicon.svg` |
 | Brand colours | Working references from the brief | `src/styles/index.css` `@theme` block (single source) |
 | Typography | Space Grotesk (display) + Inter (body), self-hosted | `src/styles/index.css` + `package.json` fontsource packages |
-| Photography (African creative environments, hands at work) | Original illustrations for each discipline (see below); a photography brief is kept for each | `src/content/media.ts` → set `src`, `width`, `height` |
+| Discipline imagery | Supplied: one moodboard per discipline (see below) | `src/assets/disciplines/` + `src/content/media.ts` |
 | Intro sound | Synthesised with Web Audio (no files), off by default | `src/components/intro/introSound.ts` |
 | Social share image (`og:image`) | Not set | `index.html` |
 | Contact email, social handles | Rendered as `TBC` placeholders | `src/content/site.ts` → `contact` |
@@ -47,7 +47,7 @@ src/
   content/                ALL copy and data (no copy hard-coded in components)
     site.ts               nav, hero, manifesto, sections, contact
     event.ts              The First Room (confirmed vs. unconfirmed fields)
-    media.ts              photography manifest + art direction
+    media.ts              discipline moodboards (imports, alt text, sizes)
     forms.ts              Netlify form names
   lib/
     motion.ts             easing/duration tokens: the motion language
@@ -58,7 +58,6 @@ src/
     brand/Wordmark.tsx    logo swap point
     intro/                cinematic opening (see below)
     layout/               Header, MobileMenu, Footer, Section, ScrollManager
-    art/                  illustrations: Fashion, Technology, Film & Storytelling, Arts & Design
     ui/                   ArrowLink, Reveal, MaskText, MediaFrame, Placeholder, Marquee, Eyebrow
     forms/Fields.tsx      editorial form fields
   sections/               one file per homepage section
@@ -98,7 +97,7 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 | --- | --- | --- |
 | 0–2s | Spark | A pulsing point of electric green; ambient light and depth particles (canvas) |
 | 2–4s | Possibility | Light becomes drawn ribbons and dimensional planes; "Imagine. Make. Share." |
-| 4–7s | The Creators | Montage of the four discipline illustrations with clip-path cuts |
+| 4–7s | The Creators | Montage of the four discipline moodboards with clip-path cuts |
 | 7–9s | Convergence | Frames gather into a grid, then collapse into the light as particles converge |
 | 9–12s | Reveal | Wordmark letters rise from a mask, rule draws, hand-off to the homepage |
 
@@ -122,20 +121,20 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 - Media reserves its aspect ratio (no layout shift) and lazy-loads below the fold. There are no autoplay video backgrounds.
 - Animations use transforms and opacity. The canvas caps device pixel ratio at 2.
 
-### Disciplines and illustrations
+### Disciplines and moodboards
 
-Creators Hub presents four disciplines: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`). Each has an original SVG illustration in the brand palette in `src/components/art/`:
+Creators Hub presents four disciplines: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`). Each is represented by a moodboard supplied by Creators Hub, stored in `src/assets/disciplines/`:
 
-- **Fashion**: an atelier with a dress form in wax-print-inspired cloth, a tape measure, swatches, pattern pieces, scissors and thread
-- **Technology**: a laptop with code, a phone prototype, a terminal and a circuit board
-- **Film & Storytelling**: a cinema camera, a clapperboard, a screenplay page and a film strip
-- **Arts & Design**: a painting on an easel, a palette and brushes, a vector artboard, a type specimen and brand swatches
+| File | Discipline |
+| --- | --- |
+| `fashion.webp` | Fashion: style, identity and culture in motion |
+| `technology.webp` | Technology: building tools for creative futures |
+| `film.webp` | Film & Storytelling: voices, perspectives and new narratives |
+| `artdesign.webp` | Arts & Design: ideas, expression and creative practice |
 
-The illustrations are vector, so they stay sharp at any size and need no image downloads. They appear in the intro montage and the Disciplines section.
+Each has a 1536×1024 version and a 960×640 version for phones; the browser picks the right one. They appear in the intro montage and the Disciplines section.
 
-### Adding photography
-
-Export each image at about 1600px on the long edge, plus about 800px for mobile, as AVIF or WebP. Put the files in `public/media/`, then set `src`, `srcMobile`, `width` and `height` in `src/content/media.ts`. A photograph replaces that discipline's illustration everywhere. Prefer authentic, candid, art-directed photography of African creatives at work. Avoid generic stock.
+To replace a board, export it at 1536×1024 (3:2) as WebP at about 80% quality, add a 960×640 copy named `<name>-960.webp`, and keep the same file names. Update the alt text in `src/content/media.ts` to describe the new image.
 
 ---
 

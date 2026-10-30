@@ -32,7 +32,7 @@ export function Disciplines() {
         </div>
 
         <div className="mt-16 grid gap-10 md:mt-24 md:grid-cols-12 md:items-center md:gap-12">
-          <ul className="md:col-span-5" aria-label="Disciplines">
+          <ul className="md:col-span-4" aria-label="Disciplines">
             {disciplines.map((d, i) => {
               const isActive = d.id === activeId
               return (
@@ -50,7 +50,7 @@ export function Disciplines() {
                     </span>
                     <span
                       className={cn(
-                        'font-display text-[clamp(1.75rem,3.4vw,3rem)] font-medium leading-none tracking-[-0.03em] transition-all duration-500 ease-[var(--ease-out-expo)]',
+                        'font-display text-[clamp(1.75rem,2.8vw,2.5rem)] font-medium leading-none tracking-[-0.03em] transition-all duration-500 ease-[var(--ease-out-expo)]',
                         isActive ? 'translate-x-2 text-cream' : 'text-cream/45 group-hover:text-cream/80',
                       )}
                     >
@@ -75,8 +75,8 @@ export function Disciplines() {
             })}
           </ul>
 
-          <figure className="md:col-span-7">
-            <div className="relative aspect-[16/10] overflow-hidden rounded-[4px] bg-ink shadow-[0_40px_80px_-30px_rgba(0,0,0,0.6)]">
+          <figure className="md:col-span-8">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-[6px] bg-cream shadow-[0_40px_80px_-30px_rgba(0,0,0,0.6)]">
               <AnimatePresence initial={false}>
                 <motion.div
                   key={active.id}
@@ -86,7 +86,7 @@ export function Disciplines() {
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.9, ease: ease.out }}
                 >
-                  <MediaFrame item={mediaFor(active.id)} fill className="h-full w-full" />
+                  <MediaFrame item={mediaFor(active.id)} fill sizes="(min-width: 768px) 62vw, 92vw" className="h-full w-full" />
                 </motion.div>
               </AnimatePresence>
             </div>
