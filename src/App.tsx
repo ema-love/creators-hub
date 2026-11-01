@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router'
+import { Navigate, Route, Routes } from 'react-router'
 import { AnimatePresence, MotionConfig } from 'motion/react'
 import { IntroProvider, useIntro } from './components/intro/IntroContext'
 import { Intro } from './components/intro/Intro'
@@ -15,7 +15,7 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const TicketConfirmationPage = lazy(() => import('./pages/TicketConfirmationPage'))
 const TicketVerifyPage = lazy(() => import('./pages/TicketVerifyPage'))
 const TicketOrderPage = lazy(() => import('./pages/TicketOrderPage'))
-const StaffCheckInPage = lazy(() => import('./pages/StaffCheckInPage'))
+const StaffPage = lazy(() => import('./pages/StaffPage'))
 const FindTicketsPage = lazy(() => import('./pages/FindTicketsPage'))
 
 export function App() {
@@ -52,7 +52,8 @@ function Shell() {
               <Route path="/tickets/confirmation" element={<TicketConfirmationPage />} />
               <Route path="/v/:token" element={<TicketVerifyPage />} />
               <Route path="/tickets/order" element={<TicketOrderPage />} />
-              <Route path="/tickets/check-in" element={<StaffCheckInPage />} />
+              <Route path="/staff" element={<StaffPage />} />
+              <Route path="/tickets/check-in" element={<Navigate to="/staff" replace />} />
               <Route path="/tickets/find" element={<FindTicketsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>

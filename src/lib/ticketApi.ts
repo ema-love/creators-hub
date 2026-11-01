@@ -54,3 +54,32 @@ export const staffPin = {
 
 export const formatTime = (iso: string) =>
   new Date(iso).toLocaleString('en-GB', { hour: '2-digit', minute: '2-digit', day: 'numeric', month: 'short' })
+
+export type StaffSummary = {
+  totals: { issued: number; checkedIn: number }
+  byCategory: Record<'regular' | 'premium', { issued: number; checkedIn: number }>
+  byDesign: Array<{ id: TicketDesignId; name: string; issued: number; checkedIn: number }>
+  recent: Array<{ id: string; attendeeName: string; design: TicketDesignId; category: TicketTierId; checkedInAt: string }>
+  generatedAt: string
+}
+
+export async function fetchStaffSummary(pin: string): Promise<StaffSummary> {
+  const res = await fetch('/.netlify/functions/staff-summary', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ pin }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (res.status === 401 || res.status === 429) throw new StaffAuthError(data.error ?? 'Incorrect staff PIN.')
+  if (!res.ok) throw new Error(data.error ?? 'Couldn’t load the numbers.')
+  return data as StaffSummary
+}
+
+/** Reads what a scanned QR contains: a ticket link (…/v/<token>) or a typed ticket ID. */
+export function parseScan(text: string): { token: string } | { ticketId: string } | null {
+  const trimmed = text.trim()
+  const link = trimmed.match(/\/v\/([A-Za-z0-9_-]{16,64})(?:[?#].*)?$/)
+  if (link) return { token: link[1]! }
+  if (/^CH001-[FATS]-\d{4}$/i.test(trimmed)) return { ticketId: trimmed.toUpperCase() }
+  return null
+}

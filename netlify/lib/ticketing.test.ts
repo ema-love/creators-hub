@@ -6,6 +6,7 @@ import { memoryKv } from './kv'
 import type { Order, OrderStore } from './orders'
 import { findTicketSlot, issueTickets, ticketsForOrder, type Ticket } from './tickets'
 import { verifyTicket } from './verifyTicket'
+import { staffSummary } from './staffSummary'
 
 const paid: Order = {
   txRef: 'CH001-PAID',
@@ -246,5 +247,30 @@ describe('ticketsForOrder', () => {
     const kv = memoryKv()
     const issued = await issueTickets(kv, paid)
     expect(await ticketsForOrder(kv, paid)).toEqual(issued)
+  })
+})
+
+describe('staffSummary', () => {
+  it('counts tickets and check-ins by category and arm, newest arrivals first', async () => {
+    const kv = memoryKv()
+    const orders = orderStore([paid])
+    const tickets = await issueTickets(kv, paid)
+    await issueTickets(kv, { ...paid, txRef: 'CH001-REG', tier: 'regular', attendees: [{ name: 'Kemi A', design: 'technology' }] })
+    await verifyTicket(kv, orders, { token: tickets[1]!.token, pin: 'p', admit: true }, { staffPin: 'p' }, new Date('2026-12-19T14:00:00Z'))
+    await verifyTicket(kv, orders, { token: tickets[0]!.token, pin: 'p', admit: true }, { staffPin: 'p' }, new Date('2026-12-19T14:10:00Z'))
+    const s = await staffSummary(kv)
+    expect(s.totals).toEqual({ issued: 4, checkedIn: 2 })
+    expect(s.byCategory).toEqual({ premium: { issued: 3, checkedIn: 2 }, regular: { issued: 1, checkedIn: 0 } })
+    expect(s.byDesign.find((d) => d.id === 'fashion')).toMatchObject({ issued: 2, checkedIn: 1 })
+    expect(s.byDesign.find((d) => d.id === 'film')).toMatchObject({ issued: 1, checkedIn: 1 })
+    expect(s.recent.map((r) => r.id)).toEqual([tickets[0]!.id, tickets[1]!.id])
+  })
+
+  it('leaves out void tickets', async () => {
+    const kv = memoryKv()
+    await issueTickets(kv, paid)
+    const slot = (await kv.get<Ticket>('slot/CH001-PAID/0'))!
+    await kv.put('slot/CH001-PAID/0', { ...slot, status: 'void' })
+    expect((await staffSummary(kv)).totals.issued).toBe(2)
   })
 })

@@ -1,5 +1,5 @@
-import { timingSafeEqual } from 'node:crypto'
 import { claim, type Kv } from './kv'
+import { checkStaffPin } from './staffAuth'
 import type { OrderStore } from './orders'
 import { findTicketSlot, publicView, withCheckIn, type Ticket, type TicketView } from './tickets'
 
@@ -18,15 +18,6 @@ export type VerifyResult =
   | { ok: true; outcome: VerifyOutcome; staff: boolean; ticket: TicketView | null }
   | { ok: false; status: number; error: string }
 
-const MAX_PIN_FAILURES = 8
-const WINDOW_MS = 15 * 60 * 1000
-
-function pinMatches(pin: string, staffPin: string) {
-  const a = Buffer.from(pin)
-  const b = Buffer.from(staffPin)
-  return staffPin.length > 0 && a.length === b.length && timingSafeEqual(a, b)
-}
-
 /**
  * Checks a ticket. A ticket is valid only if its record exists, it has not
  * been voided, and its order's payment is confirmed. Staff (correct PIN) may
@@ -41,13 +32,8 @@ export async function verifyTicket(
 ): Promise<VerifyResult> {
   const staff = Boolean(req.pin)
   if (staff) {
-    const bucket = `pinfail/${req.clientId ?? 'unknown'}/${Math.floor(now.getTime() / WINDOW_MS)}`
-    const fails = (await kv.get<{ n: number }>(bucket))?.n ?? 0
-    if (fails >= MAX_PIN_FAILURES) return { ok: false, status: 429, error: 'Too many attempts. Try again in 15 minutes.' }
-    if (!pinMatches(req.pin!, staffPin)) {
-      await kv.put(bucket, { n: fails + 1 })
-      return { ok: false, status: 401, error: 'Incorrect staff PIN.' }
-    }
+    const auth = await checkStaffPin(kv, req.pin, { staffPin, clientId: req.clientId, now })
+    if (!auth.ok) return auth
   }
   if (req.ticketId && !staff) return { ok: false, status: 401, error: 'Staff PIN required.' }
 

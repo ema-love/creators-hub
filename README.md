@@ -181,8 +181,18 @@ ticket ID (`CH001-F-0001`; the letter is the design: F, A, T, S), attendee name,
 **QR codes and check-in.**
 - The QR encodes `/v/<token>`. The token is random and stored with the ticket, so a code can't be guessed or forged, and a screenshot of a ticket is only as good as its live record.
 - Scanning opens the verification page, which asks the server for the ticket's current state: **Valid**, **Already checked in at …**, **Invalid** (unknown, forged or void) or **Awaiting payment confirmation**.
-- Staff sign in with `CHECKIN_PIN` (at `/tickets/check-in`, or "Staff check-in" on any ticket page). Signed in, a scan shows a large verdict and an **Admit** button. Each ticket can be admitted once: the first scan creates its check-in record, and every later or simultaneous scan sees "Already checked in". Staff can also type a ticket ID when a code won't scan.
+- Each ticket can be admitted once: the first scan creates its check-in record, and every later or simultaneous scan sees "Already checked in".
 - Repeated wrong PINs lock that device out for 15 minutes.
+
+### Staff area (`/staff`)
+
+Door staff sign in once per device with `CHECKIN_PIN` (linked as "Staff" in the footer; `/tickets/check-in` also leads here). Three tools:
+
+- **Scan**: the phone's camera opens inside the page and reads ticket QR codes continuously (jsQR, so it works on iPhone and Android). Each scan shows a large verdict (Valid, Already checked in, Invalid, Awaiting payment) with the attendee's name, arm and category, an **Admit** button and **Scan next ticket**. Optional "Admit automatically on scan" for fast queues. The phone vibrates on each result where supported. Camera access needs HTTPS, which Netlify provides.
+- **Look up**: type a ticket ID (e.g. `CH001-F-0001`) when a code is damaged or a phone is dead.
+- **Overview**: checked in vs sold, by Regular/Premium and by creative arm, plus the latest arrivals. Refreshes every 20 seconds (`netlify/functions/staff-summary.ts`, staff PIN required).
+
+Scanning a ticket with an ordinary camera app still works too: it opens the ticket's page, which shows staff an **Admit** button once they're signed in on that phone.
 
 **Delivery and access.**
 - The confirmation page shows the designed tickets once payment is verified.

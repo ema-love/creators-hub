@@ -11,6 +11,8 @@ export type Kv = {
   /** Writes only if the key does not exist yet. Returns false if it did. */
   create<T>(key: string, value: T): Promise<boolean>
   put<T>(key: string, value: T): Promise<void>
+  /** All keys starting with a prefix. */
+  list(prefix: string): Promise<string[]>
 }
 
 /**
@@ -35,6 +37,7 @@ export function blobKv(name: string): Kv {
     put: async (key, value) => {
       await store.setJSON(key, value)
     },
+    list: async (prefix) => (await store.list({ prefix })).blobs.map((b) => b.key),
   }
 }
 
@@ -57,6 +60,10 @@ export function memoryKv(): Kv & { data: Map<string, unknown> } {
     async put(key, value) {
       await tick()
       data.set(key, structuredClone(value))
+    },
+    async list(prefix) {
+      await tick()
+      return [...data.keys()].filter((k) => k.startsWith(prefix))
     },
   }
 }

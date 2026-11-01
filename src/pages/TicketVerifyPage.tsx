@@ -147,8 +147,8 @@ export function StaffPanel({
           <ShieldCheck className="h-4 w-4 text-electric" aria-hidden="true" /> Staff check-in mode
         </span>
         <span className="flex gap-5">
-          <Link to="/tickets/check-in" className="link-draw hover:text-cream">
-            Look up by ID
+          <Link to="/staff" className="link-draw hover:text-cream">
+            Staff area
           </Link>
           <button type="button" onClick={onSignOut} className="link-draw hover:text-cream">
             Sign out

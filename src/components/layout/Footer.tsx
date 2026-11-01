@@ -64,10 +64,15 @@ export function Footer() {
 
         <div className="mt-10 flex flex-col gap-4 border-t hairline pt-6 text-sm text-silver sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Creators Hub. All rights reserved.</p>
+          <span className="flex items-center gap-6">
+          <Link to="/staff" className="link-draw hover:text-cream">
+            Staff
+          </Link>
           <button type="button" onClick={play} className="group inline-flex items-center gap-2 self-start hover:text-cream">
             <RotateCcw className="h-4 w-4 transition-transform duration-700 group-hover:-rotate-[360deg]" aria-hidden="true" />
             <span className="link-draw">Replay intro</span>
           </button>
+          </span>
         </div>
       </div>
     </footer>
