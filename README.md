@@ -155,7 +155,7 @@ Orders are stored in **Netlify Blobs** (store `ticket-orders`, keyed by the paym
 
 ### Setting prices and perks
 
-Edit `src/content/tickets.ts`. Set `price` in whole naira and replace `perks: null` with the confirmed list. While `price` is `null`, the tier shows "Price to be announced" and **cannot be bought**: the button is disabled and the server refuses the order.
+Prices live in `src/content/tickets.ts`: **Regular ₦7,500** (general admission) and **Premium ₦15,000** (everything included). `price` is in whole naira and `perks` is the list shown on each ticket option. Setting a tier's `price` to `null` takes it off sale: it shows "Price to be announced", the button is disabled and the server refuses the order.
 
 ### Setup
 

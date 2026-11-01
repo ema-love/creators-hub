@@ -9,7 +9,6 @@ import { Eyebrow } from '../components/ui/Eyebrow'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { firstRoomCalendarHref } from '../lib/calendar'
 import { daysUntil } from '../lib/date'
-import { Tickets } from '../sections/Tickets'
 
 export default function FirstRoomPage() {
   useDocumentTitle(firstRoom.fullName)
@@ -51,7 +50,7 @@ export default function FirstRoomPage() {
                 <CalendarPlus className="h-4 w-4" aria-hidden="true" />
                 Save the date
               </a>
-              <ArrowLink to="/the-first-room#tickets" variant="rust">
+              <ArrowLink to="/tickets" variant="rust">
                 Get tickets
               </ArrowLink>
             </Reveal>
@@ -71,8 +70,6 @@ export default function FirstRoomPage() {
           </dl>
         </div>
       </Section>
-
-      <Tickets />
 
       <Section surface="light" aria-labelledby="event-programme" className="py-28 md:py-36">
         <div className="container-edge grid gap-16 md:grid-cols-12">
@@ -117,7 +114,7 @@ export default function FirstRoomPage() {
               )}
             </EventBlock>
             <EventBlock title="Tickets">
-              <ArrowLink to="/the-first-room#tickets" variant="text">
+              <ArrowLink to="/tickets" variant="text">
                 Regular and Premium tickets
               </ArrowLink>
             </EventBlock>

@@ -9,7 +9,8 @@ export const nav = [
   { label: 'Manifesto', href: '/#manifesto' },
   { label: 'Disciplines', href: '/#disciplines' },
   { label: 'The First Room', href: '/the-first-room' },
-  { label: 'Community', href: '/#community' },
+  { label: 'Tickets', href: '/tickets' },
+  { label: 'Volunteer', href: '/volunteer' },
   { label: 'Partner', href: '/#partner' },
 ] as const
 

@@ -165,7 +165,7 @@ function renderView(view: View, txRef: string | null) {
           <p>{view.reason} No tickets were issued for this attempt.</p>
           {txRef && <Reference value={txRef} />}
           <div className="mt-10">
-            <ArrowLink to="/the-first-room#tickets" variant="rust">
+            <ArrowLink to="/tickets" variant="rust">
               Try again
             </ArrowLink>
           </div>
@@ -176,7 +176,7 @@ function renderView(view: View, txRef: string | null) {
         <Status icon={<XCircle className="h-8 w-8 text-silver" />} title="Payment cancelled.">
           <p>No money was taken. Your tickets are still available whenever you’re ready.</p>
           <div className="mt-10">
-            <ArrowLink to="/the-first-room#tickets">Back to tickets</ArrowLink>
+            <ArrowLink to="/tickets">Back to tickets</ArrowLink>
           </div>
         </Status>
       )
@@ -186,7 +186,7 @@ function renderView(view: View, txRef: string | null) {
           <p>This link doesn’t match a ticket order. If you’ve already paid, you can get your tickets sent again.</p>
           <div className="mt-10 flex flex-wrap gap-x-8 gap-y-4">
             <ArrowLink to="/tickets/find">Find my tickets</ArrowLink>
-            <ArrowLink to="/the-first-room#tickets" variant="text">
+            <ArrowLink to="/tickets" variant="text">
               Go to tickets
             </ArrowLink>
           </div>

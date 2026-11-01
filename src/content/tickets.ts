@@ -4,10 +4,9 @@
  * This file is read by the website AND by the payment functions in
  * netlify/functions, so the price shown is always the price charged.
  *
- * Prices and perks have NOT been confirmed. While a tier's `price` is null
- * it shows "Price to be announced" and cannot be bought. To open sales, set
- * `price` (in naira, whole numbers) and replace `perks` with the confirmed
- * list, then redeploy.
+ * Prices confirmed by Creators Hub: Regular ₦7,500, Premium ₦15,000.
+ * `price` is in whole naira. Setting a tier's `price` to null takes it off
+ * sale (it shows "Price to be announced" and the server refuses orders).
  */
 export type TicketTierId = 'regular' | 'premium'
 
@@ -31,15 +30,15 @@ export const ticketTiers: TicketTier[] = [
     id: 'regular',
     name: 'Regular',
     summary: 'General admission to The First Room.',
-    perks: null,
-    price: null,
+    perks: ['General admission'],
+    price: 7500,
   },
   {
     id: 'premium',
     name: 'Premium',
-    summary: 'An elevated First Room experience.',
-    perks: null,
-    price: null,
+    summary: 'Full access to The First Room.',
+    perks: ['Everything at The First Room included'],
+    price: 15000,
   },
 ]
 

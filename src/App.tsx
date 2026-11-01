@@ -9,6 +9,8 @@ import { ScrollManager } from './components/layout/ScrollManager'
 import { HomePage } from './pages/HomePage'
 
 const FirstRoomPage = lazy(() => import('./pages/FirstRoomPage'))
+const TicketsPage = lazy(() => import('./pages/TicketsPage'))
+const VolunteerPage = lazy(() => import('./pages/VolunteerPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const TicketConfirmationPage = lazy(() => import('./pages/TicketConfirmationPage'))
 const TicketVerifyPage = lazy(() => import('./pages/TicketVerifyPage'))
@@ -45,6 +47,8 @@ function Shell() {
             <Routes>
               <Route path="/" element={<HomePage />} />
               <Route path="/the-first-room" element={<FirstRoomPage />} />
+              <Route path="/tickets" element={<TicketsPage />} />
+              <Route path="/volunteer" element={<VolunteerPage />} />
               <Route path="/tickets/confirmation" element={<TicketConfirmationPage />} />
               <Route path="/v/:token" element={<TicketVerifyPage />} />
               <Route path="/tickets/order" element={<TicketOrderPage />} />

@@ -26,21 +26,26 @@ const CHECKOUT_URL = '/.netlify/functions/checkout'
  * Ticket tiers and checkout. Payment happens on Flutterwave's hosted page;
  * the price is set on the server from src/content/tickets.ts.
  */
-export function Tickets() {
+export function Tickets({ asPage = false }: { asPage?: boolean }) {
   const onSale = ticketTiers.some((t) => t.price !== null)
   const [selected, setSelected] = useState<TicketTierId | null>(null)
-  const [design, setDesign] = useState<TicketDesignId>('fashion')
   const tier = ticketTiers.find((t) => t.id === selected) ?? null
+  const Heading = asPage ? 'h1' : 'h2'
 
   return (
-    <Section id="tickets" surface="dark" aria-labelledby="tickets-title" className="bg-[#120d0a] py-28 md:py-36">
+    <Section
+      id="tickets"
+      surface="dark"
+      aria-labelledby="tickets-title"
+      className={cn('bg-[#120d0a] pb-28 md:pb-36', asPage ? 'min-h-[90svh] pt-36 md:pt-44' : 'pt-28 md:pt-36')}
+    >
       <div className="container-edge">
         <div className="grid gap-8 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
             <Eyebrow className="text-rust">Tickets · {firstRoom.fullName}</Eyebrow>
-            <h2 id="tickets-title" className="mt-6 text-headline font-medium">
-              <MaskText lines={['Choose your seat', 'in the room.']} />
-            </h2>
+            <Heading id="tickets-title" className="mt-6 text-headline font-medium">
+              <MaskText inView={!asPage} lines={['Choose your seat', 'in the room.']} />
+            </Heading>
           </div>
           <p className="text-cream/70 md:col-span-4 md:col-start-9">
             {onSale
@@ -48,8 +53,6 @@ export function Tickets() {
               : 'Ticket prices and what each tier includes will be announced soon. Sales open here as soon as they’re confirmed.'}
           </p>
         </div>
-
-        <DesignGallery category={selected ?? 'regular'} selected={design} onSelect={setDesign} />
 
         <div className="mt-14 grid gap-4 md:mt-20 md:grid-cols-2 md:gap-6">
           {ticketTiers.map((t, i) => (
@@ -69,7 +72,7 @@ export function Tickets() {
               transition={{ duration: 0.6, ease: ease.out }}
               className="overflow-hidden"
             >
-              <CheckoutForm tier={tier} price={tier.price} defaultDesign={design} onCancel={() => setSelected(null)} />
+              <CheckoutForm tier={tier} price={tier.price} onCancel={() => setSelected(null)} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -139,69 +142,20 @@ function TierCard({ tier, selected, onSelect }: { tier: TicketTier; selected: bo
   )
 }
 
-/**
- * The four ticket designs, one per creative arm. Previews only: the QR code
- * and ticket ID are issued after payment.
- */
-function DesignGallery({
-  category,
-  selected,
-  onSelect,
-}: {
-  category: TicketTierId
-  selected: TicketDesignId
-  onSelect: (d: TicketDesignId) => void
-}) {
-  return (
-    <div className="mt-16 md:mt-20">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <h3 className="text-title font-medium">Four designs. Choose yours.</h3>
-        <p className="max-w-md text-sm text-cream/60">
-          Every ticket carries one of the four creative arms. Pick a design for each ticket at checkout.
-        </p>
-      </div>
-      <ul className="-mx-4 mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
-        {ticketDesigns.map((d) => {
-          const active = d.id === selected
-          return (
-            <li key={d.id} className="w-[68vw] max-w-[300px] shrink-0 snap-center md:w-auto md:max-w-none">
-              <button
-                type="button"
-                onClick={() => onSelect(d.id)}
-                aria-pressed={active}
-                aria-label={`${d.name} ticket design`}
-                className={cn(
-                  'block w-full rounded-[14px] p-1.5 transition-[transform,box-shadow] duration-500 ease-[var(--ease-out-expo)] hover:-translate-y-1',
-                  active ? 'ring-2 ring-electric' : 'ring-1 ring-cream/10 hover:ring-cream/30',
-                )}
-              >
-                <TicketDesign design={d.id} category={category} attendeeName="Your name" ticketId={`CH001-${d.letter}-····`} qrValue={null} />
-              </button>
-              <p className={cn('mt-3 text-center text-sm', active ? 'text-cream' : 'text-cream/55')}>{d.name}</p>
-            </li>
-          )
-        })}
-      </ul>
-    </div>
-  )
-}
-
 type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'error'; message: string }
-type Attendee = { name: string; design: TicketDesignId }
+type Attendee = { name: string; design: TicketDesignId | null }
 
 function CheckoutForm({
   tier,
   price,
-  defaultDesign,
   onCancel,
 }: {
   tier: TicketTier
   price: number
-  defaultDesign: TicketDesignId
   onCancel: () => void
 }) {
   const [quantity, setQuantity] = useState(1)
-  const [attendees, setAttendees] = useState<Attendee[]>([{ name: '', design: defaultDesign }])
+  const [attendees, setAttendees] = useState<Attendee[]>([{ name: '', design: null }])
   const [buyerName, setBuyerName] = useState('')
   const [preview, setPreview] = useState(0)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
@@ -211,16 +165,11 @@ function CheckoutForm({
   useEffect(() => {
     setAttendees((list) =>
       quantity > list.length
-        ? [...list, ...Array.from({ length: quantity - list.length }, () => ({ name: '', design: list.at(-1)?.design ?? defaultDesign }))]
+        ? [...list, ...Array.from({ length: quantity - list.length }, () => ({ name: '', design: null }))]
         : list.slice(0, quantity),
     )
     setPreview((p) => Math.min(p, quantity - 1))
-  }, [quantity, defaultDesign])
-
-  // The first ticket's design follows the gallery until the buyer changes it here.
-  useEffect(() => {
-    setAttendees((list) => (list.length ? [{ ...list[0]!, design: defaultDesign }, ...list.slice(1)] : list))
-  }, [defaultDesign])
+  }, [quantity])
 
   const update = (i: number, patch: Partial<Attendee>) =>
     setAttendees((list) => list.map((a, j) => (j === i ? { ...a, ...patch } : a)))
@@ -233,6 +182,13 @@ function CheckoutForm({
     const form = e.currentTarget
     if (!form.checkValidity()) {
       form.reportValidity()
+      return
+    }
+    const missing = attendees.findIndex((a) => !a.design)
+    if (missing >= 0) {
+      setPreview(missing)
+      setStatus({ kind: 'error', message: `Choose a creative arm for ticket ${missing + 1}.` })
+      document.getElementById(`arm-${missing}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
       return
     }
     const data = new FormData(form)
@@ -258,7 +214,7 @@ function CheckoutForm({
     }
   }
 
-  const previewAttendee = attendees[preview] ?? attendees[0]!
+  const previewAttendee: Attendee = attendees[preview] ?? attendees[0] ?? { name: '', design: null }
 
   return (
     <form onSubmit={onSubmit} noValidate className="mt-6 grid gap-10 rounded-[20px] border border-cream/15 p-6 md:mt-8 md:grid-cols-12 md:p-10">
@@ -283,7 +239,7 @@ function CheckoutForm({
             <div
               key={i}
               onFocus={() => setPreview(i)}
-              className={cn('grid gap-3 rounded-[14px] border p-4 sm:grid-cols-[1fr_auto] sm:items-end', preview === i ? 'border-cream/35' : 'border-cream/10')}
+              className={cn('grid gap-4 rounded-[14px] border p-4', preview === i ? 'border-cream/35' : 'border-cream/10')}
             >
               <label className="flex flex-col gap-1.5 text-xs text-cream/55">
                 Ticket {i + 1} · attendee name
@@ -299,38 +255,75 @@ function CheckoutForm({
                   className="border-0 border-b border-cream/25 bg-transparent px-0 py-2 text-base text-cream outline-none placeholder:text-cream/35 focus:border-cream"
                 />
               </label>
-              <label className="flex flex-col gap-1.5 text-xs text-cream/55">
-                Design
-                <select
-                  id={`attendee-design-${i}`}
-                  value={a.design}
-                  onChange={(e) => update(i, { design: e.target.value as TicketDesignId })}
-                  className="rounded-full border border-cream/25 bg-ink px-4 py-2.5 text-sm text-cream outline-none focus:border-cream"
-                >
-                  {ticketDesigns.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div id={`arm-${i}`} role="radiogroup" aria-label={`Ticket ${i + 1}: which creative arm are you under?`} className="sm:col-span-2">
+                <p className="text-xs text-cream/55">Which creative arm are you under?</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {ticketDesigns.map((d) => {
+                    const on = a.design === d.id
+                    return (
+                      <button
+                        key={d.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={on}
+                        onClick={() => {
+                          update(i, { design: d.id })
+                          setPreview(i)
+                          if (status.kind === 'error') setStatus({ kind: 'idle' })
+                        }}
+                        className={cn(
+                          'rounded-full border px-4 py-2 text-sm transition-colors duration-300',
+                          on ? 'border-electric bg-electric font-medium text-ink' : 'border-cream/25 text-cream/80 hover:border-cream',
+                        )}
+                      >
+                        {d.name}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             </div>
           ))}
         </fieldset>
       </div>
 
       <div className="flex flex-col gap-6 md:col-span-5 md:border-l md:border-cream/10 md:pl-10">
-        <div className="mx-auto w-full max-w-[240px]">
-          <TicketDesign
-            design={previewAttendee.design}
-            category={tier.id}
-            attendeeName={nameFor(preview) || 'Your name'}
-            ticketId={`CH001-${ticketDesigns.find((d) => d.id === previewAttendee.design)!.letter}-····`}
-            qrValue={null}
-          />
-          <p className="mt-2 text-center text-xs text-cream/45">
-            Preview of ticket {preview + 1}. Your ticket ID and QR code are issued once payment is confirmed.
-          </p>
+        <div className="mx-auto w-full max-w-[240px]" aria-live="polite">
+          <AnimatePresence mode="wait" initial={false}>
+            {previewAttendee.design ? (
+              <motion.div
+                key={previewAttendee.design}
+                initial={{ opacity: 0, y: 16, rotate: -1.5 }}
+                animate={{ opacity: 1, y: 0, rotate: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.5, ease: ease.out }}
+              >
+                <TicketDesign
+                  design={previewAttendee.design}
+                  category={tier.id}
+                  attendeeName={nameFor(preview) || 'Your name'}
+                  ticketId={`CH001-${ticketDesigns.find((d) => d.id === previewAttendee.design)!.letter}-····`}
+                  qrValue={null}
+                />
+                <p className="mt-2 text-center text-xs text-cream/45">
+                  Your ticket {quantity > 1 ? `(ticket ${preview + 1})` : ''} preview. The ticket ID and QR code are issued once
+                  payment is confirmed.
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="grid aspect-[264/455] w-full place-items-center rounded-[11px] border border-dashed border-cream/20 p-6 text-center"
+              >
+                <p className="text-sm text-cream/55">
+                  Choose {quantity > 1 ? `ticket ${preview + 1}’s` : 'your'} creative arm to see your ticket.
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="flex items-center justify-between gap-4">

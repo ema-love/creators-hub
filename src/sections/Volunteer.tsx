@@ -5,21 +5,46 @@ import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { MaskText } from '../components/ui/MaskText'
 import { Reveal } from '../components/ui/Reveal'
+import { ArrowLink } from '../components/ui/ArrowLink'
 import { ChoiceField, Honeypot, SubmitRow, TextField } from '../components/forms/Fields'
 import { useNetlifyForm } from '../hooks/useNetlifyForm'
 
+/** Homepage teaser; the form lives on its own page (/volunteer). */
+export function VolunteerTeaser() {
+  return (
+    <Section id="volunteer" surface="dark" aria-labelledby="volunteer-title" className="py-28 md:py-40">
+      <div className="container-edge grid gap-10 md:grid-cols-12 md:items-end">
+        <div className="md:col-span-7">
+          <Eyebrow className="text-electric">{volunteer.eyebrow}</Eyebrow>
+          <h2 id="volunteer-title" className="mt-6 text-headline font-medium">
+            <MaskText lines={[volunteer.title]} />
+          </h2>
+          <p className="mt-6 max-w-xl text-cream/75">{volunteer.body}</p>
+        </div>
+        <Reveal className="flex flex-col gap-4 md:col-span-4 md:col-start-9 md:items-end">
+          <ArrowLink to="/volunteer">Volunteer for The First Room</ArrowLink>
+          <p className="eyebrow text-silver">
+            {firstRoom.fullName} · {firstRoom.dateLabel}
+          </p>
+        </Reveal>
+      </div>
+    </Section>
+  )
+}
+
+/** The volunteer page (/volunteer) with the sign-up form. */
 export function Volunteer() {
   const { status, onSubmit } = useNetlifyForm(formNames.volunteer)
 
   return (
-    <Section id="volunteer" surface="dark" aria-labelledby="volunteer-title" className="py-28 md:py-40">
+    <Section id="volunteer" surface="dark" aria-labelledby="volunteer-title" className="min-h-[90svh] pt-36 pb-28 md:pt-44 md:pb-40">
       <div className="container-edge grid gap-16 md:grid-cols-12">
         <div className="md:col-span-5">
           <div className="md:sticky md:top-32">
             <Eyebrow className="text-electric">{volunteer.eyebrow}</Eyebrow>
-            <h2 id="volunteer-title" className="mt-6 text-headline font-medium">
-              <MaskText lines={[volunteer.title]} />
-            </h2>
+            <h1 id="volunteer-title" className="mt-6 text-headline font-medium">
+              <MaskText inView={false} lines={[volunteer.title]} />
+            </h1>
             <p className="mt-6 max-w-md text-cream/75">{volunteer.body}</p>
             <p className="mt-8 eyebrow text-silver">
               For {firstRoom.fullName} · {firstRoom.dateLabel}

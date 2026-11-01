@@ -58,7 +58,7 @@ export function Header() {
 
           <div className="flex items-center gap-3">
             <Link
-              to="/the-first-room"
+              to="/tickets"
               className={cn(
                 'hidden items-center gap-2.5 rounded-full border px-4 py-2 font-display text-sm transition-colors sm:inline-flex',
                 light ? 'border-ink/20 hover:border-ink' : 'border-cream/20 hover:border-cream',
@@ -66,7 +66,7 @@ export function Header() {
             >
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-rust" />
               <span>
-                {firstRoom.edition} · {firstRoom.dateShort}
+                Tickets · {firstRoom.dateShort}
               </span>
             </Link>
             <button
