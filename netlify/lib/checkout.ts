@@ -1,5 +1,6 @@
-import { randomUUID } from 'node:crypto'
+import { randomBytes, randomUUID } from 'node:crypto'
 import { firstRoom } from '../../src/content/event'
+import { isTicketDesignId, type TicketDesignId } from '../../src/content/ticketDesigns'
 import {
   MAX_TICKETS_PER_ORDER,
   TICKET_CURRENCY,
@@ -16,6 +17,7 @@ export type CheckoutInput = {
   name: string
   email: string
   phone: string
+  attendees: Array<{ name: string; design: TicketDesignId }>
 }
 
 export type Result<T> = { ok: true; value: T } | { ok: false; status: number; error: string }
@@ -39,11 +41,22 @@ export function parseCheckout(body: unknown): Result<CheckoutInput> {
   if (!EMAIL.test(email) || email.length > 200) return fail('Enter a valid email address.')
   if (phone.length > 30) return fail('Enter a shorter phone number.')
 
+  const list = Array.isArray(b.attendees) ? b.attendees : []
+  if (list.length !== quantity) return fail('Add a name and design for each ticket.')
+  const attendees: CheckoutInput['attendees'] = []
+  for (const [i, raw] of list.entries()) {
+    const a = (raw ?? {}) as Record<string, unknown>
+    const attendeeName = String(a.name ?? '').trim().replace(/\s+/g, ' ')
+    if (attendeeName.length < 2 || attendeeName.length > 80) return fail(`Enter a name for ticket ${i + 1}.`)
+    if (!isTicketDesignId(a.design)) return fail(`Choose a design for ticket ${i + 1}.`)
+    attendees.push({ name: attendeeName, design: a.design })
+  }
+
   const tier = tierById(b.tier)
   if (tier.price === null) {
     return { ok: false, status: 409, error: `${tier.name} tickets are not on sale yet.` }
   }
-  return { ok: true, value: { tier: b.tier, quantity, name, email, phone } }
+  return { ok: true, value: { tier: b.tier, quantity, name, email, phone, attendees } }
 }
 
 export function newTxRef() {
@@ -63,6 +76,8 @@ export function createOrder(input: CheckoutInput, txRef = newTxRef(), now = new 
     name: input.name,
     email: input.email,
     phone: input.phone,
+    attendees: input.attendees,
+    accessKey: randomBytes(18).toString('base64url'),
     createdAt: now.toISOString(),
   }
 }

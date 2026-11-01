@@ -11,12 +11,16 @@ export function requireEnv(name: string): string {
   return value
 }
 
-/** Ticket email and QR settings. Email is skipped (with a warning) until Resend is configured. */
-export function ticketConfig() {
-  const signingSecret = process.env.TICKET_SIGNING_SECRET ?? ''
-  const resendKey = process.env.RESEND_API_KEY ?? ''
-  const from = process.env.TICKET_EMAIL_FROM ?? ''
-  if (!signingSecret) console.warn('TICKET_SIGNING_SECRET is not set: ticket QR codes and emails are disabled')
-  else if (!resendKey || !from) console.warn('RESEND_API_KEY or TICKET_EMAIL_FROM is not set: ticket emails are disabled')
-  return { signingSecret, resendKey, from }
+/** Public site URL for links: Netlify's primary URL, else the request's origin. */
+export function siteOrigin(req: Request): string {
+  return process.env.URL || new URL(req.url).origin
 }
+
+/** Caller identity for rate limiting. */
+export const clientId = (req: Request) => req.headers.get('x-nf-client-connection-ip') ?? 'unknown'
+
+/** Short on purpose: the QR code encodes this, and shorter means bigger, easier-to-scan modules. */
+export const ticketVerifyUrl = (origin: string, token: string) => `${origin}/v/${encodeURIComponent(token)}`
+export const ticketQrUrl = (origin: string, token: string) => `${origin}/.netlify/functions/ticket-qr?t=${encodeURIComponent(token)}`
+export const orderUrl = (origin: string, ref: string, key: string) =>
+  `${origin}/tickets/order?${new URLSearchParams({ ref, k: key })}`

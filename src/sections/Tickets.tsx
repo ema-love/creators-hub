@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import { ArrowRight, Check, Lock, Minus, Plus } from 'lucide-react'
 import { firstRoom } from '../content/event'
@@ -15,6 +15,8 @@ import { MaskText } from '../components/ui/MaskText'
 import { Placeholder } from '../components/ui/Placeholder'
 import { Reveal } from '../components/ui/Reveal'
 import { TextField } from '../components/forms/Fields'
+import { TicketDesign } from '../components/tickets/TicketDesign'
+import { ticketDesigns, type TicketDesignId } from '../content/ticketDesigns'
 import { ease } from '../lib/motion'
 import { cn } from '../lib/cn'
 
@@ -27,6 +29,7 @@ const CHECKOUT_URL = '/.netlify/functions/checkout'
 export function Tickets() {
   const onSale = ticketTiers.some((t) => t.price !== null)
   const [selected, setSelected] = useState<TicketTierId | null>(null)
+  const [design, setDesign] = useState<TicketDesignId>('fashion')
   const tier = ticketTiers.find((t) => t.id === selected) ?? null
 
   return (
@@ -46,6 +49,8 @@ export function Tickets() {
           </p>
         </div>
 
+        <DesignGallery category={selected ?? 'regular'} selected={design} onSelect={setDesign} />
+
         <div className="mt-14 grid gap-4 md:mt-20 md:grid-cols-2 md:gap-6">
           {ticketTiers.map((t, i) => (
             <Reveal key={t.id} delay={i * 0.08}>
@@ -64,7 +69,7 @@ export function Tickets() {
               transition={{ duration: 0.6, ease: ease.out }}
               className="overflow-hidden"
             >
-              <CheckoutForm tier={tier} price={tier.price} onCancel={() => setSelected(null)} />
+              <CheckoutForm tier={tier} price={tier.price} defaultDesign={design} onCancel={() => setSelected(null)} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -134,12 +139,94 @@ function TierCard({ tier, selected, onSelect }: { tier: TicketTier; selected: bo
   )
 }
 
-type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'error'; message: string }
+/**
+ * The four ticket designs, one per creative arm. Previews only: the QR code
+ * and ticket ID are issued after payment.
+ */
+function DesignGallery({
+  category,
+  selected,
+  onSelect,
+}: {
+  category: TicketTierId
+  selected: TicketDesignId
+  onSelect: (d: TicketDesignId) => void
+}) {
+  return (
+    <div className="mt-16 md:mt-20">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <h3 className="text-title font-medium">Four designs. Choose yours.</h3>
+        <p className="max-w-md text-sm text-cream/60">
+          Every ticket carries one of the four creative arms. Pick a design for each ticket at checkout.
+        </p>
+      </div>
+      <ul className="-mx-4 mt-8 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 md:mx-0 md:grid md:grid-cols-4 md:overflow-visible md:px-0">
+        {ticketDesigns.map((d) => {
+          const active = d.id === selected
+          return (
+            <li key={d.id} className="w-[68vw] max-w-[300px] shrink-0 snap-center md:w-auto md:max-w-none">
+              <button
+                type="button"
+                onClick={() => onSelect(d.id)}
+                aria-pressed={active}
+                aria-label={`${d.name} ticket design`}
+                className={cn(
+                  'block w-full rounded-[14px] p-1.5 transition-[transform,box-shadow] duration-500 ease-[var(--ease-out-expo)] hover:-translate-y-1',
+                  active ? 'ring-2 ring-electric' : 'ring-1 ring-cream/10 hover:ring-cream/30',
+                )}
+              >
+                <TicketDesign design={d.id} category={category} attendeeName="Your name" ticketId={`CH001-${d.letter}-····`} qrValue={null} />
+              </button>
+              <p className={cn('mt-3 text-center text-sm', active ? 'text-cream' : 'text-cream/55')}>{d.name}</p>
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
 
-function CheckoutForm({ tier, price, onCancel }: { tier: TicketTier; price: number; onCancel: () => void }) {
+type Status = { kind: 'idle' } | { kind: 'submitting' } | { kind: 'error'; message: string }
+type Attendee = { name: string; design: TicketDesignId }
+
+function CheckoutForm({
+  tier,
+  price,
+  defaultDesign,
+  onCancel,
+}: {
+  tier: TicketTier
+  price: number
+  defaultDesign: TicketDesignId
+  onCancel: () => void
+}) {
   const [quantity, setQuantity] = useState(1)
+  const [attendees, setAttendees] = useState<Attendee[]>([{ name: '', design: defaultDesign }])
+  const [buyerName, setBuyerName] = useState('')
+  const [preview, setPreview] = useState(0)
   const [status, setStatus] = useState<Status>({ kind: 'idle' })
   const qtyId = useId()
+
+  // One attendee row per ticket.
+  useEffect(() => {
+    setAttendees((list) =>
+      quantity > list.length
+        ? [...list, ...Array.from({ length: quantity - list.length }, () => ({ name: '', design: list.at(-1)?.design ?? defaultDesign }))]
+        : list.slice(0, quantity),
+    )
+    setPreview((p) => Math.min(p, quantity - 1))
+  }, [quantity, defaultDesign])
+
+  // The first ticket's design follows the gallery until the buyer changes it here.
+  useEffect(() => {
+    setAttendees((list) => (list.length ? [{ ...list[0]!, design: defaultDesign }, ...list.slice(1)] : list))
+  }, [defaultDesign])
+
+  const update = (i: number, patch: Partial<Attendee>) =>
+    setAttendees((list) => list.map((a, j) => (j === i ? { ...a, ...patch } : a)))
+
+  // The first ticket defaults to the buyer's own name.
+  const nameFor = (i: number) => attendees[i]?.name.trim() || (i === 0 ? buyerName.trim() : '')
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -160,6 +247,7 @@ function CheckoutForm({ tier, price, onCancel }: { tier: TicketTier; price: numb
           name: data.get('name'),
           email: data.get('email'),
           phone: data.get('phone'),
+          attendees: attendees.map((a, i) => ({ name: nameFor(i), design: a.design })),
         }),
       })
       const body = (await res.json().catch(() => ({}))) as { link?: string; error?: string }
@@ -170,33 +258,87 @@ function CheckoutForm({ tier, price, onCancel }: { tier: TicketTier; price: numb
     }
   }
 
+  const previewAttendee = attendees[preview] ?? attendees[0]!
+
   return (
-    <form onSubmit={onSubmit} noValidate className="mt-6 grid gap-10 rounded-[20px] border border-cream/15 p-7 md:mt-8 md:grid-cols-12 md:p-10">
+    <form onSubmit={onSubmit} noValidate className="mt-6 grid gap-10 rounded-[20px] border border-cream/15 p-6 md:mt-8 md:grid-cols-12 md:p-10">
       <div className="space-y-8 md:col-span-7">
         <div className="flex items-center justify-between gap-4">
           <h3 className="text-title font-medium">Your details</h3>
           <button type="button" onClick={onCancel} className="link-draw text-sm text-cream/60 hover:text-cream">
-            Change ticket
+            Change ticket type
           </button>
         </div>
-        <TextField label="Full name" name="name" required autoComplete="name" />
+        <div onInput={(e) => (e.target as HTMLInputElement).name === 'name' && setBuyerName((e.target as HTMLInputElement).value)}>
+          <TextField label="Full name" name="name" required autoComplete="name" />
+        </div>
         <div className="grid gap-8 sm:grid-cols-2">
-          <TextField label="Email (for your ticket)" name="email" type="email" required autoComplete="email" />
+          <TextField label="Email (tickets are sent here)" name="email" type="email" required autoComplete="email" />
           <TextField label="Phone (optional)" name="phone" autoComplete="tel" />
         </div>
+
+        <fieldset className="space-y-4">
+          <legend className="text-sm text-cream/60">Who’s each ticket for?</legend>
+          {attendees.map((a, i) => (
+            <div
+              key={i}
+              onFocus={() => setPreview(i)}
+              className={cn('grid gap-3 rounded-[14px] border p-4 sm:grid-cols-[1fr_auto] sm:items-end', preview === i ? 'border-cream/35' : 'border-cream/10')}
+            >
+              <label className="flex flex-col gap-1.5 text-xs text-cream/55">
+                Ticket {i + 1} · attendee name
+                <input
+                  id={`attendee-${i}`}
+                  value={a.name}
+                  onChange={(e) => update(i, { name: e.target.value })}
+                  placeholder={i === 0 ? buyerName || 'Same as your name' : 'Full name'}
+                  required={i > 0 || !buyerName}
+                  minLength={2}
+                  maxLength={80}
+                  autoComplete="off"
+                  className="border-0 border-b border-cream/25 bg-transparent px-0 py-2 text-base text-cream outline-none placeholder:text-cream/35 focus:border-cream"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5 text-xs text-cream/55">
+                Design
+                <select
+                  id={`attendee-design-${i}`}
+                  value={a.design}
+                  onChange={(e) => update(i, { design: e.target.value as TicketDesignId })}
+                  className="rounded-full border border-cream/25 bg-ink px-4 py-2.5 text-sm text-cream outline-none focus:border-cream"
+                >
+                  {ticketDesigns.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          ))}
+        </fieldset>
       </div>
 
       <div className="flex flex-col gap-6 md:col-span-5 md:border-l md:border-cream/10 md:pl-10">
-        <div>
-          <p className="eyebrow text-cream/50">{tier.name} ticket</p>
-          <p className="mt-2 font-display text-xl">{formatNaira(price)} each</p>
+        <div className="mx-auto w-full max-w-[240px]">
+          <TicketDesign
+            design={previewAttendee.design}
+            category={tier.id}
+            attendeeName={nameFor(preview) || 'Your name'}
+            ticketId={`CH001-${ticketDesigns.find((d) => d.id === previewAttendee.design)!.letter}-····`}
+            qrValue={null}
+          />
+          <p className="mt-2 text-center text-xs text-cream/45">
+            Preview of ticket {preview + 1}. Your ticket ID and QR code are issued once payment is confirmed.
+          </p>
         </div>
 
-        <div>
-          <label htmlFor={qtyId} className="text-sm text-cream/60">
-            Number of tickets
-          </label>
-          <div className="mt-3 flex items-center gap-3">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="eyebrow text-cream/50">{tier.name}</p>
+            <p className="mt-1 font-display">{formatNaira(price)} each</p>
+          </div>
+          <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -206,7 +348,7 @@ function CheckoutForm({ tier, price, onCancel }: { tier: TicketTier; price: numb
             >
               <Minus className="h-4 w-4" aria-hidden="true" />
             </button>
-            <output id={qtyId} aria-live="polite" className="w-10 text-center font-display text-2xl tabular-nums">
+            <output id={qtyId} aria-live="polite" aria-label="Number of tickets" className="w-8 text-center font-display text-2xl tabular-nums">
               {quantity}
             </output>
             <button
@@ -242,7 +384,8 @@ function CheckoutForm({ tier, price, onCancel }: { tier: TicketTier; price: numb
             </p>
           ) : (
             <p className="text-cream/50">
-              You’ll pay on Flutterwave’s secure page by card, bank transfer or USSD, then come straight back here.
+              You’ll pay on Flutterwave’s secure page by card, bank transfer or USSD, then come straight back here for your
+              tickets.
             </p>
           )}
         </div>

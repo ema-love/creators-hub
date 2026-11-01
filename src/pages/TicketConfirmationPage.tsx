@@ -5,13 +5,15 @@ import { firstRoom } from '../content/event'
 import { formatNaira } from '../content/tickets'
 import { Section } from '../components/layout/Section'
 import { ArrowLink } from '../components/ui/ArrowLink'
+import { TicketList, type OwnedTicket } from '../components/tickets/TicketCard'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { cn } from '../lib/cn'
 
 const VERIFY_URL = '/.netlify/functions/verify-payment'
 const RETRY_MS = 4000
 const MAX_TRIES = 8
 
-type Ticket = {
+type OrderSummary = {
   reference: string
   tier: string
   quantity: number
@@ -20,19 +22,21 @@ type Ticket = {
   name: string
   email: string
   emailSent?: boolean
-  passUrl?: string | null
-  qrUrl?: string | null
+  url?: string
 }
 
 type View =
   | { kind: 'checking' }
-  | { kind: 'paid'; ticket: Ticket }
-  | { kind: 'pending'; ticket?: Ticket }
+  | { kind: 'paid'; order: OrderSummary; tickets: OwnedTicket[] }
+  | { kind: 'pending' }
   | { kind: 'failed'; reason: string }
   | { kind: 'cancelled' }
   | { kind: 'missing' }
 
-/** Where Flutterwave sends buyers back. The payment is verified on the server before showing a ticket. */
+/**
+ * Where Flutterwave sends buyers back. Tickets appear only after the server
+ * has verified the payment with Flutterwave; until then the page waits.
+ */
 export default function TicketConfirmationPage() {
   useDocumentTitle('Your tickets')
   const [params] = useSearchParams()
@@ -55,12 +59,14 @@ export default function TicketConfirmationPage() {
       try {
         const q = new URLSearchParams({ tx_ref: txRef, ...(transactionId ? { transaction_id: transactionId } : {}) })
         const res = await fetch(`${VERIFY_URL}?${q}`)
-        const body = (await res.json()) as { state?: string; ticket?: Ticket; reason?: string }
+        const body = (await res.json()) as { state?: string; order?: OrderSummary; tickets?: OwnedTicket[]; reason?: string }
         if (stopped) return
-        if (body.state === 'paid' && body.ticket) return setView({ kind: 'paid', ticket: body.ticket })
+        if (body.state === 'paid' && body.order && body.tickets) {
+          return setView({ kind: 'paid', order: body.order, tickets: body.tickets })
+        }
         if (body.state === 'failed') return setView({ kind: 'failed', reason: body.reason ?? 'The payment did not go through.' })
         if (body.state === 'not_found') return setView({ kind: 'missing' })
-        setView({ kind: 'pending', ticket: body.ticket })
+        setView({ kind: 'pending' })
       } catch {
         if (stopped) return
         setView({ kind: 'pending' })
@@ -75,9 +81,10 @@ export default function TicketConfirmationPage() {
     }
   }, [txRef, transactionId, flwStatus])
 
+  const wide = view.kind === 'paid'
   return (
-    <Section surface="dark" aria-labelledby="confirm-title" className="grain flex min-h-[85svh] items-center bg-[#120d0a] pt-32 pb-20">
-      <div className="container-edge max-w-3xl">
+    <Section surface="dark" aria-labelledby="confirm-title" className="grain min-h-[85svh] bg-[#0c0b0a] pt-32 pb-24">
+      <div className={cn('container-edge', wide ? 'max-w-6xl' : 'max-w-3xl')}>
         <div aria-live="polite">{renderView(view, txRef)}</div>
       </div>
     </Section>
@@ -89,41 +96,73 @@ function renderView(view: View, txRef: string | null) {
     case 'checking':
       return (
         <Status icon={<Clock className="h-8 w-8 animate-pulse text-electric" />} title="Confirming your payment…">
-          <p>This usually takes a few seconds. Please keep this page open.</p>
+          <p>We’re checking with Flutterwave. This usually takes a few seconds. Please keep this page open.</p>
         </Status>
       )
-    case 'paid':
+    case 'paid': {
+      const { order, tickets } = view
+      const paid = order.currency === 'NGN' ? formatNaira(order.amount) : `${order.amount} ${order.currency}`
       return (
-        <Status icon={<CheckCircle2 className="h-8 w-8 text-electric" />} title="You’re in the room.">
-          <p>
-            Your payment is confirmed. Keep your reference: you’ll need it at the door for {firstRoom.fullName} on{' '}
-            {firstRoom.dateLabel} in {firstRoom.city}.
-          </p>
-          <TicketQr ticket={view.ticket} />
-          <TicketSummary ticket={view.ticket} />
-          <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-            {view.ticket.passUrl && <ArrowLink to={view.ticket.passUrl}>Open your ticket</ArrowLink>}
-            <ArrowLink to="/the-first-room" variant="text">
-              Back to The First Room
-            </ArrowLink>
+        <div>
+          <div className="print:hidden">
+            <Status icon={<CheckCircle2 className="h-8 w-8 text-electric" />} title="You’re in the room.">
+              <p>
+                Payment confirmed for {firstRoom.fullName}, {firstRoom.dateLabel}, {firstRoom.city}. Each ticket below admits
+                one person: show its QR code at the door, on your phone or printed.
+              </p>
+            </Status>
+            <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-3 text-sm text-cream/70">
+              <div>
+                <dt className="inline text-cream/45">Order </dt>
+                <dd className="inline select-all font-mono text-cream">{order.reference}</dd>
+              </div>
+              <div>
+                <dt className="inline text-cream/45">Paid </dt>
+                <dd className="inline text-cream">{paid}</dd>
+              </div>
+              <div>
+                <dt className="inline text-cream/45">Tickets </dt>
+                <dd className="inline text-cream">
+                  {order.quantity} × {order.tier}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-4 max-w-2xl text-sm text-cream/60">
+              {order.emailSent
+                ? `We’ve also emailed your tickets to ${order.email}.`
+                : `Your tickets are being emailed to ${order.email}. Until it arrives, download them below.`}{' '}
+              {order.url && (
+                <>
+                  You can always get back to them from{' '}
+                  <a href={order.url} className="link-draw text-cream">
+                    this private link
+                  </a>{' '}
+                  (bookmark it), or the link in the email.
+                </>
+              )}
+            </p>
           </div>
-        </Status>
+          <div className="mt-14">
+            <TicketList tickets={tickets} />
+          </div>
+        </div>
       )
+    }
     case 'pending':
       return (
         <Status icon={<Clock className="h-8 w-8 text-rust" />} title="Still confirming your payment.">
           <p>
             Flutterwave hasn’t confirmed this payment yet. Bank transfers can take a few minutes. You don’t need to pay
-            again: once it clears, your ticket is recorded automatically.
+            again: your tickets are issued and emailed automatically as soon as it clears.
           </p>
           {txRef && <Reference value={txRef} />}
-          <p className="mt-6 text-cream/60">If you were charged and this doesn’t update, contact us with your reference.</p>
+          <p className="mt-6 text-cream/60">If you were charged and nothing arrives, contact us with your reference.</p>
         </Status>
       )
     case 'failed':
       return (
         <Status icon={<XCircle className="h-8 w-8 text-rust" />} title="The payment didn’t go through.">
-          <p>{view.reason} You haven’t been given a ticket for this attempt.</p>
+          <p>{view.reason} No tickets were issued for this attempt.</p>
           {txRef && <Reference value={txRef} />}
           <div className="mt-10">
             <ArrowLink to="/the-first-room#tickets" variant="rust">
@@ -144,9 +183,12 @@ function renderView(view: View, txRef: string | null) {
     case 'missing':
       return (
         <Status icon={<XCircle className="h-8 w-8 text-silver" />} title="We couldn’t find that order.">
-          <p>This link doesn’t match a ticket order. If you were charged, contact us with the reference from your receipt.</p>
-          <div className="mt-10">
-            <ArrowLink to="/the-first-room#tickets">Go to tickets</ArrowLink>
+          <p>This link doesn’t match a ticket order. If you’ve already paid, you can get your tickets sent again.</p>
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-4">
+            <ArrowLink to="/tickets/find">Find my tickets</ArrowLink>
+            <ArrowLink to="/the-first-room#tickets" variant="text">
+              Go to tickets
+            </ArrowLink>
           </div>
         </Status>
       )
@@ -160,7 +202,7 @@ function Status({ icon, title, children }: { icon: React.ReactNode; title: strin
       <h1 id="confirm-title" className="mt-6 text-headline font-medium">
         {title}
       </h1>
-      <div className="mt-6 max-w-xl text-lede text-cream/80">{children}</div>
+      <div className="mt-6 max-w-2xl text-lede text-cream/80">{children}</div>
     </div>
   )
 }
@@ -171,50 +213,5 @@ function Reference({ value }: { value: string }) {
       <span className="eyebrow text-cream/50">Reference</span>
       <span className="mt-1 block select-all font-mono text-lg text-cream">{value}</span>
     </p>
-  )
-}
-
-function TicketQr({ ticket }: { ticket: Ticket }) {
-  return (
-    <div className="mt-8 flex flex-col gap-6 rounded-[20px] border border-cream/15 bg-cream/[0.03] p-6 sm:flex-row sm:items-center">
-      {ticket.qrUrl && (
-        <div className="shrink-0 self-center rounded-[14px] bg-cream p-2.5">
-          <img src={ticket.qrUrl} width={160} height={160} alt={`QR code for ticket ${ticket.reference}`} className="block h-40 w-40" />
-        </div>
-      )}
-      <p className="text-base text-cream/80">
-        {ticket.emailSent ? (
-          <>
-            We’ve emailed your ticket and QR code to <strong className="text-cream">{ticket.email}</strong>. Show the code at
-            the door.
-          </>
-        ) : (
-          <>
-            Your ticket email to <strong className="text-cream">{ticket.email}</strong> is on its way. In the meantime, save
-            this page or screenshot the QR code.
-          </>
-        )}
-      </p>
-    </div>
-  )
-}
-
-function TicketSummary({ ticket }: { ticket: Ticket }) {
-  const rows: Array<[string, string]> = [
-    ['Reference', ticket.reference],
-    ['Ticket', `${ticket.quantity} × ${ticket.tier}`],
-    ['Paid', ticket.currency === 'NGN' ? formatNaira(ticket.amount) : `${ticket.amount} ${ticket.currency}`],
-    ['Name', ticket.name],
-    ['Email', ticket.email],
-  ]
-  return (
-    <dl className="mt-8 divide-y divide-cream/10 rounded-[16px] border border-cream/15 text-base">
-      {rows.map(([k, v]) => (
-        <div key={k} className="flex flex-wrap justify-between gap-2 px-5 py-4">
-          <dt className="text-cream/55">{k}</dt>
-          <dd className={k === 'Reference' ? 'select-all font-mono' : undefined}>{v}</dd>
-        </div>
-      ))}
-    </dl>
   )
 }

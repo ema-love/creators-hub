@@ -10,3 +10,6 @@ dist
 # Local preview recordings and screenshots
 website-preview
 dist-preview
+
+# Local end-to-end test harness output
+.e2e

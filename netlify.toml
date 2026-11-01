@@ -34,3 +34,9 @@
   [headers.values]
     Cache-Control = "no-store"
     X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/v/*"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex"

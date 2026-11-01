@@ -4,7 +4,8 @@ import { timingSafeEqual } from 'node:crypto'
  * Minimal Flutterwave v3 client: hosted checkout + transaction verification.
  * https://developer.flutterwave.com/v3.0/docs/flutterwave-standard-1
  */
-const API = 'https://api.flutterwave.com/v3'
+// FLW_API_BASE exists only so the end-to-end tests can point at a local stand-in.
+const API = process.env.FLW_API_BASE || 'https://api.flutterwave.com/v3'
 
 export type FlwTransaction = {
   id: number

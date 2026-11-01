@@ -11,7 +11,10 @@ import { HomePage } from './pages/HomePage'
 const FirstRoomPage = lazy(() => import('./pages/FirstRoomPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const TicketConfirmationPage = lazy(() => import('./pages/TicketConfirmationPage'))
-const TicketPassPage = lazy(() => import('./pages/TicketPassPage'))
+const TicketVerifyPage = lazy(() => import('./pages/TicketVerifyPage'))
+const TicketOrderPage = lazy(() => import('./pages/TicketOrderPage'))
+const StaffCheckInPage = lazy(() => import('./pages/StaffCheckInPage'))
+const FindTicketsPage = lazy(() => import('./pages/FindTicketsPage'))
 
 export function App() {
   return (
@@ -43,7 +46,10 @@ function Shell() {
               <Route path="/" element={<HomePage />} />
               <Route path="/the-first-room" element={<FirstRoomPage />} />
               <Route path="/tickets/confirmation" element={<TicketConfirmationPage />} />
-              <Route path="/tickets/pass" element={<TicketPassPage />} />
+              <Route path="/v/:token" element={<TicketVerifyPage />} />
+              <Route path="/tickets/order" element={<TicketOrderPage />} />
+              <Route path="/tickets/check-in" element={<StaffCheckInPage />} />
+              <Route path="/tickets/find" element={<FindTicketsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </Suspense>

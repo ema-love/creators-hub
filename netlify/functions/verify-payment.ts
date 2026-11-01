@@ -1,15 +1,16 @@
 import { tierById } from '../../src/content/tickets'
 import { confirmOrder } from '../lib/confirm'
-import { createFlutterwave } from '../lib/flutterwave'
-import { blobOrderStore } from '../lib/orders'
-import { json, requireEnv } from '../lib/http'
-import { ensureTicketEmailed } from '../lib/deliver'
 import { deliveryConfig } from '../lib/delivery'
-import { ticketLinks } from '../lib/ticketLinks'
+import { createFlutterwave } from '../lib/flutterwave'
+import { fulfilPaidOrder, ownerView } from '../lib/fulfil'
+import { json, orderUrl, requireEnv } from '../lib/http'
+import { blobKv } from '../lib/kv'
+import { blobOrderStore } from '../lib/orders'
 
 /**
  * GET /.netlify/functions/verify-payment?tx_ref=…&transaction_id=…
- * Called by the confirmation page after Flutterwave redirects back.
+ * Called by the confirmation page after Flutterwave redirects back. Tickets
+ * exist only once Flutterwave has confirmed the payment on the server.
  */
 export default async (req: Request) => {
   const params = new URL(req.url).searchParams
@@ -17,34 +18,33 @@ export default async (req: Request) => {
   if (!txRef) return json({ error: 'Missing payment reference.' }, 400)
 
   try {
-    const store = blobOrderStore()
-    const result = await confirmOrder(store, createFlutterwave(requireEnv('FLW_SECRET_KEY')), {
+    const orders = blobOrderStore()
+    const result = await confirmOrder(orders, createFlutterwave(requireEnv('FLW_SECRET_KEY')), {
       txRef,
       transactionId: params.get('transaction_id'),
     })
     if (result.state === 'not_found') return json({ state: 'not_found' }, 404)
 
+    const summary = (o: typeof result.order) => ({
+      reference: o.txRef,
+      tier: tierById(o.tier).name,
+      quantity: o.quantity,
+      amount: o.amount,
+      currency: o.currency,
+      name: o.name,
+      email: o.email,
+    })
+
+    if (result.state !== 'paid') {
+      return json({ state: result.state, reason: result.state === 'failed' ? result.reason : undefined, order: summary(result.order) })
+    }
+
     const delivery = deliveryConfig(req)
-    const order = result.state === 'paid' ? await ensureTicketEmailed(store, result.order, delivery) : result.order
-    const links =
-      result.state === 'paid' && delivery.signingSecret
-        ? ticketLinks(delivery.siteOrigin, order.txRef, delivery.signingSecret)
-        : null
+    const { order, tickets } = await fulfilPaidOrder(orders, blobKv('tickets'), result.order, delivery)
     return json({
-      state: result.state,
-      reason: result.state === 'failed' ? result.reason : undefined,
-      ticket: {
-        reference: order.txRef,
-        tier: tierById(order.tier).name,
-        quantity: order.quantity,
-        amount: order.amount,
-        currency: order.currency,
-        name: order.name,
-        email: order.email,
-        emailSent: Boolean(order.emailSentAt),
-        passUrl: links?.passUrl ?? null,
-        qrUrl: links?.qrUrl ?? null,
-      },
+      state: 'paid',
+      order: { ...summary(order), emailSent: Boolean(order.emailSentAt), url: orderUrl(delivery.siteOrigin, order.txRef, order.accessKey) },
+      tickets: tickets.map(ownerView),
     })
   } catch (err) {
     console.error('verify failed', err)

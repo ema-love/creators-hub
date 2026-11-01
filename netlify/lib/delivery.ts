@@ -1,14 +1,15 @@
-import { createResendMailer } from './email'
-import { ticketConfig } from './http'
-import { siteOrigin } from './ticketLinks'
-import type { DeliveryConfig } from './deliver'
+import { createResendMailer, type Mailer } from './email'
+import { siteOrigin } from './http'
 
-/** Builds the delivery settings for the current request from environment variables. */
-export function deliveryConfig(req: Request): DeliveryConfig {
-  const { signingSecret, resendKey, from } = ticketConfig()
-  return {
-    signingSecret,
-    siteOrigin: siteOrigin(req),
-    mailer: signingSecret && resendKey && from ? createResendMailer(resendKey, from) : null,
+/** Email settings from environment variables. Email is skipped (with a warning) until Resend is configured. */
+export function mailerFromEnv(): Mailer | null {
+  const key = process.env.RESEND_API_KEY ?? ''
+  const from = process.env.TICKET_EMAIL_FROM ?? ''
+  if (!key || !from) {
+    console.warn('RESEND_API_KEY or TICKET_EMAIL_FROM is not set: ticket emails are disabled')
+    return null
   }
+  return createResendMailer(key, from)
 }
+
+export const deliveryConfig = (req: Request) => ({ mailer: mailerFromEnv(), siteOrigin: siteOrigin(req) })

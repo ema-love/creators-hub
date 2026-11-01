@@ -1,7 +1,9 @@
 import { firstRoom } from '../../src/content/event'
-import { formatNaira, tierById } from '../../src/content/tickets'
+import { categoryStyle, designById, EVENT_TAGLINE } from '../../src/content/ticketDesigns'
+import { formatNaira } from '../../src/content/tickets'
+import { orderUrl, ticketQrUrl, ticketVerifyUrl } from './http'
 import type { Order } from './orders'
-import type { TicketLinks } from './ticketLinks'
+import type { Ticket } from './tickets'
 
 export type Email = { to: string; subject: string; html: string; text: string; idempotencyKey: string }
 
@@ -11,12 +13,13 @@ export type Mailer = { send(email: Email): Promise<void> }
 export function createResendMailer(apiKey: string, from: string, fetchImpl: typeof fetch = fetch): Mailer {
   return {
     async send(email) {
-      const res = await fetchImpl('https://api.resend.com/emails', {
+      // RESEND_API_BASE exists only so the end-to-end tests can point at a local stand-in.
+      const res = await fetchImpl(`${process.env.RESEND_API_BASE || 'https://api.resend.com'}/emails`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          // Resend drops repeats with the same key, so a ticket is never emailed twice.
+          // Resend drops repeats with the same key, so an email is never sent twice.
           'Idempotency-Key': email.idempotencyKey,
         },
         body: JSON.stringify({ from, to: [email.to], subject: email.subject, html: email.html, text: email.text }),
@@ -29,60 +32,67 @@ export function createResendMailer(apiKey: string, from: string, fetchImpl: type
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
-const C = { ink: '#0A0A0A', card: '#141714', cream: '#F5F0E8', muted: '#A4B2C0', electric: '#00E5A0', rust: '#C4622D', line: '#2a2f2b' }
-const FONT = "'Space Grotesk', 'Helvetica Neue', Arial, sans-serif"
+const C = { ink: '#070708', card: '#0E0F0E', cream: '#F7F3EA', stub: '#E4DCD0', label: '#57524A', name: '#2C2720', muted: '#A4B2C0', line: '#262826', electric: '#00E5A0' }
+const SERIF = "'EB Garamond', Garamond, Georgia, 'Times New Roman', serif"
+const SANS = "Montserrat, 'Helvetica Neue', Arial, sans-serif"
 
-export function renderTicketEmail(order: Order, links: TicketLinks): Email {
-  const tier = tierById(order.tier)
+/** Email-safe rendering of one ticket, following the ticket design. */
+function ticketBlock(t: Ticket, origin: string) {
+  const d = designById(t.design)
+  const cat = categoryStyle[t.category]
+  return `
+  <tr><td align="center" style="padding:0 0 28px">
+    <table role="presentation" width="300" cellpadding="0" cellspacing="0" style="width:300px;border-radius:12px;overflow:hidden;background:${C.card}">
+      <tr><td style="padding:0;line-height:0"><img src="${origin}/email/ticket-${d.id}.jpg" width="300" height="250" alt="" style="display:block;width:300px;height:250px;border:0"></td></tr>
+      <tr><td style="padding:16px 22px 14px;background:${C.card}">
+        <div style="font:500 30px/1.05 ${SERIF};color:${C.cream}">${d.title.map(esc).join('<br>')}</div>
+        <div style="padding-top:10px;font:500 17px/1.2 ${SERIF};color:${C.cream}">THE FIRST ROOM.</div>
+        <div style="padding-top:2px;font:400 14px/1.3 ${SERIF};color:${C.cream}">${esc(EVENT_TAGLINE)}</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:14px;border-top:1px solid #3a3d3a">
+          <tr>
+            <td style="padding-top:10px;font:600 10px/1.45 ${SANS};letter-spacing:.04em;color:${C.cream}">19 DEC 2026<br>LAGOS, NIGERIA</td>
+            <td align="right" style="padding-top:10px;font:700 11px/1 ${SANS};letter-spacing:.08em;color:${cat.color}">${cat.label}</td>
+          </tr>
+        </table>
+      </td></tr>
+      <tr><td style="background:${C.stub};padding:16px 22px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td valign="middle">
+            <div style="font:600 9px/1 ${SANS};letter-spacing:.16em;color:${C.label}">ATTENDEE</div>
+            <div style="padding-top:7px;font:500 18px/1.15 ${SERIF};color:${C.name}">${esc(t.attendeeName)}</div>
+            <div style="padding-top:7px;font:600 10px/1 ${SANS};letter-spacing:.06em;color:${C.label}">${esc(t.id)}</div>
+          </td>
+          <td align="right" valign="middle" width="96"><img src="${esc(ticketQrUrl(origin, t.token))}" width="96" height="96" alt="QR code for ticket ${esc(t.id)}" style="display:block;width:96px;height:96px;border:0"></td>
+        </tr></table>
+      </td></tr>
+    </table>
+    <div style="padding-top:10px"><a href="${esc(ticketVerifyUrl(origin, t.token))}" style="font:600 13px/1 ${SANS};color:${C.electric};text-decoration:none">Open ticket ${esc(t.id)} →</a></div>
+  </td></tr>`
+}
+
+export function renderTicketEmail(order: Order, tickets: Ticket[], origin: string, idempotencyKey = `ticket-email-${order.txRef}`): Email {
   const firstName = order.name.split(/\s+/)[0] ?? order.name
-  const people = `${order.quantity} ${order.quantity === 1 ? 'person' : 'people'}`
-  const venue = firstRoom.venue ?? 'To be announced'
-  const time = firstRoom.time ?? 'To be announced'
   const paid = order.currency === 'NGN' ? formatNaira(order.amount) : `${order.amount} ${order.currency}`
-  const subject = `Your ticket: ${firstRoom.fullName}`
-
-  const row = (label: string, value: string) => `
-    <tr>
-      <td style="padding:10px 0;border-top:1px solid ${C.line};font:400 13px/1.4 ${FONT};color:${C.muted};letter-spacing:.08em;text-transform:uppercase">${label}</td>
-      <td align="right" style="padding:10px 0;border-top:1px solid ${C.line};font:500 15px/1.4 ${FONT};color:${C.cream}">${value}</td>
-    </tr>`
+  const plural = tickets.length === 1 ? 'ticket' : 'tickets'
+  const subject = `Your ${plural}: ${firstRoom.fullName}`
+  const viewAll = orderUrl(origin, order.txRef, order.accessKey)
 
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:${C.ink}">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">Your ticket for ${esc(firstRoom.fullName)}, ${esc(firstRoom.dateLabel)} in ${esc(firstRoom.city)}. Show the QR code at the door.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">${tickets.length} ${plural} for ${esc(firstRoom.fullName)}, ${esc(firstRoom.dateLabel)} in ${esc(firstRoom.city)}.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.ink}">
 <tr><td align="center" style="padding:32px 16px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px">
-    <tr><td style="padding:0 4px 28px;font:600 20px/1 ${FONT};letter-spacing:-.03em;color:${C.cream}">Creators Hub</td></tr>
-    <tr><td style="padding:0 4px;font:500 34px/1.1 ${FONT};letter-spacing:-.03em;color:${C.cream}">You’re in the room, ${esc(firstName)}.</td></tr>
-    <tr><td style="padding:14px 4px 28px;font:400 16px/1.6 ${FONT};color:#cfd6d2">Your payment is confirmed. This email is your ticket: show the QR code at the door.</td></tr>
-    <tr><td style="background:${C.card};border:1px solid ${C.line};border-radius:20px;padding:28px">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr><td style="font:500 12px/1 ${FONT};letter-spacing:.18em;text-transform:uppercase;color:${C.rust}">Creators Hub ${esc(firstRoom.edition)}</td></tr>
-        <tr><td style="padding:10px 0 4px;font:500 30px/1.1 ${FONT};letter-spacing:-.03em;color:${C.cream}">${esc(firstRoom.name)}</td></tr>
-        <tr><td style="padding:0 0 20px;font:400 15px/1.5 ${FONT};color:${C.muted}">${esc(firstRoom.dateLabel)} · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}</td></tr>
-        <tr><td align="center" style="padding:8px 0 6px">
-          <div style="display:inline-block;background:${C.cream};border-radius:16px;padding:14px">
-            <img src="${esc(links.qrUrl)}" width="200" height="200" alt="Ticket QR code for reference ${esc(order.txRef)}" style="display:block;width:200px;height:200px;border:0">
-          </div>
-        </td></tr>
-        <tr><td align="center" style="padding:10px 0 22px;font:400 14px/1.5 ${FONT};color:${C.muted}">Admits ${people}. Scanned once at the door.</td></tr>
-        <tr><td><table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-          ${row('Ticket', `${order.quantity} × ${esc(tier.name)}`)}
-          ${row('Name', esc(order.name))}
-          ${row('Venue', esc(venue))}
-          ${row('Time', esc(time))}
-          ${row('Paid', esc(paid))}
-          ${row('Reference', `<span style="font-family:Menlo,Consolas,monospace;color:${C.electric}">${esc(order.txRef)}</span>`)}
-        </table></td></tr>
-      </table>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
+    <tr><td style="padding:0 4px 24px;font:600 14px/1.1 ${SERIF};letter-spacing:.02em;color:${C.cream}">CREATORS<br>HUB</td></tr>
+    <tr><td style="padding:0 4px;font:500 32px/1.1 ${SERIF};color:${C.cream}">You’re in the room, ${esc(firstName)}.</td></tr>
+    <tr><td style="padding:12px 4px 28px;font:400 15px/1.6 ${SANS};color:#cfd6d2">Your payment is confirmed. Each ticket below has its own QR code and admits one person. Show it at the door on your phone or printed.</td></tr>
+    ${tickets.map((t) => ticketBlock(t, origin)).join('')}
+    <tr><td align="center" style="padding:4px 4px 8px">
+      <a href="${esc(viewAll)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View and download your ${plural}</a>
     </td></tr>
-    <tr><td align="center" style="padding:28px 4px 8px">
-      <a href="${esc(links.passUrl)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:600 15px/1 ${FONT};text-decoration:none;padding:16px 26px;border-radius:999px">Open your ticket</a>
-    </td></tr>
-    <tr><td style="padding:24px 4px 0;font:400 13px/1.6 ${FONT};color:${C.muted}">Venue and timings will be shared as soon as they’re confirmed. If the QR code doesn’t load, use the button above or give your reference at the door.</td></tr>
-    <tr><td style="padding:28px 4px 0;border-top:1px solid ${C.line};font:400 12px/1.6 ${FONT};color:#6f7a76">Creators Hub · ${esc(firstRoom.fullName)} · ${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}</td></tr>
+    <tr><td style="padding:24px 4px 0;font:400 13px/1.6 ${SANS};color:${C.muted}">Order ${esc(order.txRef)} · Paid ${esc(paid)}. Venue and timings will be shared as soon as they’re confirmed. Keep this email: the link above always brings your tickets back.</td></tr>
+    <tr><td style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:#6f7a76">Creators Hub · ${esc(firstRoom.fullName)} · ${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}</td></tr>
   </table>
 </td></tr></table>
 </body></html>`
@@ -93,16 +103,15 @@ export function renderTicketEmail(order: Order, links: TicketLinks): Email {
     `${firstRoom.fullName}`,
     `${firstRoom.dateLabel} · ${firstRoom.city}, ${firstRoom.country}`,
     '',
-    `Ticket: ${order.quantity} × ${tier.name} (admits ${people})`,
-    `Name: ${order.name}`,
-    `Venue: ${venue}`,
-    `Time: ${time}`,
-    `Paid: ${paid}`,
-    `Reference: ${order.txRef}`,
-    '',
-    `Your ticket and QR code: ${links.passUrl}`,
-    'Show the QR code at the door.',
+    ...tickets.flatMap((t) => [
+      `${t.id} · ${designById(t.design).name} · ${categoryStyle[t.category].label}`,
+      `Attendee: ${t.attendeeName}`,
+      `Ticket: ${ticketVerifyUrl(origin, t.token)}`,
+      '',
+    ]),
+    `View and download your ${plural}: ${viewAll}`,
+    `Order ${order.txRef} · Paid ${paid}`,
   ].join('\n')
 
-  return { to: order.email, subject, html, text, idempotencyKey: `ticket-email-${order.txRef}` }
+  return { to: order.email, subject, html, text, idempotencyKey }
 }

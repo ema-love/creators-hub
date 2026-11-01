@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import type { TicketDesignId } from '../../src/content/ticketDesigns'
 import type { TicketTierId } from '../../src/content/tickets'
 
 export type OrderStatus = 'pending' | 'paid' | 'failed'
@@ -11,16 +12,19 @@ export type Order = {
   unitPrice: number
   amount: number
   currency: string
+  /** Buyer */
   name: string
   email: string
   phone: string
+  /** One entry per ticket: who it's for and which design. */
+  attendees: Array<{ name: string; design: TicketDesignId }>
+  /** Secret for the "view your tickets" link. */
+  accessKey: string
   createdAt: string
   paidAt?: string
   transactionId?: string
   /** Set once the ticket email has been accepted by the email service. */
   emailSentAt?: string
-  /** Set when the ticket is admitted at the door. */
-  checkedInAt?: string
 }
 
 export type OrderStore = {

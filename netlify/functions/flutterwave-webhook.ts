@@ -1,14 +1,15 @@
 import { confirmOrder } from '../lib/confirm'
-import { createFlutterwave, isAuthenticWebhook } from '../lib/flutterwave'
-import { blobOrderStore } from '../lib/orders'
-import { json, requireEnv } from '../lib/http'
-import { ensureTicketEmailed } from '../lib/deliver'
 import { deliveryConfig } from '../lib/delivery'
+import { createFlutterwave, isAuthenticWebhook } from '../lib/flutterwave'
+import { fulfilPaidOrder } from '../lib/fulfil'
+import { json, requireEnv } from '../lib/http'
+import { blobKv } from '../lib/kv'
+import { blobOrderStore } from '../lib/orders'
 
 /**
  * POST /.netlify/functions/flutterwave-webhook
- * Set this URL as the webhook in the Flutterwave dashboard. It records
- * payments even when the buyer closes the tab before returning to the site.
+ * Set this URL as the webhook in the Flutterwave dashboard. It issues and
+ * emails tickets even when the buyer closes the tab before returning.
  * The payload is never trusted on its own: each payment is re-verified.
  */
 export default async (req: Request) => {
@@ -22,12 +23,12 @@ export default async (req: Request) => {
   if (payload?.event !== 'charge.completed' || !txRef) return json({ received: true })
 
   try {
-    const store = blobOrderStore()
-    const result = await confirmOrder(store, createFlutterwave(requireEnv('FLW_SECRET_KEY')), {
+    const orders = blobOrderStore()
+    const result = await confirmOrder(orders, createFlutterwave(requireEnv('FLW_SECRET_KEY')), {
       txRef,
       transactionId: payload.data?.id ? String(payload.data.id) : null,
     })
-    if (result.state === 'paid') await ensureTicketEmailed(store, result.order, deliveryConfig(req))
+    if (result.state === 'paid') await fulfilPaidOrder(orders, blobKv('tickets'), result.order, deliveryConfig(req))
     return json({ received: true, state: result.state })
   } catch (err) {
     console.error('webhook failed', err)

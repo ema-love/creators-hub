@@ -16,13 +16,31 @@ function withPrices(regular: number | null, premium: number | null) {
 let restore = () => {}
 afterEach(() => restore())
 
-const valid = { tier: 'regular', quantity: 2, name: 'Ada Obi', email: 'Ada@Example.com', phone: '+2348000000000' }
+const attendees = [
+  { name: 'Ada Obi', design: 'fashion' },
+  { name: 'Tunde Bakare', design: 'film' },
+]
+const valid = { tier: 'regular', quantity: 2, name: 'Ada Obi', email: 'Ada@Example.com', phone: '+2348000000000', attendees }
 
 describe('parseCheckout', () => {
   it('accepts a valid request and normalises the email', () => {
     restore = withPrices(10_000, 25_000)
     const r = parseCheckout(valid)
     expect(r).toEqual({ ok: true, value: { ...valid, tier: 'regular', email: 'ada@example.com' } })
+  })
+
+  it('requires one attendee (name and design) per ticket', () => {
+    restore = withPrices(10_000, 25_000)
+    expect(parseCheckout({ ...valid, attendees: attendees.slice(0, 1) })).toMatchObject({ ok: false, error: 'Add a name and design for each ticket.' })
+    expect(parseCheckout({ ...valid, attendees: [attendees[0], { name: 'X', design: 'film' }] })).toMatchObject({ ok: false, error: 'Enter a name for ticket 2.' })
+    expect(parseCheckout({ ...valid, attendees: [attendees[0], { name: 'Tunde', design: 'music' }] })).toMatchObject({ ok: false, error: 'Choose a design for ticket 2.' })
+  })
+
+  it('tidies attendee names', () => {
+    restore = withPrices(10_000, 25_000)
+    const r = parseCheckout({ ...valid, attendees: [attendees[0], { name: '  Tunde   Bakare ', design: 'film' }] })
+    if (!r.ok) throw new Error('expected ok')
+    expect(r.value.attendees[1]!.name).toBe('Tunde Bakare')
   })
 
   it('refuses tiers that have no price yet', () => {
@@ -53,8 +71,9 @@ describe('parseCheckout', () => {
 describe('createOrder / paymentRequestFor', () => {
   it('prices from the server-side tier and builds the Flutterwave request', () => {
     restore = withPrices(10_000, 25_000)
-    const order = createOrder({ tier: 'premium', quantity: 3, name: 'Ada', email: 'a@b.co', phone: '' }, 'CH001-TEST')
+    const order = createOrder({ tier: 'premium', quantity: 3, name: 'Ada', email: 'a@b.co', phone: '', attendees: [...attendees, { name: 'Zara', design: 'technology' }] as never }, 'CH001-TEST')
     expect(order).toMatchObject({ amount: 75_000, unitPrice: 25_000, currency: 'NGN', status: 'pending' })
+    expect(order.accessKey).toMatch(/^[A-Za-z0-9_-]{24}$/)
     const req = paymentRequestFor(order, 'https://creatorshub.example')
     expect(req).toMatchObject({
       tx_ref: 'CH001-TEST',
@@ -91,6 +110,11 @@ const pending: Order = {
   name: 'Ada',
   email: 'a@b.co',
   phone: '',
+  attendees: [
+    { name: 'Ada', design: 'fashion' },
+    { name: 'Tunde', design: 'film' },
+  ],
+  accessKey: 'k',
   createdAt: '2026-11-01T00:00:00.000Z',
 }
 
@@ -157,7 +181,7 @@ describe('Flutterwave client', () => {
     const fetchMock = vi.fn(async () => Response.json({ status: 'success', data: { link: 'https://checkout.flutterwave.com/x' } }))
     const flw = createFlutterwave('FLWSECK_TEST-123', fetchMock as unknown as typeof fetch)
     restore = withPrices(10_000, 25_000)
-    const link = await flw.createPayment(paymentRequestFor(createOrder({ ...valid, tier: 'regular' }, 'CH001-X'), 'https://x.test'))
+    const link = await flw.createPayment(paymentRequestFor(createOrder({ ...valid, tier: 'regular', attendees: attendees as never }, 'CH001-X'), 'https://x.test'))
     expect(link).toBe('https://checkout.flutterwave.com/x')
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit]
     expect(url).toBe('https://api.flutterwave.com/v3/payments')

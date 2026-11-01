@@ -167,15 +167,32 @@ Edit `src/content/tickets.ts`. Set `price` in whole naira and replace `perks: nu
 4. Redeploy, then buy a ticket using Flutterwave's test cards.
 5. To go live, complete Flutterwave's business verification, swap in the **live** secret key, update the webhook in live mode, and redeploy.
 
-### Ticket email, QR code and door check-in
+### Digital tickets
 
-- **Email**: `netlify/lib/email.ts` renders the branded ticket email, which `netlify/lib/deliver.ts` sends through [Resend](https://resend.com) once per order. If sending fails, the next confirmation (page refresh or webhook) retries, and Resend's idempotency key prevents duplicates.
-- **QR code**: encodes a signed link to `/tickets/pass?ref=…&sig=…`. The signature (HMAC with `TICKET_SIGNING_SECRET`) stops anyone forging a ticket from a guessed reference. `netlify/functions/ticket-qr.ts` serves the PNG.
-- **Ticket pass** (`/tickets/pass`): attendees see their QR code and details. Staff tap **Staff check-in**, enter `CHECKIN_PIN` once per phone, then scan tickets with the phone camera. Each scan shows **Admit N people**, and a ticket can only be admitted once; a repeat scan shows when it was first checked in. Unpaid orders are never admitted.
+Every paid order produces **one ticket per attendee**. Buyers choose a design for each ticket (Fashion, Arts & Design, Technology, Film & Storytelling) and enter each attendee's name at checkout.
 
-Without `RESEND_API_KEY` and `TICKET_EMAIL_FROM`, payments still work and buyers still see their QR code on the confirmation page, but no email is sent.
+**Ticket record** (Netlify Blobs store `tickets`, created only after Flutterwave confirms payment):
+ticket ID (`CH001-F-0001`; the letter is the design: F, A, T, S), attendee name, buyer email, category (Regular/Premium), design, order reference, payment status, ticket status (valid, checked in or void), a random 128-bit QR token, purchase time, issue time, and the check-in time once used.
 
-#### Setting up email (Resend)
+**Design.** `src/components/tickets/TicketDesign.tsx` recreates the approved reference as one SVG in the reference's own 264 × 455 coordinate space, so proportions hold on every screen. Each arm supplies its photograph (`src/assets/tickets/`, text removed so it can be set live), its title and its rule colour (`src/content/ticketDesigns.ts`). Type is EB Garamond (titles, names) and Montserrat (labels), matched to the reference. `TicketAttendeeSection.tsx` is the cream stub; `QRCode.tsx` draws the QR as vector. Long attendee names shrink to fit, then wrap onto two lines.
+
+**Safe against duplicates.** The payment return page and the webhook may both confirm a payment, even at the same moment. Issuing is idempotent: each attendee slot and each ticket number is claimed with a create-only-if-new write, confirmed by reading it back, so a repeated or simultaneous callback can never create a second ticket or reuse a number. Tickets are emailed once per order.
+
+**QR codes and check-in.**
+- The QR encodes `/v/<token>`. The token is random and stored with the ticket, so a code can't be guessed or forged, and a screenshot of a ticket is only as good as its live record.
+- Scanning opens the verification page, which asks the server for the ticket's current state: **Valid**, **Already checked in at …**, **Invalid** (unknown, forged or void) or **Awaiting payment confirmation**.
+- Staff sign in with `CHECKIN_PIN` (at `/tickets/check-in`, or "Staff check-in" on any ticket page). Signed in, a scan shows a large verdict and an **Admit** button. Each ticket can be admitted once: the first scan creates its check-in record, and every later or simultaneous scan sees "Already checked in". Staff can also type a ticket ID when a code won't scan.
+- Repeated wrong PINs lock that device out for 15 minutes.
+
+**Delivery and access.**
+- The confirmation page shows the designed tickets once payment is verified.
+- **Download** produces a 1320 × 2275 px PNG rendered from the SVG with fonts and photo embedded, so text and QR stay sharp; it isn't a screenshot.
+- **Print** prints one ticket per page.
+- **Show QR for scanning** enlarges the code on a phone.
+- The email (Resend) carries every ticket in an email-safe version of the design, with its own QR code, plus a private link (`/tickets/order?ref=…&k=…`) back to all of the order's tickets.
+- Lost the email? `/tickets/find` re-sends the tickets to the address on the order, given the email and order reference. The reply is the same either way, so it can't be used to look people up.
+
+#### Setting up email and check-in
 
 1. Create a free account at https://resend.com.
 2. Go to **Domains → Add domain** and add the domain you'll send from (for example `creatorshub.com`). Add the DNS records Resend shows at your domain registrar, then wait until it says **Verified**.
@@ -183,13 +200,16 @@ Without `RESEND_API_KEY` and `TICKET_EMAIL_FROM`, payments still work and buyers
 4. In Netlify, add these environment variables:
    - `RESEND_API_KEY`: the key from step 3.
    - `TICKET_EMAIL_FROM`: for example `Creators Hub <tickets@creatorshub.com>`, using the verified domain.
-   - `TICKET_SIGNING_SECRET`: a long random string. **Never change it after sales open**, or issued QR codes stop working.
-   - `CHECKIN_PIN`: the PIN door staff will use.
+   - `CHECKIN_PIN`: the passcode door staff will use. Make it long, e.g. 8+ characters.
 5. Redeploy.
+
+Without Resend configured, payments and tickets still work and buyers see and download their tickets on the confirmation page; only the email is skipped.
 
 ### Testing
 
-`npm test` runs the payment, email and check-in tests: price tampering, mismatched amounts and currencies, failed payments, repeated confirmations and forged webhooks. To run the functions locally, install the Netlify CLI, copy `.env.example` to `.env` with test keys, and run `netlify dev`.
+`npm test` runs the payment and ticketing tests: price tampering, mismatched amounts and currencies, failed payments, forged webhooks, duplicate and simultaneous payment callbacks, unique sequential ticket IDs, simultaneous scans, PIN lockout, email rendering and escaping.
+
+To run the functions locally, install the Netlify CLI, copy `.env.example` to `.env` with test keys, and run `netlify dev`.
 
 ## Deployment (Netlify)
 
