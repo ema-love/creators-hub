@@ -19,10 +19,13 @@ export const firstRoom = {
   intro:
     'The inaugural Creators Hub gathering. One day, one room, every discipline at the same table.',
 
+  /** Start time, confirmed: 9:00 AM West Africa Time (UTC+1). */
+  time: '9:00 AM',
+  startUtc: '2026-12-19T08:00:00Z',
+
   // ——— Unconfirmed: rendered as placeholders ———
   // Ticket tiers and prices live in ./tickets.ts.
   venue: null as string | null,
-  time: null as string | null,
   speakers: [] as Array<{ name: string; role: string }>,
   programme: [] as Array<{ time: string; title: string }>,
   partners: [] as Array<{ name: string }>,

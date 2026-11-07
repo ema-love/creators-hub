@@ -7,6 +7,7 @@ import type { Order, OrderStore } from './orders'
 import { findTicketSlot, issueTickets, ticketsForOrder, type Ticket } from './tickets'
 import { verifyTicket } from './verifyTicket'
 import { staffSummary } from './staffSummary'
+import { renderOrderAlert } from './notify'
 
 const paid: Order = {
   txRef: 'CH001-PAID',
@@ -272,5 +273,39 @@ describe('staffSummary', () => {
     const slot = (await kv.get<Ticket>('slot/CH001-PAID/0'))!
     await kv.put('slot/CH001-PAID/0', { ...slot, status: 'void' })
     expect((await staffSummary(kv)).totals.issued).toBe(2)
+  })
+})
+
+describe('organiser order alert', () => {
+  it('sends one alert per order to the private address, separate from the buyer email', async () => {
+    const kv = memoryKv()
+    const orders = orderStore([paid])
+    const sent: string[] = []
+    const mailer = { send: vi.fn(async (e: { to: string }) => void sent.push(e.to)) }
+    const delivery = { mailer, siteOrigin: 'https://ch.test', notifyTo: 'organiser@example.test' }
+    const first = await fulfilPaidOrder(orders, kv, paid, delivery)
+    await fulfilPaidOrder(orders, kv, first.order, delivery)
+    expect(sent.sort()).toEqual(['ada@example.com', 'organiser@example.test'])
+    expect(orders.data.get(paid.txRef)).toMatchObject({ emailSentAt: expect.any(String), notifiedAt: expect.any(String) })
+  })
+
+  it('is skipped when no private address is configured', async () => {
+    const mailer = { send: vi.fn(async () => {}) }
+    await fulfilPaidOrder(orderStore([paid]), memoryKv(), paid, { mailer, siteOrigin: 'x', notifyTo: '' })
+    expect(mailer.send).toHaveBeenCalledTimes(1) // buyer's tickets only
+  })
+
+  it('lists every ticket and escapes names', async () => {
+    const tickets = await issueTickets(memoryKv(), paid)
+    const alert = renderOrderAlert(paid, tickets, 'organiser@example.test')
+    expect(alert.subject).toContain('3 × PREMIUM')
+    for (const t of tickets) expect(alert.text).toContain(t.id)
+    expect(alert.html).not.toContain('<b>Obi</b>')
+  })
+
+  it('never puts the organiser address in the buyer’s ticket email', async () => {
+    const tickets = await issueTickets(memoryKv(), paid)
+    const buyer = renderTicketEmail(paid, tickets, 'https://ch.test')
+    expect(buyer.html + buyer.text).not.toContain('organiser@example.test')
   })
 })

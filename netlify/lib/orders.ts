@@ -25,6 +25,8 @@ export type Order = {
   transactionId?: string
   /** Set once the ticket email has been accepted by the email service. */
   emailSentAt?: string
+  /** Set once the organiser's new-order alert has been sent. */
+  notifiedAt?: string
 }
 
 export type OrderStore = {

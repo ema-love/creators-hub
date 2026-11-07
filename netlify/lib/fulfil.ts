@@ -1,6 +1,7 @@
 import { ensureTicketsEmailed } from './deliver'
 import type { Mailer } from './email'
 import type { Kv } from './kv'
+import { ensureOrderAlerted } from './notify'
 import type { Order, OrderStore } from './orders'
 import { issueTickets, type Ticket } from './tickets'
 
@@ -13,11 +14,12 @@ export async function fulfilPaidOrder(
   orders: OrderStore,
   kv: Kv,
   order: Order,
-  delivery: { mailer: Mailer | null; siteOrigin: string },
+  delivery: { mailer: Mailer | null; siteOrigin: string; notifyTo?: string },
 ): Promise<{ order: Order; tickets: Ticket[] }> {
   const tickets = await issueTickets(kv, order)
   const emailed = await ensureTicketsEmailed(orders, order, tickets, delivery)
-  return { order: emailed, tickets }
+  const alerted = await ensureOrderAlerted(orders, emailed, tickets, { mailer: delivery.mailer, notifyTo: delivery.notifyTo ?? '' })
+  return { order: alerted, tickets }
 }
 
 /** Ticket fields the buyer's own pages need, including the QR token. */

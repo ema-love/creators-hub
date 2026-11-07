@@ -211,6 +211,7 @@ Scanning a ticket with an ordinary camera app still works too: it opens the tick
    - `RESEND_API_KEY`: the key from step 3.
    - `TICKET_EMAIL_FROM`: for example `Creators Hub <tickets@creatorshub.com>`, using the verified domain.
    - `CHECKIN_PIN`: the passcode door staff will use. Make it long, e.g. 8+ characters.
+   - `NOTIFY_EMAIL` (optional): a private inbox that receives an alert for every paid order (buyer, tickets, amount). It is only ever read on the server and never shown on the site or in buyers' emails. Keep it out of code and this repo; set it only here.
 5. Redeploy.
 
 Without Resend configured, payments and tickets still work and buyers see and download their tickets on the confirmation page; only the email is skipped.

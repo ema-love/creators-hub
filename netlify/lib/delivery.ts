@@ -12,4 +12,9 @@ export function mailerFromEnv(): Mailer | null {
   return createResendMailer(key, from)
 }
 
-export const deliveryConfig = (req: Request) => ({ mailer: mailerFromEnv(), siteOrigin: siteOrigin(req) })
+/** NOTIFY_EMAIL: private organiser address for new-order alerts. Set only in Netlify's environment variables. */
+export const deliveryConfig = (req: Request) => ({
+  mailer: mailerFromEnv(),
+  siteOrigin: siteOrigin(req),
+  notifyTo: (process.env.NOTIFY_EMAIL ?? '').trim(),
+})
