@@ -95,10 +95,9 @@ export const community = {
 }
 
 export const volunteer = {
-  eyebrow: 'Volunteer & participate',
+  eyebrow: 'The Volunteer Collective',
   title: 'The first room needs builders.',
-  body: 'From production and hospitality to content, design and logistics — volunteers shape how The First Room feels. Tell us how you would like to be involved and we will be in touch as roles are confirmed.',
-  interests: ['Event production', 'Hospitality & guest experience', 'Content & media', 'Design', 'Logistics', 'Something else'],
+  body: 'Students, emerging creatives and anyone looking for real experience: join the team behind The First Room, across technology, programme, media and community. No experience required, no fee to take part.',
 }
 
 export const partnership = {
