@@ -222,6 +222,10 @@ Without Resend configured, payments and tickets still work and buyers see and do
 
 To run the functions locally, install the Netlify CLI, copy `.env.example` to `.env` with test keys, and run `netlify dev`.
 
+## Volunteer applications
+
+The application form on `/volunteer` posts to Netlify Forms (`volunteer`). After each genuine submission, `netlify/functions/submission-created.ts` passes it to the organiser's Google Sheet, which adds a row and emails the sheet's owner. Setup takes about 10 minutes: see [`integrations/google-sheets/README.md`](integrations/google-sheets/README.md). It needs `VOLUNTEER_SHEET_URL` and `VOLUNTEER_SHEET_KEY` in Netlify. Without them, applications are still kept in Netlify → Forms.
+
 ## Deployment (Netlify)
 
 `netlify.toml` configures the build (`npm run build` → `dist`), Node 22, SPA redirects, long-term caching for hashed assets and security headers.
