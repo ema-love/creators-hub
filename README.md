@@ -226,6 +226,15 @@ To run the functions locally, install the Netlify CLI, copy `.env.example` to `.
 
 The application form on `/volunteer` posts to Netlify Forms (`volunteer`). After each genuine submission, `netlify/functions/submission-created.ts` passes it to the organiser's Google Sheet, which adds a row and emails the sheet's owner. Setup takes about 10 minutes: see [`integrations/google-sheets/README.md`](integrations/google-sheets/README.md). It needs `VOLUNTEER_SHEET_URL` and `VOLUNTEER_SHEET_KEY` in Netlify. Without them, applications are still kept in Netlify → Forms.
 
+## Search engines (Google Search Console)
+
+`seo.config.ts` runs at build time. It produces:
+- `robots.txt` and `sitemap.xml`, covering the public pages: home, The First Room, Tickets and Volunteer;
+- structured data (schema.org `Event`) for The First Room, with the confirmed date, time, city and ticket prices;
+- the Search Console verification tag, when `GOOGLE_SITE_VERIFICATION` is set in Netlify. Paste either the code or the whole `<meta>` tag, then redeploy.
+
+The site address comes from Netlify's `URL`, so adding a custom domain later updates the sitemap on the next deploy. Staff, order and personal ticket pages are excluded and sent with `noindex`.
+
 ## Deployment (Netlify)
 
 `netlify.toml` configures the build (`npm run build` → `dist`), Node 22, SPA redirects, long-term caching for hashed assets and security headers.

@@ -11,7 +11,10 @@ import { firstRoomCalendarHref } from '../lib/calendar'
 import { daysUntil } from '../lib/date'
 
 export default function FirstRoomPage() {
-  useDocumentTitle(firstRoom.fullName)
+  useDocumentTitle(
+    firstRoom.fullName,
+    `${firstRoom.fullName}: ${firstRoom.dateLabel}, ${firstRoom.time}, ${firstRoom.city}. ${firstRoom.direction}`,
+  )
   const days = daysUntil(firstRoom.dateISO)
 
   return (
