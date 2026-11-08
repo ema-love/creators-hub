@@ -3,7 +3,7 @@ import { Section } from '../components/layout/Section'
 import { TextField } from '../components/forms/Fields'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
-/** Lost the email? Re-send tickets to the address on the order (/tickets/find). */
+/** Lost your tickets? Re-sends them by email, or opens them directly when email isn't set up (/tickets/find). */
 export default function FindTicketsPage() {
   useDocumentTitle('Find my tickets')
   const [status, setStatus] = useState<{ kind: 'idle' | 'sending' } | { kind: 'done' | 'error'; message: string }>({ kind: 'idle' })
@@ -22,6 +22,15 @@ export default function FindTicketsPage() {
       })
       const body = await res.json()
       if (!res.ok) throw new Error(body.error ?? 'Something went wrong.')
+      if (typeof body.url === 'string') {
+        // Stay on this site whatever address the server used.
+        const target = new URL(body.url, window.location.origin)
+        if (target.pathname === '/tickets/order') {
+          setStatus({ kind: 'done', message: 'Found them. Opening your tickets…' })
+          window.location.assign(target.pathname + target.search)
+          return
+        }
+      }
       setStatus({ kind: 'done', message: body.message })
     } catch (err) {
       setStatus({ kind: 'error', message: (err as Error).message })
@@ -35,8 +44,8 @@ export default function FindTicketsPage() {
           Find my tickets
         </h1>
         <p className="mt-4 text-lede text-cream/75">
-          Enter the email you bought with and your order reference (it starts with CH001- and is in your payment receipt).
-          We’ll email your tickets again.
+          Enter the email you bought with and your order reference. It starts with CH001- and is in your Flutterwave
+          payment receipt.
         </p>
         <form onSubmit={submit} noValidate className="mt-10 space-y-8">
           <TextField label="Email" name="email" type="email" required autoComplete="email" />
@@ -46,7 +55,7 @@ export default function FindTicketsPage() {
             disabled={status.kind === 'sending'}
             className="rounded-full bg-electric px-7 py-4 font-display font-medium text-ink hover:bg-cream disabled:opacity-60"
           >
-            {status.kind === 'sending' ? 'Sending…' : 'Email my tickets'}
+            {status.kind === 'sending' ? 'Looking…' : 'Find my tickets'}
           </button>
           <div aria-live="polite">
             {status.kind === 'done' && <p className="text-cream/80">{status.message}</p>}

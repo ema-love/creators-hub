@@ -43,7 +43,11 @@ export default async (req: Request) => {
     const { order, tickets } = await fulfilPaidOrder(orders, blobKv('tickets'), result.order, delivery)
     return json({
       state: 'paid',
-      order: { ...summary(order), emailSent: Boolean(order.emailSentAt), url: orderUrl(delivery.siteOrigin, order.txRef, order.accessKey) },
+      order: {
+        ...summary(order),
+        emailSent: Boolean(order.emailSentAt),
+        emailEnabled: Boolean(delivery.mailer),
+        url: orderUrl(delivery.siteOrigin, order.txRef, order.accessKey) },
       tickets: tickets.map(ownerView),
     })
   } catch (err) {

@@ -22,6 +22,7 @@ type OrderSummary = {
   name: string
   email: string
   emailSent?: boolean
+  emailEnabled?: boolean
   url?: string
 }
 
@@ -130,14 +131,16 @@ function renderView(view: View, txRef: string | null) {
             <p className="mt-4 max-w-2xl text-sm text-cream/60">
               {order.emailSent
                 ? `We’ve also emailed your tickets to ${order.email}.`
-                : `Your tickets are being emailed to ${order.email}. Until it arrives, download them below.`}{' '}
+                : order.emailEnabled === false
+                  ? 'Download your tickets below, or print them.'
+                  : `Your tickets are being emailed to ${order.email}. Until it arrives, download them below.`}{' '}
               {order.url && (
                 <>
                   You can always get back to them from{' '}
                   <a href={order.url} className="link-draw text-cream">
                     this private link
                   </a>{' '}
-                  (bookmark it), or the link in the email.
+                  (bookmark it){order.emailSent ? ', or the link in the email' : ''}.
                 </>
               )}
             </p>
