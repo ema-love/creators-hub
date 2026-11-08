@@ -82,6 +82,19 @@ export function seo(): Plugin {
           injectTo: 'head',
         },
       ]
+      // Share image: social apps need an absolute URL.
+      const site = origin()
+      const og: Record<string, string> = {
+        'og:image': `${site}/og-image.jpg`,
+        'og:image:width': '1200',
+        'og:image:height': '630',
+        'og:image:alt': `${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.city}`,
+        'og:url': `${site}/`,
+        'og:site_name': 'Creators Hub',
+      }
+      for (const [property, content] of Object.entries(og)) tags.push({ tag: 'meta', attrs: { property, content }, injectTo: 'head' })
+      tags.push({ tag: 'meta', attrs: { name: 'twitter:image', content: `${site}/og-image.jpg` }, injectTo: 'head' })
+
       const verification = (process.env.GOOGLE_SITE_VERIFICATION ?? '').trim()
       if (verification) {
         // Accept either the bare code or the whole tag pasted from Search Console.
