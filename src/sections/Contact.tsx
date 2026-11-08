@@ -3,7 +3,6 @@ import { formNames } from '../content/forms'
 import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { MaskText } from '../components/ui/MaskText'
-import { Placeholder } from '../components/ui/Placeholder'
 import { Honeypot, SubmitRow, TextField } from '../components/forms/Fields'
 import { useNetlifyForm } from '../hooks/useNetlifyForm'
 
@@ -18,18 +17,7 @@ export function Contact() {
           <h2 id="contact-title" className="mt-6 text-mega font-medium">
             <MaskText lines={[contact.title]} />
           </h2>
-          <div className="mt-10">
-            <p className="eyebrow text-ink/60">Email</p>
-            <p className="mt-3 font-display text-title">
-              {contact.email ? (
-                <a href={`mailto:${contact.email}`} className="link-draw">
-                  {contact.email}
-                </a>
-              ) : (
-                <Placeholder>Contact email to be confirmed</Placeholder>
-              )}
-            </p>
-          </div>
+          <p className="mt-10 max-w-md text-lede text-ink/70">{contact.body}</p>
         </div>
 
         <form

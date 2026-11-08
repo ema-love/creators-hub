@@ -1,9 +1,8 @@
 import { Link } from 'react-router'
-import { RotateCcw } from 'lucide-react'
-import { nav, contact } from '../../content/site'
+import { ArrowUpRight, RotateCcw } from 'lucide-react'
+import { nav } from '../../content/site'
 import { firstRoom } from '../../content/event'
 import { Wordmark } from '../brand/Wordmark'
-import { Placeholder } from '../ui/Placeholder'
 import { useIntro } from '../intro/IntroContext'
 
 export function Footer() {
@@ -37,23 +36,11 @@ export function Footer() {
           </nav>
 
           <div className="md:col-span-4">
-            <p className="eyebrow text-silver">Elsewhere</p>
-            <ul className="mt-4 space-y-3">
-              {contact.socials.map((s) => (
-                <li key={s.label} className="flex items-center gap-3">
-                  {s.href ? (
-                    <a href={s.href} className="link-draw" rel="noopener noreferrer" target="_blank">
-                      {s.label}
-                    </a>
-                  ) : (
-                    <>
-                      <span>{s.label}</span>
-                      <Placeholder>Handle to be confirmed</Placeholder>
-                    </>
-                  )}
-                </li>
-              ))}
-            </ul>
+            <p className="eyebrow text-silver">Get in touch</p>
+            <Link to="/#contact" className="group mt-4 inline-flex items-center gap-2">
+              <span className="link-draw">Send us a message</span>
+              <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
           </div>
         </div>
 

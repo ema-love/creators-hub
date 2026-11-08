@@ -112,17 +112,9 @@ export const partnership = {
   ],
 }
 
-/**
- * PLACEHOLDER contact details — none have been supplied.
- * Set `value` to null to render a clearly labelled placeholder.
- */
+/** Contact section. Messages are sent through the form (Netlify Forms → the organiser's inbox). */
 export const contact = {
   eyebrow: 'Contact',
   title: 'Say hello.',
-  email: null as string | null,
-  socials: [
-    { label: 'Instagram', href: null as string | null },
-    { label: 'LinkedIn', href: null as string | null },
-    { label: 'X', href: null as string | null },
-  ],
+  body: 'Questions about The First Room, tickets, volunteering or working together? Write to us here. Your message comes straight to the Creators Hub team, and we’ll reply to the email address you give.',
 }
