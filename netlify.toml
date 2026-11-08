@@ -22,7 +22,8 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "DENY"
-    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    # camera=(self): the staff scanner at /staff uses the camera; no other site can.
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=()"
 
 # Payment functions (Flutterwave). See README → "Ticket payments".
 [functions]
