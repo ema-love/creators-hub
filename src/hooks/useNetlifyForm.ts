@@ -1,7 +1,11 @@
 import { useState } from 'react'
 import type { FormName } from '../content/forms'
 
-type Status = 'idle' | 'submitting' | 'success' | 'error'
+type Status = 'idle' | 'submitting' | 'success' | 'error' | 'local'
+
+/** Netlify Forms only exists on the deployed site; local copies have nothing to post to. */
+const isLocalPreview = () =>
+  import.meta.env.DEV || ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)
 
 /**
  * Submits a form to Netlify Forms via AJAX. Field names must match the
@@ -32,7 +36,7 @@ export function useNetlifyForm(name: FormName) {
       form.reset()
       setStatus('success')
     } catch {
-      setStatus('error')
+      setStatus(isLocalPreview() ? 'local' : 'error')
     }
   }
 

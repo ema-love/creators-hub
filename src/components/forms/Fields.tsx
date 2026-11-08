@@ -89,7 +89,7 @@ export function Honeypot() {
 }
 
 type SubmitProps = {
-  status: 'idle' | 'submitting' | 'success' | 'error'
+  status: 'idle' | 'submitting' | 'success' | 'error' | 'local'
   label: string
   successMessage: string
   /** Use `forest` on light surfaces. */
@@ -104,7 +104,7 @@ export function SubmitRow({ status, label, successMessage, tone = 'electric', cl
         type="submit"
         disabled={status === 'submitting'}
         className={cn(
-          'group inline-flex items-center justify-center gap-3 self-start rounded-full px-7 py-4 font-display font-medium transition-colors duration-300 disabled:opacity-60',
+          'group inline-flex shrink-0 items-center justify-center gap-3 self-start whitespace-nowrap rounded-full px-7 py-4 font-display font-medium transition-colors duration-300 disabled:opacity-60',
           tone === 'electric' ? 'bg-electric text-ink hover:bg-cream' : 'bg-forest text-cream hover:bg-ink',
         )}
       >
@@ -123,6 +123,11 @@ export function SubmitRow({ status, label, successMessage, tone = 'electric', cl
               transition={{ duration: 0.5, ease: ease.out }}
             >
               <Check className="h-4 w-4 text-bright" aria-hidden="true" /> {successMessage}
+            </motion.p>
+          )}
+          {status === 'local' && (
+            <motion.p key="local" role="status" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              This is a local preview, so nothing was sent. The form works on the live Netlify site.
             </motion.p>
           )}
           {status === 'error' && (
