@@ -7,9 +7,9 @@ import type { Ticket } from './tickets'
 
 export type Delivery = { mailer: Mailer | null; siteOrigin: string; sheet: SheetConfig | null }
 
-/** Registrations waiting to be written to the Google Sheet. Retried hourly by retry-pending. */
+/** Registrations waiting to be written to the Google Sheet. Retried every 10 minutes by retry-pending. */
 export const SHEET_PENDING = 'sheet-pending/'
-/** Confirmation emails waiting to be sent (e.g. Gmail's daily limit reached). Retried hourly. */
+/** Confirmation emails waiting to be sent (cut short, or Gmail's daily limit reached). Retried every 10 minutes. */
 export const EMAIL_PENDING = 'email-pending/'
 
 /** The row added to the sheet's Registrations tab. */
@@ -25,7 +25,7 @@ export const sheetRow = (r: Registration, t: Ticket) => ({
 /**
  * Sends the confirmation email and writes the sheet row, each at most once.
  * Neither can undo a registration: an email or row that doesn't go through
- * is queued and retried every hour until it does.
+ * stays queued and is retried every 10 minutes until it does.
  */
 export async function deliverRegistration(
   kv: Kv,
@@ -39,29 +39,30 @@ export async function deliverRegistration(
 
   const email = async () => {
     if (!mailer || registration.emailSentAt) return
+    // Marked first, so if this run is cut short the retry still picks it up.
+    await kv.put(EMAIL_PENDING + registration.ref, { at: now.toISOString() })
     try {
       await mailer.send(renderRegistrationEmail(registration, ticket, siteOrigin))
       patch.emailSentAt = now.toISOString()
+      await kv.delete(EMAIL_PENDING + registration.ref)
     } catch (err) {
       console.error(`confirmation email failed for ${registration.ref}`, err)
-      await kv.put(EMAIL_PENDING + registration.ref, { at: now.toISOString() })
     }
   }
 
   const row = async () => {
     if (registration.sheetSavedAt) return
-    if (sheet) {
-      try {
-        await postToSheet({ kind: 'registration', registration: sheetRow(registration, ticket) }, sheet)
-        patch.sheetSavedAt = now.toISOString()
-        await kv.delete(SHEET_PENDING + registration.ref)
-        return
-      } catch (err) {
-        console.error(`sheet row failed for ${registration.ref}`, err)
-      }
-    }
-    // Not set up yet, or unreachable: keep it for the hourly retry.
+    // Marked first: if the sheet isn't set up, is unreachable, or this run is
+    // cut short, the retry adds the row later.
     await kv.put(SHEET_PENDING + registration.ref, { at: now.toISOString() })
+    if (!sheet) return
+    try {
+      await postToSheet({ kind: 'registration', registration: sheetRow(registration, ticket) }, sheet)
+      patch.sheetSavedAt = now.toISOString()
+      await kv.delete(SHEET_PENDING + registration.ref)
+    } catch (err) {
+      console.error(`sheet row failed for ${registration.ref}`, err)
+    }
   }
 
   await Promise.all([email(), row()])

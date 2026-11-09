@@ -261,6 +261,20 @@ describe('confirmation email and Google Sheet', () => {
   })
 })
 
+describe('delivery cut short', () => {
+  it('leaves the email and row queued if the run stops midway', async () => {
+    const { kv, store } = setup()
+    const r = await registerAttendee(kv, store, ada, noLimit)
+    if (r.state !== 'registered') throw new Error('not registered')
+    const never = { send: () => new Promise<void>(() => {}) } // e.g. the function is stopped while Gmail is still working
+    const hung = { url: 'u', key: 'k', fetch: (() => new Promise<Response>(() => {})) as unknown as typeof fetch }
+    void deliverRegistration(kv, store, r.registration, r.ticket, { mailer: never, siteOrigin: 'x', sheet: hung })
+    await new Promise((res) => setTimeout(res, 20))
+    expect(await kv.list(EMAIL_PENDING)).toEqual([EMAIL_PENDING + r.registration.ref])
+    expect(await kv.list(SHEET_PENDING)).toEqual([SHEET_PENDING + r.registration.ref])
+  })
+})
+
 describe('Gmail mailer', () => {
   const email: Email = { to: 'ada@example.com', subject: 'Hi', html: '<p>Hi</p>', text: 'Hi', idempotencyKey: 'k-1' }
 

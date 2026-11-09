@@ -22,8 +22,12 @@ async function rateLimited(kv: Kv, ip: string, now = new Date()) {
 /**
  * POST /.netlify/functions/register  Body: { name, email, design }
  * Free registration: one person, one ticket, one registration per email.
+ *
+ * The attendee gets their ticket straight away; the confirmation email and
+ * the sheet row are sent after the response (Gmail's script can take several
+ * seconds to start). Anything that doesn't finish is retried by retry-pending.
  */
-export default async (req: Request) => {
+export default async (req: Request, context?: { waitUntil?: (p: Promise<unknown>) => void }) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
   const parsed = parseRegistration(await req.json().catch(() => null))
   if (!parsed.ok) return json({ error: parsed.error }, parsed.status)
@@ -57,16 +61,18 @@ export default async (req: Request) => {
       return json({ state: 'already_registered', resent }, 409)
     }
 
-    const registration = await deliverRegistration(kv, store, outcome.registration, outcome.ticket, {
-      mailer,
-      siteOrigin,
-      sheet: sheetConfigFromEnv(),
-    })
+    const { registration, ticket } = outcome
+    const delivery = deliverRegistration(kv, store, registration, ticket, { mailer, siteOrigin, sheet: sheetConfigFromEnv() }).catch(
+      (err) => console.error('delivery failed', err),
+    )
+    if (context?.waitUntil) context.waitUntil(delivery)
+    else await delivery
+
     return json({
       state: 'registered',
       url: registrationUrl(siteOrigin, registration.ref, registration.accessKey),
-      emailSent: Boolean(registration.emailSentAt),
-      ticket: ownerView(outcome.ticket),
+      emailEnabled: mailer !== null,
+      ticket: ownerView(ticket),
     })
   } catch (err) {
     console.error('registration failed', err)

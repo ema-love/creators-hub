@@ -6,8 +6,8 @@ import { sheetConfigFromEnv } from '../lib/sheet'
 import { ticketForRegistration } from '../lib/tickets'
 
 /**
- * Runs every hour. Sends confirmation emails that couldn't go out at the time
- * (for example, the Gmail account's daily limit was reached) and writes
+ * Runs every 10 minutes. Sends confirmation emails that didn't go out at the
+ * time (cut short, or the Gmail account's daily limit was reached) and writes
  * registrations the Google Sheet didn't receive.
  */
 export default async () => {
@@ -26,4 +26,4 @@ export default async () => {
   return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } })
 }
 
-export const config = { schedule: '@hourly' }
+export const config = { schedule: '*/10 * * * *' }
