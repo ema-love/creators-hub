@@ -1,6 +1,6 @@
 import { firstRoom } from '../../src/content/event'
 import { categoryStyle, designById, EVENT_TAGLINE } from '../../src/content/ticketDesigns'
-import { registrationUrl, ticketQrUrl, ticketVerifyUrl } from './http'
+import { registrationUrl, ticketQrUrl } from './http'
 import type { Registration } from './registrations'
 import type { Ticket } from './tickets'
 
@@ -93,7 +93,6 @@ function ticketBlock(t: Ticket, origin: string) {
         </tr></table>
       </td></tr>
     </table>
-    <div style="padding-top:10px"><a href="${esc(ticketVerifyUrl(origin, t.token))}" style="font:600 13px/1 ${SANS};color:${C.electric};text-decoration:none">Open ticket ${esc(t.id)} →</a></div>
   </td></tr>`
 }
 
@@ -105,7 +104,7 @@ export function renderRegistrationEmail(
   idempotencyKey = `registration-email-${registration.ref}`,
 ): Email {
   const firstName = registration.name.split(/\s+/)[0] ?? registration.name
-  const subject = `You’re registered: ${firstRoom.fullName}`
+  const subject = `Your ticket for ${firstRoom.name}, ${firstRoom.dateLabel} (${ticket.id})`
   const viewUrl = registrationUrl(origin, registration.ref, registration.accessKey)
 
   const html = `<!doctype html>
@@ -116,14 +115,14 @@ export function renderRegistrationEmail(
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
     <tr><td style="padding:0 4px 28px"><img src="${origin}/email/logo.png" width="200" height="25" alt="Creator's Hub" style="display:block;width:200px;height:25px;border:0;font:italic 700 22px Georgia,serif;color:${C.cream}"></td></tr>
     <tr><td style="padding:0 4px;font:500 32px/1.1 ${SERIF};color:${C.cream}">You’re in the room, ${esc(firstName)}.</td></tr>
-    <tr><td style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:#cfd6d2">Your registration is confirmed. Your ticket is free and admits one person. Show its QR code at the door, on your phone or printed.</td></tr>
+    <tr><td style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:#cfd6d2">Thank you for registering for ${esc(firstRoom.fullName)}. Your ticket is below. It admits one person: show its QR code at the door, on your phone or printed.</td></tr>
     <tr><td style="padding:8px 4px 28px;font:600 15px/1.6 ${SANS};color:${C.cream}">${esc(firstRoom.dateLabel)} · Starts ${esc(firstRoom.time)} (WAT) · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}<br><span style="font-weight:400;color:${C.muted}">Venue: ${esc(firstRoom.venue ?? 'to be announced')}</span></td></tr>
     ${ticketBlock(ticket, origin)}
     <tr><td align="center" style="padding:4px 4px 8px">
       <a href="${esc(viewUrl)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View and download your ticket</a>
     </td></tr>
     <tr><td style="padding:24px 4px 0;font:400 13px/1.6 ${SANS};color:${C.muted}">Registration ${esc(registration.ref)}. ${firstRoom.venue ? '' : 'The venue will be shared as soon as it’s confirmed. '}Keep this email: the link above always brings your ticket back.</td></tr>
-    <tr><td style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:#6f7a76">Creators Hub · ${esc(firstRoom.fullName)} · ${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}</td></tr>
+    <tr><td style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:#6f7a76">You’re receiving this because you registered for ${esc(firstRoom.fullName)} (${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}). Questions? Just reply to this email.</td></tr>
   </table>
 </td></tr></table>
 </body></html>`
@@ -131,7 +130,7 @@ export function renderRegistrationEmail(
   const text = [
     `You’re in the room, ${firstName}.`,
     '',
-    'Your registration is confirmed. Your ticket is free and admits one person.',
+    `Thank you for registering for ${firstRoom.fullName}. Your ticket is below. It admits one person: show its QR code at the door, on your phone or printed.`,
     '',
     `${firstRoom.fullName}`,
     `${firstRoom.dateLabel} · Starts ${firstRoom.time} (WAT) · ${firstRoom.city}, ${firstRoom.country}`,
@@ -139,10 +138,11 @@ export function renderRegistrationEmail(
     '',
     `${ticket.id} · ${designById(ticket.design).name} · ${categoryStyle[ticket.category].label}`,
     `Attendee: ${ticket.attendeeName}`,
-    `Ticket: ${ticketVerifyUrl(origin, ticket.token)}`,
     '',
     `View and download your ticket: ${viewUrl}`,
     `Registration ${registration.ref}`,
+    '',
+    `You’re receiving this because you registered for ${firstRoom.fullName}. Questions? Just reply to this email.`,
   ].join('\n')
 
   return { to: registration.email, subject, html, text, idempotencyKey }
