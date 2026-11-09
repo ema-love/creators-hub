@@ -151,7 +151,7 @@ Tickets for The First Room are **free**. Registration is on `/tickets`. There is
 1. The attendee enters their name and email and picks their creative arm. The ticket preview appears only once the arm is chosen.
 2. `netlify/functions/register.ts` validates the details, claims the email (and a place, if capacity is set), saves the registration and issues one ticket.
 3. The attendee lands on their private ticket page (`/tickets/order?ref=…&k=…`), with the QR ticket ready to download or print.
-4. At the same time the confirmation email is sent (Resend) and the row is added to the Google Sheet. Neither can undo a registration. A row the sheet misses is queued and retried every hour by `netlify/functions/sync-sheet.ts`.
+4. At the same time the confirmation email is sent (from the Creators Hub Gmail account, see below) and the row is added to the Google Sheet. Neither can undo a registration. An email or row that doesn't go through is queued and retried every hour by `netlify/functions/retry-pending.ts`.
 5. Registering again with the same email is refused with "already registered", and the ticket is re-sent to that email (at most once an hour).
 
 Registrations are stored in **Netlify Blobs** (store `registrations`, keyed by a reference such as `CH001-3F9A…`), and tickets and claims in the store `tickets`.
@@ -183,24 +183,19 @@ Scanning a ticket with an ordinary camera app still works too: it opens the tick
 **Delivery and access.**
 - **Download** produces a 1320 × 2275 px PNG rendered from the SVG with fonts and photo embedded, so text and QR stay sharp; it isn't a screenshot.
 - **Print** prints one ticket per page. **Show QR for scanning** enlarges the code on a phone.
-- The confirmation email (Resend) carries the ticket in an email-safe version of the design, with its QR code, plus the private link back to it.
+- The confirmation email carries the ticket in an email-safe version of the design, with its QR code, plus the private link back to it.
 - Lost the email? `/tickets/find` re-sends the ticket to a registered email (the reply is the same for unregistered emails, so it can't be used to look people up). Without email set up, the email plus the registration reference opens the ticket directly.
 
 #### Setting up email and check-in
 
-Confirmation emails need a domain you own: Resend only sends to attendees from a verified domain.
+Confirmation emails are sent from the **Creators Hub Gmail account** by a small Google Apps Script on that account, so no domain is needed. Setup takes about 10 minutes: see [`integrations/gmail-mailer/README.md`](integrations/gmail-mailer/README.md). A free Gmail account sends about 100 of these a day; past that, attendees still get their ticket on screen, and their email is sent automatically by the hourly retry once Gmail allows.
 
-1. Create a free account at https://resend.com.
-2. Go to **Domains → Add domain** and add the domain you'll send from (for example `creatorshub.com`). Add the DNS records Resend shows at your domain registrar, then wait until it says **Verified**.
-3. Go to **API keys → Create API key** with **Sending access**.
-4. In Netlify, add these environment variables:
-   - `RESEND_API_KEY`: the key from step 3.
-   - `TICKET_EMAIL_FROM`: for example `Creators Hub <tickets@creatorshub.com>`, using the verified domain.
-   - `CHECKIN_PIN`: the passcode door staff will use. Make it long, e.g. 8+ characters.
-   - `EVENT_CAPACITY` (optional): total places, e.g. `300`.
-5. Redeploy.
+In Netlify, add these environment variables, then redeploy:
+- `GMAIL_MAILER_URL` and `GMAIL_MAILER_KEY`: from the mailer setup.
+- `CHECKIN_PIN`: the passcode door staff will use. Make it long, e.g. 8+ characters.
+- `EVENT_CAPACITY` (optional): total places, e.g. `300`.
 
-Without Resend configured, registration and tickets still work: attendees see and download their ticket straight away, and the page doesn't promise an email.
+With a domain later, `RESEND_API_KEY` and `TICKET_EMAIL_FROM` send through Resend instead; they're only used when the Gmail mailer isn't set. Without any email service, registration and tickets still work: attendees see and download their ticket straight away, and the page doesn't promise an email.
 
 ### Testing
 

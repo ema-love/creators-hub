@@ -28,6 +28,34 @@ export function createResendMailer(apiKey: string, from: string, fetchImpl: type
   }
 }
 
+/**
+ * Sends through a Google Apps Script web app running on the Creators Hub
+ * Gmail account (integrations/gmail-mailer/), so emails come from that
+ * address. The script drops repeats of the same idempotency key, and says
+ * "quota" when the account has used its daily sending allowance.
+ */
+export function createGmailMailer(url: string, key: string, fetchImpl: typeof fetch = fetch): Mailer {
+  return {
+    async send(email) {
+      const res = await fetchImpl(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, ...email }),
+        redirect: 'follow',
+        signal: AbortSignal.timeout(15000),
+      })
+      const text = await res.text()
+      let reply: { ok?: boolean; error?: string } = {}
+      try {
+        reply = JSON.parse(text)
+      } catch {
+        // An HTML page means the script isn't deployed for "Anyone".
+      }
+      if (!res.ok || reply.ok !== true) throw new Error(`Gmail mailer refused the email (${res.status}): ${reply.error ?? text.slice(0, 200)}`)
+    },
+  }
+}
+
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 

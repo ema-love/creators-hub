@@ -7,8 +7,10 @@ import type { Ticket } from './tickets'
 
 export type Delivery = { mailer: Mailer | null; siteOrigin: string; sheet: SheetConfig | null }
 
-/** Registrations waiting to be written to the Google Sheet. Retried hourly by sync-sheet. */
+/** Registrations waiting to be written to the Google Sheet. Retried hourly by retry-pending. */
 export const SHEET_PENDING = 'sheet-pending/'
+/** Confirmation emails waiting to be sent (e.g. Gmail's daily limit reached). Retried hourly. */
+export const EMAIL_PENDING = 'email-pending/'
 
 /** The row added to the sheet's Registrations tab. */
 export const sheetRow = (r: Registration, t: Ticket) => ({
@@ -22,8 +24,8 @@ export const sheetRow = (r: Registration, t: Ticket) => ({
 
 /**
  * Sends the confirmation email and writes the sheet row, each at most once.
- * Neither can undo a registration: if the email fails it can be re-sent from
- * "Find my ticket", and a row the sheet didn't accept is queued and retried.
+ * Neither can undo a registration: an email or row that doesn't go through
+ * is queued and retried every hour until it does.
  */
 export async function deliverRegistration(
   kv: Kv,
@@ -42,6 +44,7 @@ export async function deliverRegistration(
       patch.emailSentAt = now.toISOString()
     } catch (err) {
       console.error(`confirmation email failed for ${registration.ref}`, err)
+      await kv.put(EMAIL_PENDING + registration.ref, { at: now.toISOString() })
     }
   }
 
@@ -100,4 +103,41 @@ export async function flushSheetQueue(
     }
   }
   return { saved, failed }
+}
+
+/**
+ * Sends queued confirmation emails. Stops at the first refusal, which is
+ * usually the daily sending limit: the rest wait for the next run.
+ */
+export async function flushEmailQueue(
+  kv: Kv,
+  store: RegistrationStore,
+  mailer: Mailer,
+  siteOrigin: string,
+  ticketFor: (ref: string) => Promise<Ticket | null>,
+  { limit = 100, now = new Date() } = {},
+): Promise<{ sent: number; failed: number }> {
+  const keys = (await kv.list(EMAIL_PENDING)).slice(0, limit)
+  let sent = 0
+  let failed = 0
+  for (const key of keys) {
+    const ref = key.slice(EMAIL_PENDING.length)
+    const registration = await store.get(ref)
+    const ticket = registration ? await ticketFor(ref) : null
+    if (!registration || !ticket || registration.emailSentAt) {
+      await kv.delete(key)
+      continue
+    }
+    try {
+      await mailer.send(renderRegistrationEmail(registration, ticket, siteOrigin))
+      await store.save({ ...((await store.get(ref)) ?? registration), emailSentAt: now.toISOString() })
+      await kv.delete(key)
+      sent++
+    } catch (err) {
+      console.error(`email retry failed for ${ref}`, err)
+      failed++
+      break
+    }
+  }
+  return { sent, failed }
 }

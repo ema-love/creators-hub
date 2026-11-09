@@ -1,4 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
+import { mailerFromEnv } from '../lib/delivery'
 import { json } from '../lib/http'
 import { blobKv } from '../lib/kv'
 import { blobRegistrationStore } from '../lib/registrations'
@@ -20,7 +21,12 @@ export default async (req: Request) => {
   const ticket = await ticketForRegistration(blobKv('tickets'), registration.ref)
   if (!ticket) return json({ error: 'We couldn’t find that ticket.' }, 404)
   return json({
-    registration: { reference: registration.ref, name: registration.name, emailSent: Boolean(registration.emailSentAt) },
+    registration: {
+      reference: registration.ref,
+      name: registration.name,
+      emailSent: Boolean(registration.emailSentAt),
+      emailEnabled: mailerFromEnv() !== null,
+    },
     ticket: ownerView(ticket),
   })
 }

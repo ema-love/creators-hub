@@ -9,7 +9,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type State =
   | { kind: 'loading' }
-  | { kind: 'ready'; registration: { reference: string; name: string; emailSent: boolean }; ticket: OwnedTicket }
+  | { kind: 'ready'; registration: { reference: string; name: string; emailSent: boolean; emailEnabled?: boolean }; ticket: OwnedTicket }
   | { kind: 'error'; message: string }
 
 /**
@@ -72,7 +72,9 @@ export default function TicketOrderPage() {
                   Your ticket is free and admits one person. Show its QR code at the door, on your phone or printed.{' '}
                   {ready.registration.emailSent
                     ? 'We’ve also emailed it to you.'
-                    : 'Download it below and bookmark this page: it’s your private link back to your ticket.'}
+                    : ready.registration.emailEnabled
+                      ? 'We’ll also email it to you shortly. Until then, download it below.'
+                      : 'Download it below and bookmark this page: it’s your private link back to your ticket.'}
                 </p>
                 <p className="text-sm text-cream/55">
                   Registration <span className="select-all font-mono text-cream">{ready.registration.reference}</span>. Keep this page

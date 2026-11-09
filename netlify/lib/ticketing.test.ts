@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
-import { renderRegistrationEmail, type Email, type Mailer } from './email'
+import { createGmailMailer, renderRegistrationEmail, type Email, type Mailer } from './email'
 import { memoryKv } from './kv'
 import { canonicalEmail, capacityFromEnv, findByEmail, parseRegistration, registerAttendee, seatsTaken } from './register'
-import { deliverRegistration, flushSheetQueue, SHEET_PENDING } from './registrationDelivery'
+import { deliverRegistration, EMAIL_PENDING, flushEmailQueue, flushSheetQueue, SHEET_PENDING } from './registrationDelivery'
 import { memoryRegistrationStore } from './registrations'
 import { staffSummary } from './staffSummary'
 import { findTicketSlot, ticketForRegistration } from './tickets'
@@ -238,5 +238,44 @@ describe('confirmation email and Google Sheet', () => {
     const done = await deliverRegistration(kv, store, r.registration, r.ticket, { mailer: broken, siteOrigin: 'x', sheet: null })
     expect(done.emailSentAt).toBeUndefined()
     expect(await findByEmail(kv, store, 'ADA@example.com')).toMatchObject({ ticket: { id: 'CH001-F-0001' } })
+  })
+
+  it('queues emails the mailer refused (daily limit) and sends them later, once', async () => {
+    const { kv, store } = setup()
+    const r = await registerAttendee(kv, store, ada, noLimit)
+    if (r.state !== 'registered') throw new Error('not registered')
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    const full = { send: async () => Promise.reject(new Error('quota')) }
+    const done = await deliverRegistration(kv, store, r.registration, r.ticket, { mailer: full, siteOrigin: 'https://site.test', sheet: null })
+    expect(done.emailSentAt).toBeUndefined()
+    expect(await kv.list(EMAIL_PENDING)).toEqual([EMAIL_PENDING + r.registration.ref])
+
+    const ticketFor = (ref: string) => ticketForRegistration(kv, ref)
+    expect(await flushEmailQueue(kv, store, full, 'https://site.test', ticketFor)).toEqual({ sent: 0, failed: 1 })
+    const { sent, mailer } = recordingMailer()
+    expect(await flushEmailQueue(kv, store, mailer, 'https://site.test', ticketFor)).toEqual({ sent: 1, failed: 0 })
+    expect(sent[0]?.to).toBe('ada@example.com')
+    expect(await kv.list(EMAIL_PENDING)).toEqual([])
+    expect((await store.get(r.registration.ref))?.emailSentAt).toBeTruthy()
+    expect(await flushEmailQueue(kv, store, mailer, 'https://site.test', ticketFor)).toEqual({ sent: 0, failed: 0 })
+  })
+})
+
+describe('Gmail mailer', () => {
+  const email: Email = { to: 'ada@example.com', subject: 'Hi', html: '<p>Hi</p>', text: 'Hi', idempotencyKey: 'k-1' }
+
+  it('posts the email with the connection key', async () => {
+    const f = vi.fn(async () => new Response('{"ok":true}'))
+    await createGmailMailer('https://script.test/exec', 'secret', f as unknown as typeof fetch).send(email)
+    const [url, init] = f.mock.calls[0] as unknown as [string, RequestInit]
+    expect(url).toBe('https://script.test/exec')
+    expect(JSON.parse(String(init.body))).toEqual({ key: 'secret', ...email })
+  })
+
+  it('fails when the script refuses, so the email is retried', async () => {
+    const quota = vi.fn(async () => new Response('{"ok":false,"error":"quota"}'))
+    await expect(createGmailMailer('u', 'k', quota as unknown as typeof fetch).send(email)).rejects.toThrow(/quota/)
+    const html = vi.fn(async () => new Response('<html>Sign in</html>'))
+    await expect(createGmailMailer('u', 'k', html as unknown as typeof fetch).send(email)).rejects.toThrow(/refused/)
   })
 })
