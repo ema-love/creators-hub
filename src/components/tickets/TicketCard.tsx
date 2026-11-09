@@ -21,7 +21,7 @@ export type OwnedTicket = {
 export const verifyUrlFor = (token: string) => `${window.location.origin}/v/${encodeURIComponent(token)}`
 
 /**
- * A purchased ticket with its actions: enlarge the QR for scanning,
+ * A registered ticket with its actions: enlarge the QR for scanning,
  * download as a high-resolution PNG. Marked for printing.
  */
 export function TicketCard({ ticket, className }: { ticket: OwnedTicket; className?: string }) {

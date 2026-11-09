@@ -1,9 +1,8 @@
 import { claim, type Kv } from './kv'
 import { checkStaffPin } from './staffAuth'
-import type { OrderStore } from './orders'
 import { findTicketSlot, publicView, withCheckIn, type Ticket, type TicketView } from './tickets'
 
-export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid' | 'awaiting_payment'
+export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid'
 
 export type VerifyRequest = {
   token?: string | null
@@ -19,13 +18,12 @@ export type VerifyResult =
   | { ok: false; status: number; error: string }
 
 /**
- * Checks a ticket. A ticket is valid only if its record exists, it has not
- * been voided, and its order's payment is confirmed. Staff (correct PIN) may
- * admit a valid ticket exactly once; concurrent scans cannot both succeed.
+ * Checks a ticket. A ticket is valid only if its record exists and it has not
+ * been voided. Staff (correct PIN) may admit a valid ticket exactly once;
+ * concurrent scans cannot both succeed.
  */
 export async function verifyTicket(
   kv: Kv,
-  orders: OrderStore,
   req: VerifyRequest,
   { staffPin }: { staffPin: string },
   now = new Date(),
@@ -43,8 +41,6 @@ export async function verifyTicket(
   if (!stored || stored.status === 'void') return { ok: true, outcome: 'invalid', staff, ticket: null }
 
   const ticket = await withCheckIn(kv, stored)
-  const order = await orders.get(ticket.orderRef)
-  if (!order || order.status !== 'paid') return { ok: true, outcome: 'awaiting_payment', staff, ticket: publicView(ticket) }
   if (ticket.status === 'checked_in') return { ok: true, outcome: 'checked_in', staff, ticket: publicView(ticket) }
 
   if (staff && req.admit) {

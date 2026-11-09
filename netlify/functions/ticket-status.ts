@@ -1,6 +1,5 @@
 import { clientId, json } from '../lib/http'
 import { blobKv } from '../lib/kv'
-import { blobOrderStore } from '../lib/orders'
 import { verifyTicket } from '../lib/verifyTicket'
 
 /**
@@ -15,7 +14,6 @@ export default async (req: Request) => {
 
   const result = await verifyTicket(
     blobKv('tickets'),
-    blobOrderStore(),
     { token: str(body?.token), ticketId: str(body?.ticketId), pin: str(body?.pin), admit: body?.admit === true, clientId: clientId(req) },
     { staffPin: process.env.CHECKIN_PIN ?? '' },
   )

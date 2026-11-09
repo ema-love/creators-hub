@@ -24,7 +24,7 @@ export const firstRoom = {
   startUtc: '2026-12-19T08:00:00Z',
 
   // ——— Unconfirmed: rendered as placeholders ———
-  // Ticket tiers and prices live in ./tickets.ts.
+  // Registration settings live in ./tickets.ts.
   venue: null as string | null,
   speakers: [] as Array<{ name: string; role: string }>,
   programme: [] as Array<{ time: string; title: string }>,

@@ -22,5 +22,6 @@ export const clientId = (req: Request) => req.headers.get('x-nf-client-connectio
 /** Short on purpose: the QR code encodes this, and shorter means bigger, easier-to-scan modules. */
 export const ticketVerifyUrl = (origin: string, token: string) => `${origin}/v/${encodeURIComponent(token)}`
 export const ticketQrUrl = (origin: string, token: string) => `${origin}/.netlify/functions/ticket-qr?t=${encodeURIComponent(token)}`
-export const orderUrl = (origin: string, ref: string, key: string) =>
+/** The attendee's private "your ticket" page. */
+export const registrationUrl = (origin: string, ref: string, key: string) =>
   `${origin}/tickets/order?${new URLSearchParams({ ref, k: key })}`

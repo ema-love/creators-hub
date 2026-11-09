@@ -3,18 +3,16 @@ import type { TicketTierId } from '../content/tickets'
 
 export type TicketView = {
   id: string
-  orderRef: string
+  ref: string
   attendeeName: string
   category: TicketTierId
   design: TicketDesignId
-  paymentStatus: 'paid'
   status: 'valid' | 'checked_in' | 'void'
-  purchasedAt: string
   issuedAt: string
   checkedInAt?: string
 }
 
-export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid' | 'awaiting_payment'
+export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid'
 
 export class StaffAuthError extends Error {}
 
@@ -57,9 +55,10 @@ export const formatTime = (iso: string) =>
 
 export type StaffSummary = {
   totals: { issued: number; checkedIn: number }
-  byCategory: Record<'regular' | 'premium', { issued: number; checkedIn: number }>
+  /** EVENT_CAPACITY, or null for no limit. */
+  capacity: number | null
   byDesign: Array<{ id: TicketDesignId; name: string; issued: number; checkedIn: number }>
-  recent: Array<{ id: string; attendeeName: string; design: TicketDesignId; category: TicketTierId; checkedInAt: string }>
+  recent: Array<{ id: string; attendeeName: string; design: TicketDesignId; checkedInAt: string }>
   generatedAt: string
 }
 

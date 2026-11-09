@@ -1,11 +1,12 @@
 import { clientId, json } from '../lib/http'
 import { blobKv } from '../lib/kv'
+import { capacityFromEnv } from '../lib/register'
 import { checkStaffPin } from '../lib/staffAuth'
 import { staffSummary } from '../lib/staffSummary'
 
 /**
  * POST /.netlify/functions/staff-summary  Body: { pin }
- * Ticket and check-in numbers for the staff area. Staff PIN required.
+ * Registration and check-in numbers for the staff area. Staff PIN required.
  */
 export default async (req: Request) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
@@ -16,5 +17,5 @@ export default async (req: Request) => {
     clientId: clientId(req),
   })
   if (!auth.ok) return json({ error: auth.error }, auth.status)
-  return json(await staffSummary(kv))
+  return json(await staffSummary(kv, { capacity: capacityFromEnv() }))
 }

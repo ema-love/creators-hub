@@ -1,31 +1,33 @@
-# Volunteer applications → Google Sheet + email
+# Google Sheet: registrations and volunteer applications
 
-Every volunteer application from the website is:
+One Google Sheet holds both kinds of record from the website:
 
-1. saved in **Netlify → Forms → volunteer** (always, as a backup),
-2. added as a row in your **Google Sheet**, and
-3. emailed to **you**, the owner of that sheet, as a branded summary with a "Reply" button.
+- **Registrations**: every free ticket registration (name, email, creative arm, ticket ID) becomes a row. No email is sent to you for these, as there can be hundreds; the attendee gets their confirmation from the website.
+- **Applications**: every volunteer application becomes a row **and** is emailed to you, the owner of the sheet, as a branded summary with a "Reply" button.
+- **Overview**: totals and breakdowns for both, updating by themselves.
 
-Your email address is never written in the code or on the website: Google sends the email to whichever account owns the sheet.
+Your email address is never written in the code or on the website: Google sends volunteer emails to whichever account owns the sheet.
+
+Everything is also kept by the website itself. If the sheet is unreachable, or not set up yet, registrations are queued and added automatically within the hour once it's available. Volunteer applications always stay in Netlify → Forms.
 
 ## One-time setup (about 10 minutes)
 
-Do this while signed in to the Google account that should receive the applications.
+Do this while signed in to the Google account that should own the data.
 
 ### 1. Create the sheet
 
 1. Go to [sheets.new](https://sheets.new) to make a blank Google Sheet.
 2. Open **Extensions → Apps Script**.
-3. Delete everything in the editor, then paste the whole of [`volunteer-applications.gs`](./volunteer-applications.gs).
-4. Click **Save** (the disk icon). You can name the project "Creators Hub volunteers".
+3. Delete everything in the editor, then paste the whole of [`creators-hub.gs`](./creators-hub.gs).
+4. Click **Save** (the disk icon). You can name the project "Creators Hub".
 5. Go back to the sheet tab and **reload the page**. A **Creators Hub** menu appears next to Help.
 6. Click **Creators Hub → 1. Set up this sheet**.
-   - Google asks for permission the first time: choose your account, then **Advanced → Go to Creators Hub volunteers (unsafe) → Allow**. ("Unsafe" only means Google hasn't reviewed your own private script.)
-   - Once it finishes, the sheet has an **Applications** tab and an **Overview** tab.
+   - Google asks for permission the first time: choose your account, then **Advanced → Go to Creators Hub (unsafe) → Allow**. ("Unsafe" only means Google hasn't reviewed your own private script.)
+   - Once it finishes, the sheet has **Registrations**, **Applications** and **Overview** tabs.
 
 ### 2. Check it works
 
-Click **Creators Hub → Send a test application**. A test row appears and a "New volunteer" email reaches your inbox. Delete the test row afterwards.
+Use **Creators Hub → Send a test registration** and **Send a test application**. A test row appears on each tab, and a "New volunteer" email reaches your inbox. Delete the test rows afterwards.
 
 ### 3. Connect the website
 
@@ -36,21 +38,25 @@ Click **Creators Hub → Send a test application**. A test row appears and a "Ne
 4. Copy the **Web app URL** (it ends in `/exec`).
 5. In the sheet, click **Creators Hub → 2. Show connection key** and copy the key.
 6. In Netlify, go to **Site configuration → Environment variables** and add:
-   - `VOLUNTEER_SHEET_URL`: the web app URL
-   - `VOLUNTEER_SHEET_KEY`: the connection key
+   - `GOOGLE_SHEET_URL`: the web app URL
+   - `GOOGLE_SHEET_KEY`: the connection key
 7. Redeploy the site (**Deploys → Trigger deploy**).
 
-From then on, every new application arrives in the sheet and your inbox within a few seconds.
+## Already set up the volunteer-only version?
+
+1. In **Extensions → Apps Script**, replace all the code with [`creators-hub.gs`](./creators-hub.gs) and save.
+2. Reload the sheet and run **Creators Hub → 1. Set up this sheet** again. It adds the Registrations tab and refreshes the Overview. Existing rows are kept.
+3. Publish the new code: **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. The URL and key stay the same.
+4. If you used `VOLUNTEER_SHEET_URL` / `VOLUNTEER_SHEET_KEY` in Netlify, they still work. You can rename them to `GOOGLE_SHEET_URL` / `GOOGLE_SHEET_KEY` whenever you like.
 
 ## Using the sheet
 
-- **Applications tab:** one row per applicant, newest at the bottom. Set the **Status** column (New, Reviewing, Shortlisted, Contacted, Selected, Not this time) from its dropdown; each status has its own colour. Use the filter buttons in the header row to view one role or status at a time, and the **Notes** column for your own comments.
-- **Overview tab:** totals, plus applicants by role, department, status and background. It updates by itself.
-- Long answers are cut off in the cell to keep the rows tidy. Click a cell to read all of it, or read it in the email.
+- **Registrations:** one row per attendee, oldest first. Use the filter buttons in the header row to see one creative arm, and the **Notes** column for your own comments. Check-ins at the door are tracked in the website's staff area (`/staff`), not here.
+- **Applications:** set each applicant's **Status** (New, Reviewing, Shortlisted, Contacted, Selected, Not this time) from its dropdown.
+- Long answers are cut off in the cell to keep the rows tidy. Click a cell to read all of it.
 
 ## Good to know
 
-- If the sheet is ever unreachable, nothing is lost: every application stays in Netlify → Forms.
-- If you edit the script later, publish the change with **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. The URL stays the same.
-- Google allows a personal Gmail account to send about 100 script emails a day, which is far more than you're likely to need.
-- To change which account receives the emails, make the sheet and the deployment from that account.
+- If you edit the script later, publish the change with **Deploy → Manage deployments → Edit → Version: New version → Deploy**.
+- Google allows a personal Gmail account to send about 100 script emails a day. Only volunteer applications use this.
+- To change which account owns the data, make the sheet and the deployment from that account.

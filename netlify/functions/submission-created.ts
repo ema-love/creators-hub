@@ -1,5 +1,6 @@
 import { formNames } from '../../src/content/forms'
-import { applicationFromSubmission, sendToSheet, sheetConfigFromEnv } from '../lib/volunteerSheet'
+import { sheetConfigFromEnv } from '../lib/sheet'
+import { applicationFromSubmission, sendToSheet } from '../lib/volunteerSheet'
 
 /**
  * Netlify runs this automatically after every verified (non-spam) form
@@ -23,7 +24,7 @@ export const handler = async (event: NetlifyFormEvent) => {
 
   const config = sheetConfigFromEnv()
   if (!config) {
-    console.warn('Volunteer application received, but VOLUNTEER_SHEET_URL / VOLUNTEER_SHEET_KEY are not set.')
+    console.warn('Volunteer application received, but GOOGLE_SHEET_URL / GOOGLE_SHEET_KEY are not set.')
     return { statusCode: 200, body: 'Sheet not configured' }
   }
 

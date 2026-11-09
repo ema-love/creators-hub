@@ -54,7 +54,7 @@ export default function FirstRoomPage() {
                 Save the date
               </a>
               <ArrowLink to="/tickets" variant="rust">
-                Get tickets
+                Register free
               </ArrowLink>
             </Reveal>
           </div>
@@ -118,7 +118,7 @@ export default function FirstRoomPage() {
             </EventBlock>
             <EventBlock title="Tickets">
               <ArrowLink to="/tickets" variant="text">
-                Regular and Premium tickets
+                Free registration, one ticket per person
               </ArrowLink>
             </EventBlock>
             <EventBlock title="Partners">

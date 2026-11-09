@@ -25,7 +25,7 @@
     # camera=(self): the staff scanner at /staff uses the camera; no other site can.
     Permissions-Policy = "camera=(self), microphone=(), geolocation=()"
 
-# Payment functions (Flutterwave). See README → "Ticket payments".
+# Registration, tickets and check-in functions. See README → "Free registration".
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"

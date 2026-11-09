@@ -1,17 +1,17 @@
-import { CheckCircle2, Clock, TriangleAlert, XCircle } from 'lucide-react'
+import { CheckCircle2, TriangleAlert, XCircle } from 'lucide-react'
 import { designById } from '../../content/ticketDesigns'
 import { formatTime, type TicketView, type VerifyOutcome } from '../../lib/ticketApi'
 import { cn } from '../../lib/cn'
 
-/** Large, unmistakable result for the door: valid, admitted, already used, invalid, unpaid. */
+/** Large, unmistakable result for the door: valid, admitted, already used, invalid. */
 export function TicketVerdict({ outcome, ticket, staff }: { outcome: VerifyOutcome; ticket: TicketView | null; staff: boolean }) {
-  const who = ticket ? `${ticket.attendeeName} · ${designById(ticket.design).name} · ${ticket.category === 'premium' ? 'Premium' : 'Regular'}` : ''
+  const who = ticket ? `${ticket.attendeeName} · ${designById(ticket.design).name}` : ''
   const v = {
     valid: {
       tone: 'good',
       icon: <CheckCircle2 className="h-7 w-7" />,
       title: 'Valid ticket',
-      body: staff ? `${who}. Not yet checked in.` : 'Paid and ready. Show this QR code at the door.',
+      body: staff ? `${who}. Not yet checked in.` : 'Registered and ready. Show this QR code at the door.',
     },
     admitted: { tone: 'good', icon: <CheckCircle2 className="h-7 w-7" />, title: 'Admitted', body: `${who}. Welcome in.` },
     checked_in: {
@@ -25,12 +25,6 @@ export function TicketVerdict({ outcome, ticket, staff }: { outcome: VerifyOutco
       icon: <XCircle className="h-7 w-7" />,
       title: 'Invalid ticket',
       body: 'This code doesn’t match a Creators Hub 001 ticket. Do not admit.',
-    },
-    awaiting_payment: {
-      tone: 'bad',
-      icon: <Clock className="h-7 w-7" />,
-      title: 'Awaiting payment confirmation',
-      body: 'Payment for this ticket hasn’t been confirmed, so it can’t be admitted yet.',
     },
   }[outcome]
 

@@ -1,8 +1,7 @@
 import { firstRoom } from '../../src/content/event'
 import { categoryStyle, designById, EVENT_TAGLINE } from '../../src/content/ticketDesigns'
-import { formatNaira } from '../../src/content/tickets'
-import { orderUrl, ticketQrUrl, ticketVerifyUrl } from './http'
-import type { Order } from './orders'
+import { registrationUrl, ticketQrUrl, ticketVerifyUrl } from './http'
+import type { Registration } from './registrations'
 import type { Ticket } from './tickets'
 
 export type Email = { to: string; subject: string; html: string; text: string; idempotencyKey: string }
@@ -70,29 +69,33 @@ function ticketBlock(t: Ticket, origin: string) {
   </td></tr>`
 }
 
-export function renderTicketEmail(order: Order, tickets: Ticket[], origin: string, idempotencyKey = `ticket-email-${order.txRef}`): Email {
-  const firstName = order.name.split(/\s+/)[0] ?? order.name
-  const paid = order.currency === 'NGN' ? formatNaira(order.amount) : `${order.amount} ${order.currency}`
-  const plural = tickets.length === 1 ? 'ticket' : 'tickets'
-  const subject = `Your ${plural}: ${firstRoom.fullName}`
-  const viewAll = orderUrl(origin, order.txRef, order.accessKey)
+/** The registration confirmation: the attendee's ticket, with its QR code. */
+export function renderRegistrationEmail(
+  registration: Registration,
+  ticket: Ticket,
+  origin: string,
+  idempotencyKey = `registration-email-${registration.ref}`,
+): Email {
+  const firstName = registration.name.split(/\s+/)[0] ?? registration.name
+  const subject = `You’re registered: ${firstRoom.fullName}`
+  const viewUrl = registrationUrl(origin, registration.ref, registration.accessKey)
 
   const html = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>${esc(subject)}</title></head>
 <body style="margin:0;padding:0;background:${C.ink}">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0">${tickets.length} ${plural} for ${esc(firstRoom.fullName)}, ${esc(firstRoom.dateLabel)} in ${esc(firstRoom.city)}.</div>
+<div style="display:none;max-height:0;overflow:hidden;opacity:0">Your free ticket for ${esc(firstRoom.fullName)}, ${esc(firstRoom.dateLabel)} in ${esc(firstRoom.city)}.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.ink}">
 <tr><td align="center" style="padding:32px 16px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
     <tr><td style="padding:0 4px 24px;font:600 14px/1.1 ${SERIF};letter-spacing:.02em;color:${C.cream}">CREATORS<br>HUB</td></tr>
     <tr><td style="padding:0 4px;font:500 32px/1.1 ${SERIF};color:${C.cream}">You’re in the room, ${esc(firstName)}.</td></tr>
-    <tr><td style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:#cfd6d2">Your payment is confirmed. Each ticket below has its own QR code and admits one person. Show it at the door on your phone or printed.</td></tr>
+    <tr><td style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:#cfd6d2">Your registration is confirmed. Your ticket is free and admits one person. Show its QR code at the door, on your phone or printed.</td></tr>
     <tr><td style="padding:8px 4px 28px;font:600 15px/1.6 ${SANS};color:${C.cream}">${esc(firstRoom.dateLabel)} · Starts ${esc(firstRoom.time)} (WAT) · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}<br><span style="font-weight:400;color:${C.muted}">Venue: ${esc(firstRoom.venue ?? 'to be announced')}</span></td></tr>
-    ${tickets.map((t) => ticketBlock(t, origin)).join('')}
+    ${ticketBlock(ticket, origin)}
     <tr><td align="center" style="padding:4px 4px 8px">
-      <a href="${esc(viewAll)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View and download your ${plural}</a>
+      <a href="${esc(viewUrl)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View and download your ticket</a>
     </td></tr>
-    <tr><td style="padding:24px 4px 0;font:400 13px/1.6 ${SANS};color:${C.muted}">Order ${esc(order.txRef)} · Paid ${esc(paid)}. ${firstRoom.venue ? '' : 'The venue will be shared as soon as it’s confirmed. '}Keep this email: the link above always brings your tickets back.</td></tr>
+    <tr><td style="padding:24px 4px 0;font:400 13px/1.6 ${SANS};color:${C.muted}">Registration ${esc(registration.ref)}. ${firstRoom.venue ? '' : 'The venue will be shared as soon as it’s confirmed. '}Keep this email: the link above always brings your ticket back.</td></tr>
     <tr><td style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:#6f7a76">Creators Hub · ${esc(firstRoom.fullName)} · ${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}</td></tr>
   </table>
 </td></tr></table>
@@ -101,19 +104,19 @@ export function renderTicketEmail(order: Order, tickets: Ticket[], origin: strin
   const text = [
     `You’re in the room, ${firstName}.`,
     '',
+    'Your registration is confirmed. Your ticket is free and admits one person.',
+    '',
     `${firstRoom.fullName}`,
     `${firstRoom.dateLabel} · Starts ${firstRoom.time} (WAT) · ${firstRoom.city}, ${firstRoom.country}`,
     `Venue: ${firstRoom.venue ?? 'to be announced'}`,
     '',
-    ...tickets.flatMap((t) => [
-      `${t.id} · ${designById(t.design).name} · ${categoryStyle[t.category].label}`,
-      `Attendee: ${t.attendeeName}`,
-      `Ticket: ${ticketVerifyUrl(origin, t.token)}`,
-      '',
-    ]),
-    `View and download your ${plural}: ${viewAll}`,
-    `Order ${order.txRef} · Paid ${paid}`,
+    `${ticket.id} · ${designById(ticket.design).name} · ${categoryStyle[ticket.category].label}`,
+    `Attendee: ${ticket.attendeeName}`,
+    `Ticket: ${ticketVerifyUrl(origin, ticket.token)}`,
+    '',
+    `View and download your ticket: ${viewUrl}`,
+    `Registration ${registration.ref}`,
   ].join('\n')
 
-  return { to: order.email, subject, html, text, idempotencyKey }
+  return { to: registration.email, subject, html, text, idempotencyKey }
 }

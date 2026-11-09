@@ -1,38 +1,37 @@
 import { randomBytes } from 'node:crypto'
 import { designById, formatTicketId, type TicketDesignId } from '../../src/content/ticketDesigns'
-import type { TicketTierId } from '../../src/content/tickets'
+import { TICKET_CATEGORY, type TicketTierId } from '../../src/content/tickets'
 import { claim, type Kv } from './kv'
-import type { Order } from './orders'
+import type { Registration } from './registrations'
 
 export type TicketStatus = 'valid' | 'checked_in' | 'void'
 
-/** One admission. Created only after the order's payment is verified. */
+/** One free admission, issued when someone registers. */
 export type Ticket = {
   id: string
-  orderRef: string
+  /** Registration reference. */
+  ref: string
   attendeeName: string
   email: string
   category: TicketTierId
   design: TicketDesignId
-  paymentStatus: 'paid'
   status: TicketStatus
   /** Secret, random; encoded in the QR code. */
   token: string
-  purchasedAt: string
   issuedAt: string
   checkedInAt?: string
 }
 
 /*
  * Keys in the "tickets" store:
- *   slot/<orderRef>/<n>     Ticket, one per attendee
- *   claim/<orderRef>/<n>    who is issuing that slot (first creator wins)
+ *   slot/<ref>              the registration's Ticket
  *   num/<letter>/<n>        ticket number taken (first creator wins, so IDs are unique)
  *   counter/<letter>        hint for the next free number
  *   id/<ticketId>, tok/<token>  → slot key
  *   checkin/<ticketId>      admission record (first creator wins, so one check-in)
+ *   email/<hash>, seat/<n>  registration claims (see register.ts)
  */
-const slotKey = (ref: string, i: number) => `slot/${ref}/${i}`
+export const slotKey = (ref: string) => `slot/${ref}`
 
 /** Claims the next free number for a design. Unique even under concurrency. */
 async function claimNumber(kv: Kv, letter: string, slot: string): Promise<number> {
@@ -48,75 +47,37 @@ async function claimNumber(kv: Kv, letter: string, slot: string): Promise<number
 
 export const newTicketToken = () => randomBytes(16).toString('base64url')
 
-const CLAIM_STALE_MS = 20_000
-const WAIT_MS = 150
-const MAX_WAIT_MS = 6_000
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+/**
+ * Issues the registration's ticket, or returns it if it already exists.
+ * Only the request that won the email claim calls this, so there is no
+ * competing issuer; the create-only write still guards against a retry.
+ */
+export async function issueTicket(kv: Kv, registration: Registration, now = new Date()): Promise<Ticket> {
+  const slot = slotKey(registration.ref)
+  const existing = await kv.get<Ticket>(slot)
+  if (existing) return existing
 
-async function createTicket(kv: Kv, order: Order, i: number, slot: string, now: Date): Promise<Ticket> {
-  const attendee = order.attendees[i]!
-  const design = designById(attendee.design)
+  const design = designById(registration.design)
   const ticket: Ticket = {
     id: formatTicketId(design.letter, await claimNumber(kv, design.letter, slot)),
-    orderRef: order.txRef,
-    attendeeName: attendee.name,
-    email: order.email,
-    category: order.tier,
-    design: attendee.design,
-    paymentStatus: 'paid',
+    ref: registration.ref,
+    attendeeName: registration.name,
+    email: registration.email,
+    category: TICKET_CATEGORY,
+    design: registration.design,
     status: 'valid',
     token: newTicketToken(),
-    purchasedAt: order.paidAt ?? now.toISOString(),
     issuedAt: now.toISOString(),
   }
-  if (await kv.create(slot, ticket)) return ticket
-  return (await kv.get<Ticket>(slot))!
+  const issued = (await kv.create(slot, ticket)) ? ticket : (await kv.get<Ticket>(slot))!
+  await kv.put(`id/${issued.id}`, { slot })
+  await kv.put(`tok/${issued.token}`, { slot })
+  return issued
 }
 
-/**
- * Issues one ticket per attendee for a paid order. Safe to call any number
- * of times, including concurrently (payment return page + webhook): each
- * slot is issued by whichever caller claims it first; the others wait for
- * that ticket instead of creating their own.
- */
-export async function issueTickets(kv: Kv, order: Order, now = new Date()): Promise<Ticket[]> {
-  if (order.status !== 'paid') throw new Error('Tickets are only issued for paid orders')
-  const tickets: Ticket[] = []
-  for (let i = 0; i < order.attendees.length; i++) {
-    const slot = slotKey(order.txRef, i)
-    let ticket = await kv.get<Ticket>(slot)
-    if (!ticket) {
-      const claimKey = `claim/${order.txRef}/${i}`
-      if (await claim(kv, claimKey, { at: Date.now() })) {
-        ticket = await createTicket(kv, order, i, slot, now)
-      } else {
-        for (let waited = 0; !ticket && waited < MAX_WAIT_MS; waited += WAIT_MS) {
-          await sleep(WAIT_MS)
-          ticket = await kv.get<Ticket>(slot)
-        }
-        if (!ticket) {
-          // The claimant seems to have died mid-issue: take over if its claim is stale.
-          const claim = await kv.get<{ at: number }>(claimKey)
-          if (claim && Date.now() - claim.at < CLAIM_STALE_MS) throw new Error('Ticket issuing is still in progress')
-          await kv.put(claimKey, { at: Date.now() })
-          ticket = await createTicket(kv, order, i, slot, now)
-        }
-      }
-    }
-    await kv.put(`id/${ticket.id}`, { slot })
-    await kv.put(`tok/${ticket.token}`, { slot })
-    tickets.push(ticket)
-  }
-  return tickets
-}
-
-export async function ticketsForOrder(kv: Kv, order: Order): Promise<Ticket[]> {
-  const out: Ticket[] = []
-  for (let i = 0; i < order.attendees.length; i++) {
-    const t = await kv.get<Ticket>(slotKey(order.txRef, i))
-    if (t) out.push(await withCheckIn(kv, t))
-  }
-  return out
+export async function ticketForRegistration(kv: Kv, ref: string): Promise<Ticket | null> {
+  const t = await kv.get<Ticket>(slotKey(ref))
+  return t ? withCheckIn(kv, t) : null
 }
 
 export async function findTicketSlot(kv: Kv, by: { token: string } | { ticketId: string }): Promise<string | null> {
@@ -139,3 +100,14 @@ export function publicView(ticket: Ticket): TicketView {
   delete view.email
   return view as TicketView
 }
+
+/** Ticket fields the holder's own pages need, including the QR token. */
+export const ownerView = (t: Ticket) => ({
+  id: t.id,
+  attendeeName: t.attendeeName,
+  category: t.category,
+  design: t.design,
+  status: t.status,
+  token: t.token,
+  checkedInAt: t.checkedInAt ?? null,
+})

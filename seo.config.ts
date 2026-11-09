@@ -1,6 +1,5 @@
 import type { Plugin } from 'vite'
 import { firstRoom } from './src/content/event.ts'
-import { ticketTiers, TICKET_CURRENCY } from './src/content/tickets.ts'
 
 /**
  * Search engine setup, generated at build time:
@@ -39,16 +38,17 @@ export function sitemapXml(site = origin(), lastmod = new Date().toISOString().s
 const toLagosTime = (utc: string) => new Date(Date.parse(utc) + 3600_000).toISOString().replace(/\.\d{3}Z$/, '+01:00')
 
 export function eventJsonLd(site = origin()) {
-  const offers = ticketTiers
-    .filter((t) => t.price != null)
-    .map((t) => ({
+  // Free registration, one ticket per person.
+  const offers = [
+    {
       '@type': 'Offer',
-      name: `${t.name} ticket`,
-      price: String(t.price),
-      priceCurrency: TICKET_CURRENCY,
+      name: 'Free registration',
+      price: '0',
+      priceCurrency: 'NGN',
       availability: 'https://schema.org/InStock',
       url: `${site}/tickets`,
-    }))
+    },
+  ]
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
@@ -64,7 +64,8 @@ export function eventJsonLd(site = origin()) {
     },
     organizer: { '@type': 'Organization', name: 'Creators Hub', url: site },
     url: `${site}/the-first-room`,
-    ...(offers.length ? { offers } : {}),
+    isAccessibleForFree: true,
+    offers,
   }
 }
 

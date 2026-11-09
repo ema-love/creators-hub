@@ -1,15 +1,17 @@
 /**
- * Creators Hub · Volunteer applications
+ * Creators Hub · Registrations and volunteer applications
  *
  * Paste this whole file into the Google Sheet's Apps Script editor
  * (Extensions → Apps Script). Setup steps are in README.md next to this file.
  *
- * Each application sent by the website:
- *   1. is added as a row on the "Applications" tab, and
- *   2. is emailed to the owner of this spreadsheet (you). No address is
- *      stored anywhere: Google sends it to the account that owns the script.
+ * The website sends two kinds of record:
+ *   - Ticket registrations: added as a row on the "Registrations" tab.
+ *   - Volunteer applications: added to the "Applications" tab and emailed to
+ *     the owner of this spreadsheet (you). No address is stored anywhere:
+ *     Google sends it to the account that owns the script.
  */
 
+const REGS = 'Registrations'
 const APPS = 'Applications'
 const OVERVIEW = 'Overview'
 const FIRST_DATA_ROW = 5
@@ -44,6 +46,17 @@ const COLUMNS = [
 ]
 const COL = Object.fromEntries(COLUMNS.map((c, i) => [c.title, i + 1]))
 
+const REG_COLUMNS = [
+  { title: 'Registered', width: 160 },
+  { title: 'Ticket ID', width: 130 },
+  { title: 'Name', width: 200 },
+  { title: 'Email', width: 250 },
+  { title: 'Creative arm', width: 190 },
+  { title: 'Notes', width: 260 },
+  { title: 'Reference', width: 190 },
+]
+const REG = Object.fromEntries(REG_COLUMNS.map((c, i) => [c.title, i + 1]))
+
 const STATUSES = [
   { name: 'New', bg: C.electric, fg: C.ink },
   { name: 'Reviewing', bg: '#FFF1CC', fg: '#6A4B00' },
@@ -61,6 +74,7 @@ function onOpen() {
     .addItem('1. Set up this sheet', 'setUpSheet')
     .addItem('2. Show connection key', 'showConnectionKey')
     .addSeparator()
+    .addItem('Send a test registration', 'sendTestRegistration')
     .addItem('Send a test application', 'sendTestApplication')
     .addToUi()
 }
@@ -74,6 +88,11 @@ function doPost(e) {
     const body = JSON.parse((e && e.postData && e.postData.contents) || '{}')
     const key = PropertiesService.getScriptProperties().getProperty('KEY')
     if (!key || body.key !== key) return reply({ ok: false, error: 'Wrong or missing connection key' })
+    if (body.kind === 'registration') {
+      if (!body.registration) return reply({ ok: false, error: 'No registration' })
+      const saved = recordRegistration(body.registration)
+      return reply({ ok: true, duplicate: saved.duplicate })
+    }
     if (!body.application) return reply({ ok: false, error: 'No application' })
     const result = recordApplication(body.application)
     return reply({ ok: true, duplicate: result.duplicate })
@@ -91,6 +110,38 @@ function doGet() {
 
 function reply(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON)
+}
+
+/** Adds a ticket registration (once per ticket). No email: there can be hundreds. */
+function recordRegistration(r) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet()
+  let sheet = ss.getSheetByName(REGS)
+  if (!sheet) {
+    setUpSheet()
+    sheet = ss.getSheetByName(REGS)
+  }
+  const ticketId = text(r.ticketId)
+  if (ticketId && sheet.getLastRow() >= FIRST_DATA_ROW) {
+    const found = sheet
+      .getRange(FIRST_DATA_ROW, REG['Ticket ID'], sheet.getLastRow() - FIRST_DATA_ROW + 1, 1)
+      .createTextFinder(ticketId)
+      .matchEntireCell(true)
+      .findNext()
+    if (found) return { duplicate: true }
+  }
+  const at = r.registeredAt ? new Date(r.registeredAt) : new Date()
+  const row = [
+    isNaN(at.getTime()) ? new Date() : at,
+    safe(ticketId),
+    safe(r.name),
+    safe(r.email),
+    safe(r.arm),
+    '',
+    safe(r.ref),
+  ]
+  const next = Math.max(sheet.getLastRow() + 1, FIRST_DATA_ROW)
+  sheet.getRange(next, 1, 1, row.length).setValues([row])
+  return { duplicate: false }
 }
 
 /** Adds the row (once per submission) and emails the owner. */
@@ -224,16 +275,20 @@ function emailOwner(app, rowUrl) {
 function setUpSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet()
   ss.setSpreadsheetTimeZone('Africa/Lagos')
-  if (/^Untitled/i.test(ss.getName())) ss.rename('Creators Hub 001 · Volunteer Applications')
+  if (/^Untitled/i.test(ss.getName()) || /Volunteer Applications$/.test(ss.getName())) ss.rename('Creators Hub 001')
 
-  let sheet = ss.getSheetByName(APPS)
-  if (!sheet) {
-    const blank = ss.getSheets().length === 1 && ss.getSheets()[0].getLastRow() === 0 ? ss.getSheets()[0] : null
-    sheet = blank ? blank.setName(APPS) : ss.insertSheet(APPS, 0)
-  }
-  styleApplications(sheet)
+  const sheets = ss.getSheets()
+  const blank = sheets.length === 1 && sheets[0].getLastRow() === 0 && !ss.getSheetByName(REGS) && !ss.getSheetByName(APPS) ? sheets[0] : null
+
+  let regs = ss.getSheetByName(REGS)
+  if (!regs) regs = blank ? blank.setName(REGS) : ss.insertSheet(REGS, 0)
+  let apps = ss.getSheetByName(APPS)
+  if (!apps) apps = ss.insertSheet(APPS, 1)
+
+  styleRegistrations(regs)
+  styleApplications(apps)
   styleOverview(ss)
-  ss.setActiveSheet(sheet)
+  ss.setActiveSheet(regs)
   getOrCreateKey()
 
   try {
@@ -247,41 +302,28 @@ function setUpSheet() {
   }
 }
 
-function styleApplications(sheet) {
-  const n = COLUMNS.length
+/** Title band, header row, column widths, banding and filter, shared by both data tabs. */
+function styleTable(sheet, title, subtitle, columns, frozenCols) {
+  const n = columns.length
   if (sheet.getMaxColumns() > n) sheet.deleteColumns(n + 1, sheet.getMaxColumns() - n)
   if (sheet.getMaxColumns() < n) sheet.insertColumnsAfter(sheet.getMaxColumns(), n - sheet.getMaxColumns())
   if (sheet.getMaxRows() < ROWS) sheet.insertRowsAfter(sheet.getMaxRows(), ROWS - sheet.getMaxRows())
   sheet.setHiddenGridlines(true)
-  sheet.setTabColor(C.electric)
 
-  // Title band. Not merged: Sheets can't freeze columns through a merged cell,
-  // so the text simply overflows to the right.
+  // Title band. Not merged: Sheets can't freeze columns through a merged cell.
   const band = sheet.getRange(1, 1, 3, n)
   band.breakApart().setBackground(C.ink).setFontColor(C.cream).setFontFamily(DISPLAY_FONT)
   band.setWrapStrategy(SpreadsheetApp.WrapStrategy.OVERFLOW)
   sheet.getRange(3, 1, 1, n).setBackground(C.forest)
-  sheet
-    .getRange(1, 1)
-    .setValue('Volunteer applications')
-    .setFontSize(22)
-    .setFontWeight('bold')
-    .setVerticalAlignment('bottom')
-  sheet
-    .getRange(2, 1)
-    .setValue('●  CREATORS HUB 001 · THE FIRST ROOM')
-    .setFontColor(C.electric)
-    .setFontSize(9)
-    .setFontWeight('bold')
-    .setVerticalAlignment('top')
+  sheet.getRange(1, 1).setValue(title).setFontSize(22).setFontWeight('bold').setVerticalAlignment('bottom')
+  sheet.getRange(2, 1).setValue(subtitle).setFontColor(C.electric).setFontSize(9).setFontWeight('bold').setVerticalAlignment('top')
   sheet.setRowHeight(1, 56)
   sheet.setRowHeight(2, 30)
   sheet.setRowHeight(3, 4)
 
-  // Header row
   sheet
     .getRange(4, 1, 1, n)
-    .setValues([COLUMNS.map((c) => c.title.toUpperCase())])
+    .setValues([columns.map((c) => c.title.toUpperCase())])
     .setBackground(C.forest)
     .setFontColor(C.cream)
     .setFontFamily(DISPLAY_FONT)
@@ -289,26 +331,21 @@ function styleApplications(sheet) {
     .setFontWeight('bold')
     .setVerticalAlignment('middle')
   sheet.setRowHeight(4, 36)
-  COLUMNS.forEach((c, i) => sheet.setColumnWidth(i + 1, c.width))
+  columns.forEach((c, i) => sheet.setColumnWidth(i + 1, c.width))
   sheet.setFrozenRows(4)
-  sheet.setFrozenColumns(3)
+  sheet.setFrozenColumns(frozenCols)
 
-  // Data area
   const dataRows = sheet.getMaxRows() - FIRST_DATA_ROW + 1
-  const data = sheet.getRange(FIRST_DATA_ROW, 1, dataRows, n)
-  data
+  sheet
+    .getRange(FIRST_DATA_ROW, 1, dataRows, n)
     .setFontFamily(BODY_FONT)
     .setFontSize(10)
     .setFontColor(C.ink)
     .setVerticalAlignment('middle')
     .setWrapStrategy(SpreadsheetApp.WrapStrategy.CLIP)
   sheet.setRowHeightsForced(FIRST_DATA_ROW, dataRows, 34)
-  sheet.getRange(FIRST_DATA_ROW, COL['Received'], dataRows, 1).setNumberFormat('d mmm yyyy, h:mm am/pm').setFontColor(C.muted)
-  sheet.getRange(FIRST_DATA_ROW, COL['Name'], dataRows, 1).setFontWeight('bold')
-  sheet.getRange(FIRST_DATA_ROW, COL['Status'], dataRows, 1).setHorizontalAlignment('center').setFontWeight('bold')
-  sheet.getRange(FIRST_DATA_ROW, COL['Submission ID'], dataRows, 1).setFontColor('#A8A8A0').setFontSize(8)
+  sheet.getRange(FIRST_DATA_ROW, 1, dataRows, 1).setNumberFormat('d mmm yyyy, h:mm am/pm').setFontColor(C.muted)
 
-  // Alternating rows
   sheet.getBandings().forEach((b) => b.remove())
   sheet
     .getRange(4, 1, sheet.getMaxRows() - 3, n)
@@ -316,6 +353,28 @@ function styleApplications(sheet) {
     .setHeaderRowColor(C.forest)
     .setFirstRowColor(C.white)
     .setSecondRowColor('#FAF7F1')
+
+  const existing = sheet.getFilter()
+  if (existing) existing.remove()
+  sheet.getRange(4, 1, sheet.getMaxRows() - 3, n).createFilter()
+  return dataRows
+}
+
+function styleRegistrations(sheet) {
+  sheet.setTabColor(C.electric)
+  const dataRows = styleTable(sheet, 'Registrations', '●  CREATORS HUB 001 · THE FIRST ROOM · FREE TICKETS', REG_COLUMNS, 3)
+  sheet.getRange(FIRST_DATA_ROW, REG['Ticket ID'], dataRows, 1).setFontFamily('Roboto Mono').setFontWeight('bold')
+  sheet.getRange(FIRST_DATA_ROW, REG['Name'], dataRows, 1).setFontWeight('bold')
+  sheet.getRange(FIRST_DATA_ROW, REG['Reference'], dataRows, 1).setFontColor('#A8A8A0').setFontSize(8)
+}
+
+function styleApplications(sheet) {
+  sheet.setTabColor(C.forest)
+  const n = COLUMNS.length
+  const dataRows = styleTable(sheet, 'Volunteer applications', '●  CREATORS HUB 001 · THE FIRST ROOM · VOLUNTEERS', COLUMNS, 3)
+  sheet.getRange(FIRST_DATA_ROW, COL['Name'], dataRows, 1).setFontWeight('bold')
+  sheet.getRange(FIRST_DATA_ROW, COL['Status'], dataRows, 1).setHorizontalAlignment('center').setFontWeight('bold')
+  sheet.getRange(FIRST_DATA_ROW, COL['Submission ID'], dataRows, 1).setFontColor('#A8A8A0').setFontSize(8)
 
   // Status dropdown and colours
   const statusRange = sheet.getRange(FIRST_DATA_ROW, COL['Status'], dataRows, 1)
@@ -338,63 +397,56 @@ function styleApplications(sheet) {
     SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Experience preferred').setFontColor('#6A4B00').setRanges([levelRange]).build(),
   ])
   sheet.setConditionalFormatRules(rules)
-
-  // Filter on the header row
-  const existing = sheet.getFilter()
-  if (existing) existing.remove()
-  sheet.getRange(4, 1, sheet.getMaxRows() - 3, n).createFilter()
+  return n
 }
 
 function styleOverview(ss) {
   let sheet = ss.getSheetByName(OVERVIEW)
-  if (!sheet) sheet = ss.insertSheet(OVERVIEW, 1)
+  if (!sheet) sheet = ss.insertSheet(OVERVIEW, 2)
   sheet.clear()
   sheet.clearConditionalFormatRules()
   if (sheet.getMaxColumns() > 8) sheet.deleteColumns(9, sheet.getMaxColumns() - 8)
   sheet.setHiddenGridlines(true)
-  sheet.setTabColor(C.forest)
+  sheet.setTabColor(C.cream)
   sheet.getRange(1, 1, sheet.getMaxRows(), 8).setFontFamily(BODY_FONT).setFontColor(C.ink).setBackground(C.cream)
   ;[24, 260, 160, 24, 260, 160, 24, 24].forEach((w, i) => sheet.setColumnWidth(i + 1, w))
 
+  const r = "'" + REGS + "'!"
   const a = "'" + APPS + "'!"
   const last = String(ROWS)
   sheet.getRange('A1:H3').setBackground(C.ink)
   sheet.getRange('B1:F1').merge().setValue('Overview').setFontFamily(DISPLAY_FONT).setFontSize(22).setFontWeight('bold').setFontColor(C.cream).setVerticalAlignment('bottom')
-  sheet.getRange('B2:F2').merge().setValue('●  VOLUNTEER COLLECTIVE · UPDATES AUTOMATICALLY').setFontSize(9).setFontWeight('bold').setFontColor(C.electric).setFontFamily(DISPLAY_FONT)
+  sheet.getRange('B2:F2').merge().setValue('●  CREATORS HUB 001 · UPDATES AUTOMATICALLY').setFontSize(9).setFontWeight('bold').setFontColor(C.electric).setFontFamily(DISPLAY_FONT)
   sheet.setRowHeight(1, 56)
   sheet.setRowHeight(2, 30)
   sheet.setRowHeight(3, 10)
 
-  // Headline numbers
-  const stats = [
-    ['Applications', '=COUNTA(' + a + 'C5:C' + last + ')'],
-    ['New, not yet reviewed', '=COUNTIF(' + a + 'B5:B' + last + ',"New")'],
-    ['Shortlisted', '=COUNTIF(' + a + 'B5:B' + last + ',"Shortlisted")'],
-    ['Selected', '=COUNTIF(' + a + 'B5:B' + last + ',"Selected")'],
-  ]
-  stats.forEach(([label, formula], i) => {
-    const r = 5 + i
-    sheet.getRange(r, 2).setValue(label).setFontColor(C.muted)
-    sheet.getRange(r, 3).setFormula(formula).setFontFamily(DISPLAY_FONT).setFontSize(18).setFontWeight('bold').setHorizontalAlignment('right')
-    sheet.setRowHeight(r, 38)
-  })
-  sheet.getRange('B5:C8').setBorder(null, null, true, null, null, true, '#E1D9CB', SpreadsheetApp.BorderStyle.SOLID)
+  // Headline numbers: registrations on the left, volunteers on the right.
+  const stat = (row, col, label, formula) => {
+    sheet.getRange(row, col).setValue(label).setFontColor(C.muted)
+    sheet.getRange(row, col + 1).setFormula(formula).setFontFamily(DISPLAY_FONT).setFontSize(18).setFontWeight('bold').setHorizontalAlignment('right')
+    sheet.setRowHeight(row, 38)
+  }
+  stat(5, 2, 'Registrations (free tickets)', '=COUNTA(' + r + 'B5:B' + last + ')')
+  stat(6, 2, 'Registered today', '=COUNTIFS(' + r + 'A5:A' + last + ',">="&TODAY())')
+  stat(5, 5, 'Volunteer applications', '=COUNTA(' + a + 'C5:C' + last + ')')
+  stat(6, 5, 'New, not yet reviewed', '=COUNTIF(' + a + 'B5:B' + last + ',"New")')
+  stat(7, 5, 'Volunteers selected', '=COUNTIF(' + a + 'B5:B' + last + ',"Selected")')
+  sheet.getRange('B5:C6').setBorder(null, null, true, null, null, true, '#E1D9CB', SpreadsheetApp.BorderStyle.SOLID)
+  sheet.getRange('E5:F7').setBorder(null, null, true, null, null, true, '#E1D9CB', SpreadsheetApp.BorderStyle.SOLID)
 
-  // Tables
   const table = (row, col, title, formula) => {
     sheet.getRange(row, col, 1, 2).merge().setValue(title.toUpperCase()).setFontFamily(DISPLAY_FONT).setFontSize(9).setFontWeight('bold').setFontColor(C.forest)
     sheet.getRange(row + 1, col).setFormula(formula)
     sheet.getRange(row + 1, col, 1, 2).setBackground(C.forest).setFontColor(C.cream).setFontWeight('bold').setFontSize(9)
     sheet.getRange(row + 2, col + 1, 40, 1).setHorizontalAlignment('right').setFontWeight('bold')
   }
-  table(11, 2, 'Applicants by role',
-    '=IFERROR(QUERY(' + a + 'E5:E' + last + ',"select E, count(E) where E <> \'\' group by E order by count(E) desc label E \'Role\', count(E) \'Applicants\'",0),"No applications yet")')
-  table(11, 5, 'Applicants by department',
-    '=IFERROR(QUERY(' + a + 'F5:F' + last + ',"select F, count(F) where F <> \'\' group by F order by count(F) desc label F \'Department\', count(F) \'Applicants\'",0),"No applications yet")')
-  table(24, 5, 'By status',
-    '=IFERROR(QUERY(' + a + 'B5:B' + last + ',"select B, count(B) where B <> \'\' group by B order by count(B) desc label B \'Status\', count(B) \'Applicants\'",0),"No applications yet")')
-  table(34, 5, 'Who is applying',
-    '=IFERROR(QUERY(' + a + 'I5:I' + last + ',"select I, count(I) where I <> \'\' group by I order by count(I) desc label I \'Describes them\', count(I) \'Applicants\'",0),"No applications yet")')
+  const query = (range, col, label) =>
+    '=IFERROR(QUERY(' + range + ',"select ' + col + ', count(' + col + ') where ' + col + " <> '' group by " + col + ' order by count(' + col + ") desc label " + col + " '" + label + "', count(" + col + ") 'Count'\",0),\"None yet\")"
+  table(10, 2, 'Registrations by creative arm', query(r + 'E5:E' + last, 'E', 'Creative arm'))
+  table(10, 5, 'Volunteers by role', query(a + 'E5:E' + last, 'E', 'Role'))
+  table(30, 5, 'Volunteers by status', query(a + 'B5:B' + last, 'B', 'Status'))
+  table(40, 5, 'Who is volunteering', query(a + 'I5:I' + last, 'I', 'Describes them'))
 }
 
 /* ───────────────────────────── Key & test ───────────────────────────── */
@@ -420,6 +472,20 @@ function showConnectionKey() {
     .setWidth(460)
     .setHeight(170)
   SpreadsheetApp.getUi().showModalDialog(html, 'Connection key')
+}
+
+function sendTestRegistration() {
+  const result = recordRegistration({
+    ref: 'TEST-' + Date.now(),
+    ticketId: 'TEST-' + Date.now(),
+    name: 'Test Attendee',
+    email: 'test@example.com',
+    arm: 'Film & Storytelling',
+    registeredAt: new Date().toISOString(),
+  })
+  try {
+    SpreadsheetApp.getUi().alert('Test sent', result.duplicate ? 'Already there.' : 'A test row was added to Registrations. Delete it whenever you like.', SpreadsheetApp.getUi().ButtonSet.OK)
+  } catch (e) {}
 }
 
 function sendTestApplication() {

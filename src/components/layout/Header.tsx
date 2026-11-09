@@ -66,7 +66,7 @@ export function Header() {
             >
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-rust" />
               <span>
-                Tickets · {firstRoom.dateShort}
+                Register free · {firstRoom.dateShort}
               </span>
             </Link>
             <button

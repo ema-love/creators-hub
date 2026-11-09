@@ -370,16 +370,18 @@ function OverviewTab({ pin, onAuthError }: TabProps) {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {(['regular', 'premium'] as const).map((c) => (
-              <div key={c} className="rounded-[16px] border border-cream/15 p-4">
-                <p className={cn('eyebrow', c === 'premium' ? 'text-[#E2AE47]' : 'text-[#DCC583]')}>{c}</p>
-                <p className="mt-2 font-display text-2xl tabular-nums">
-                  {data.byCategory[c].checkedIn}
-                  <span className="text-base text-cream/45"> / {data.byCategory[c].issued}</span>
-                </p>
-                <p className="text-xs text-cream/50">checked in / sold</p>
-              </div>
-            ))}
+            <div className="rounded-[16px] border border-cream/15 p-4">
+              <p className="eyebrow text-cream/50">Registered</p>
+              <p className="mt-2 font-display text-2xl tabular-nums">{data.totals.issued}</p>
+              <p className="text-xs text-cream/50">free tickets issued</p>
+            </div>
+            <div className="rounded-[16px] border border-cream/15 p-4">
+              <p className="eyebrow text-cream/50">Places left</p>
+              <p className="mt-2 font-display text-2xl tabular-nums">
+                {data.capacity === null ? 'No limit' : Math.max(0, data.capacity - data.totals.issued)}
+              </p>
+              <p className="text-xs text-cream/50">{data.capacity === null ? 'capacity not set' : `of ${data.capacity} capacity`}</p>
+            </div>
           </div>
 
           <div className="rounded-[16px] border border-cream/15 p-5">

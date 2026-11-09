@@ -94,7 +94,7 @@ export function FirstRoom() {
 
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
               <ArrowLink to="/tickets" variant="rust">
-                Get tickets
+                Register free
               </ArrowLink>
               <ArrowLink to="/the-first-room" variant="text">
                 Explore The First Room

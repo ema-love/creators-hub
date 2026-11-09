@@ -29,10 +29,9 @@ export const ticketDesigns: TicketDesignSpec[] = [
 export const isTicketDesignId = (v: unknown): v is TicketDesignId => ticketDesigns.some((d) => d.id === v)
 export const designById = (id: TicketDesignId) => ticketDesigns.find((d) => d.id === id)!
 
-/** Printed category label and colour (sampled from the reference). */
+/** Printed category label and colour (sampled from the reference). Tickets are free and admit one person. */
 export const categoryStyle: Record<TicketTierId, { label: string; color: string }> = {
-  regular: { label: 'REGULAR', color: '#DCC583' },
-  premium: { label: 'PREMIUM', color: '#E2AE47' },
+  free: { label: 'ADMIT ONE', color: '#DCC583' },
 }
 
 export const EVENT_TAGLINE = 'Where creative worlds meet.'

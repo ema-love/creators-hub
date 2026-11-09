@@ -1,54 +1,23 @@
 /**
- * Ticket tiers for Creators Hub 001: The First Room.
+ * Registration for Creators Hub 001: The First Room.
  *
- * This file is read by the website AND by the payment functions in
- * netlify/functions, so the price shown is always the price charged.
+ * Tickets are free. Each person registers for exactly one ticket, and an
+ * email address can only be registered once.
  *
- * Prices confirmed by Creators Hub: Regular ₦7,500, Premium ₦15,000.
- * `price` is in whole naira. Setting a tier's `price` to null takes it off
- * sale (it shows "Price to be announced" and the server refuses orders).
+ * Overall capacity is set in Netlify with the EVENT_CAPACITY environment
+ * variable (a number; leave it empty for no limit, or 0 to close
+ * registration). This file is read by the website and the server.
  */
-export type TicketTierId = 'regular' | 'premium'
 
-export type TicketTier = {
-  id: TicketTierId
-  name: string
-  summary: string
-  /** Confirmed inclusions. Null renders a "to be announced" placeholder. */
-  perks: string[] | null
-  /** Price per ticket in whole naira. Null = not on sale yet. */
-  price: number | null
-}
+/** The single ticket type. Kept as a type so ticket records stay self-describing. */
+export type TicketTierId = 'free'
+export const TICKET_CATEGORY: TicketTierId = 'free'
 
-export const TICKET_CURRENCY = 'NGN'
-
-/** Most tickets one order can hold. */
-export const MAX_TICKETS_PER_ORDER = 10
-
-export const ticketTiers: TicketTier[] = [
-  {
-    id: 'regular',
-    name: 'Regular',
-    summary: 'General admission to The First Room.',
-    perks: ['General admission'],
-    price: 7500,
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    summary: 'Full access to The First Room.',
-    perks: ['Everything at The First Room included'],
-    price: 15000,
-  },
-]
-
-export const isTicketTierId = (value: unknown): value is TicketTierId =>
-  ticketTiers.some((t) => t.id === value)
-
-export const tierById = (id: TicketTierId) => ticketTiers.find((t) => t.id === id)!
-
-export function formatNaira(amount: number) {
-  return new Intl.NumberFormat('en-NG', { style: 'currency', currency: TICKET_CURRENCY, maximumFractionDigits: 0 }).format(
-    amount,
-  )
+export const registrationCopy = {
+  eyebrow: 'Free registration',
+  title: ['Claim your place', 'in the room.'],
+  lede: 'Registration for The First Room is free. One ticket per person, and each email address can register once.',
+  points: ['Free to attend', 'One ticket per person', 'Your own QR ticket, ready instantly'],
+  full: 'Registration is full. Every place for The First Room has been claimed.',
+  closed: 'Registration isn’t open right now. Check back soon.',
 }

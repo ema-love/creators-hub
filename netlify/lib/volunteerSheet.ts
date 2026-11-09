@@ -1,13 +1,9 @@
 import { allVolunteerRoles, experienceLabel } from '../../src/content/volunteer'
+import { postToSheet, type SheetConfig } from './sheet'
 
 /**
- * Sends each volunteer application to the organiser's Google Sheet.
- *
- * The sheet runs a small Google Apps Script (integrations/google-sheets/) that
- * adds the row and emails the sheet's owner. The script's web-app URL and a
- * shared key are set privately in Netlify:
- *   VOLUNTEER_SHEET_URL  the Apps Script web-app URL (ends in /exec)
- *   VOLUNTEER_SHEET_KEY  the connection key the sheet shows during setup
+ * Sends each volunteer application to the organiser's Google Sheet, which
+ * adds the row and emails the sheet's owner. See integrations/google-sheets/.
  */
 
 /** Field names posted by the volunteer form (keep in sync with index.html). */
@@ -51,30 +47,5 @@ export function applicationFromSubmission(payload: {
   }
 }
 
-type SheetConfig = { url: string; key: string; fetch?: typeof fetch }
-
 /** Posts the application to the sheet. Throws if the sheet doesn't confirm it. */
-export async function sendToSheet(application: VolunteerApplication, { url, key, fetch: f = fetch }: SheetConfig) {
-  const res = await f(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ key, application }),
-    redirect: 'follow',
-  })
-  const text = await res.text()
-  let body: { ok?: boolean; error?: string } = {}
-  try {
-    body = JSON.parse(text)
-  } catch {
-    // Apps Script answers with an HTML page when the deployment isn't public.
-  }
-  if (!res.ok || body.ok !== true) {
-    throw new Error(`Google Sheet did not accept the application (${res.status}): ${body.error ?? text.slice(0, 200)}`)
-  }
-}
-
-export function sheetConfigFromEnv(): SheetConfig | null {
-  const url = (process.env.VOLUNTEER_SHEET_URL ?? '').trim()
-  const key = (process.env.VOLUNTEER_SHEET_KEY ?? '').trim()
-  return url && key ? { url, key } : null
-}
+export const sendToSheet = (application: VolunteerApplication, config: SheetConfig) => postToSheet({ application }, config)

@@ -10,7 +10,7 @@ npm run dev        # http://localhost:5173
 npm run build      # type-check + production build into dist/
 npm run preview    # serve the production build
 npm run lint
-npm test           # payment logic tests
+npm test           # registration and ticketing tests
 ```
 
 Add `?intro` to any URL to force the opening sequence (it otherwise plays once per browser session, on the homepage only).
@@ -137,50 +137,36 @@ To swap a photo, replace its file with a WebP of similar shape (keep the name), 
 
 ---
 
-## Ticket payments (Flutterwave)
+## Free registration and tickets
 
-Regular and Premium tickets for The First Room are sold on `/the-first-room#tickets` and paid through **Flutterwave's hosted checkout** (card, bank transfer, USSD). Card details never touch this site.
+Tickets for The First Room are **free**. Registration is on `/tickets`. There is no payment step and no payment provider.
+
+### Rules
+- **One ticket per person.** The form has no quantity: each registration is one person and one ticket.
+- **One registration per email.** Addresses that reach the same inbox count as the same: capitals, `+tags`, and dots in Gmail addresses (`a.b+x@gmail.com` = `ab@googlemail.com`). This holds even if the same email is submitted many times at once. Only the first request can claim the email's create-only-if-new record.
+- **Capacity is configurable** with `EVENT_CAPACITY` in Netlify: a number such as `300`, empty for no limit, or `0` to close registration. Each registration claims a numbered place the same way, so the limit holds even when many people register at the same moment. When it's full, the page says so, and the server refuses new registrations. Raising the number reopens registration.
+- Basic protection: a hidden field that bots fill in, and at most 40 registrations per network per hour.
 
 ### How it works
+1. The attendee enters their name and email and picks their creative arm. The ticket preview appears only once the arm is chosen.
+2. `netlify/functions/register.ts` validates the details, claims the email (and a place, if capacity is set), saves the registration and issues one ticket.
+3. The attendee lands on their private ticket page (`/tickets/order?ref=…&k=…`), with the QR ticket ready to download or print.
+4. At the same time the confirmation email is sent (Resend) and the row is added to the Google Sheet. Neither can undo a registration. A row the sheet misses is queued and retried every hour by `netlify/functions/sync-sheet.ts`.
+5. Registering again with the same email is refused with "already registered", and the ticket is re-sent to that email (at most once an hour).
 
-1. The buyer picks a tier and quantity and enters their name and email.
-2. `netlify/functions/checkout.ts` validates the request, **sets the price on the server** from `src/content/tickets.ts`, saves a pending order, and asks Flutterwave for a checkout link.
-3. The buyer pays on Flutterwave and is sent back to `/tickets/confirmation`.
-4. `netlify/functions/verify-payment.ts` checks the transaction with Flutterwave. The ticket is confirmed only if the status is successful **and** the reference, currency and amount match the order.
-5. `netlify/functions/flutterwave-webhook.ts` receives Flutterwave's webhook, so payments are recorded even if the buyer closes the tab. Each webhook is authenticated with the secret hash and re-verified with Flutterwave.
-
-6. Once a payment is confirmed, the buyer is emailed a **branded ticket with a QR code** (see below).
-
-Orders are stored in **Netlify Blobs** (store `ticket-orders`, keyed by the payment reference such as `CH001-…`). Browse them in Netlify under **Blobs**; every payment also appears in the Flutterwave dashboard.
-
-### Setting prices and perks
-
-Prices live in `src/content/tickets.ts`: **Regular ₦7,500** (general admission) and **Premium ₦15,000** (everything included). `price` is in whole naira and `perks` is the list shown on each ticket option. Setting a tier's `price` to `null` takes it off sale: it shows "Price to be announced", the button is disabled and the server refuses the order.
-
-### Setup
-
-1. Create or sign in to a Flutterwave business account. Use **test mode** until launch.
-2. In Netlify, go to **Site configuration → Environment variables** and add:
-   - `FLW_SECRET_KEY`: your Flutterwave secret key (**Settings → API keys**).
-   - `FLW_SECRET_HASH`: a long random string you choose.
-3. In Flutterwave, go to **Settings → Webhooks**, set the URL to `https://<your-site>/.netlify/functions/flutterwave-webhook`, and enter the same secret hash.
-4. Redeploy, then buy a ticket using Flutterwave's test cards.
-5. To go live, complete Flutterwave's business verification, swap in the **live** secret key, update the webhook in live mode, and redeploy.
+Registrations are stored in **Netlify Blobs** (store `registrations`, keyed by a reference such as `CH001-3F9A…`), and tickets and claims in the store `tickets`.
 
 ### Digital tickets
 
-Every paid order produces **one ticket per attendee**. Buyers choose a design for each ticket (Fashion, Arts & Design, Technology, Film & Storytelling) and enter each attendee's name at checkout.
-
-**Ticket record** (Netlify Blobs store `tickets`, created only after Flutterwave confirms payment):
-ticket ID (`CH001-F-0001`; the letter is the design: F, A, T, S), attendee name, buyer email, category (Regular/Premium), design, order reference, payment status, ticket status (valid, checked in or void), a random 128-bit QR token, purchase time, issue time, and the check-in time once used.
+**Ticket record:** ticket ID (`CH001-F-0001`; the letter is the creative arm: F, A, T, S), attendee name, email, creative arm, registration reference, status (valid, checked in or void), a random 128-bit QR token, issue time, and the check-in time once used. Tickets are labelled **ADMIT ONE**.
 
 **Design.** `src/components/tickets/TicketDesign.tsx` recreates the approved reference as one SVG in the reference's own 264 × 455 coordinate space, so proportions hold on every screen. Each arm supplies its photograph (`src/assets/tickets/`, text removed so it can be set live), its title and its rule colour (`src/content/ticketDesigns.ts`). Type is EB Garamond (titles, names) and Montserrat (labels), matched to the reference. `TicketAttendeeSection.tsx` is the cream stub; `QRCode.tsx` draws the QR as vector. Long attendee names shrink to fit, then wrap onto two lines.
 
-**Safe against duplicates.** The payment return page and the webhook may both confirm a payment, even at the same moment. Issuing is idempotent: each attendee slot and each ticket number is claimed with a create-only-if-new write, confirmed by reading it back, so a repeated or simultaneous callback can never create a second ticket or reuse a number. Tickets are emailed once per order.
+**Unique IDs.** Each ticket number is claimed with a create-only-if-new write, confirmed by reading it back, so simultaneous registrations never share a number.
 
 **QR codes and check-in.**
 - The QR encodes `/v/<token>`. The token is random and stored with the ticket, so a code can't be guessed or forged, and a screenshot of a ticket is only as good as its live record.
-- Scanning opens the verification page, which asks the server for the ticket's current state: **Valid**, **Already checked in at …**, **Invalid** (unknown, forged or void) or **Awaiting payment confirmation**.
+- Scanning opens the verification page, which asks the server for the ticket's current state: **Valid**, **Already checked in at …** or **Invalid** (unknown, forged or void).
 - Each ticket can be admitted once: the first scan creates its check-in record, and every later or simultaneous scan sees "Already checked in".
 - Repeated wrong PINs lock that device out for 15 minutes.
 
@@ -188,21 +174,21 @@ ticket ID (`CH001-F-0001`; the letter is the design: F, A, T, S), attendee name,
 
 Door staff sign in once per device with `CHECKIN_PIN` (linked as "Staff" in the footer; `/tickets/check-in` also leads here). Three tools:
 
-- **Scan**: the phone's camera opens inside the page and reads ticket QR codes continuously (jsQR, so it works on iPhone and Android). Each scan shows a large verdict (Valid, Already checked in, Invalid, Awaiting payment) with the attendee's name, arm and category, an **Admit** button and **Scan next ticket**. Optional "Admit automatically on scan" for fast queues. The phone vibrates on each result where supported. Camera access needs HTTPS, which Netlify provides.
+- **Scan**: the phone's camera opens inside the page and reads ticket QR codes continuously (jsQR, so it works on iPhone and Android). Each scan shows a large verdict (Valid, Already checked in, Invalid) with the attendee's name and arm, an **Admit** button and **Scan next ticket**. Optional "Admit automatically on scan" for fast queues. The phone vibrates on each result where supported. Camera access needs HTTPS, which Netlify provides.
 - **Look up**: type a ticket ID (e.g. `CH001-F-0001`) when a code is damaged or a phone is dead.
-- **Overview**: checked in vs sold, by Regular/Premium and by creative arm, plus the latest arrivals. Refreshes every 20 seconds (`netlify/functions/staff-summary.ts`, staff PIN required).
+- **Overview**: checked in vs registered, places left against capacity, by creative arm, plus the latest arrivals. Refreshes every 20 seconds (`netlify/functions/staff-summary.ts`, staff PIN required).
 
 Scanning a ticket with an ordinary camera app still works too: it opens the ticket's page, which shows staff an **Admit** button once they're signed in on that phone.
 
 **Delivery and access.**
-- The confirmation page shows the designed tickets once payment is verified.
 - **Download** produces a 1320 × 2275 px PNG rendered from the SVG with fonts and photo embedded, so text and QR stay sharp; it isn't a screenshot.
-- **Print** prints one ticket per page.
-- **Show QR for scanning** enlarges the code on a phone.
-- The email (Resend) carries every ticket in an email-safe version of the design, with its own QR code, plus a private link (`/tickets/order?ref=…&k=…`) back to all of the order's tickets.
-- Lost the email? `/tickets/find` re-sends the tickets to the address on the order, given the email and order reference. The reply is the same either way, so it can't be used to look people up.
+- **Print** prints one ticket per page. **Show QR for scanning** enlarges the code on a phone.
+- The confirmation email (Resend) carries the ticket in an email-safe version of the design, with its QR code, plus the private link back to it.
+- Lost the email? `/tickets/find` re-sends the ticket to a registered email (the reply is the same for unregistered emails, so it can't be used to look people up). Without email set up, the email plus the registration reference opens the ticket directly.
 
 #### Setting up email and check-in
+
+Confirmation emails need a domain you own: Resend only sends to attendees from a verified domain.
 
 1. Create a free account at https://resend.com.
 2. Go to **Domains → Add domain** and add the domain you'll send from (for example `creatorshub.com`). Add the DNS records Resend shows at your domain registrar, then wait until it says **Verified**.
@@ -211,26 +197,24 @@ Scanning a ticket with an ordinary camera app still works too: it opens the tick
    - `RESEND_API_KEY`: the key from step 3.
    - `TICKET_EMAIL_FROM`: for example `Creators Hub <tickets@creatorshub.com>`, using the verified domain.
    - `CHECKIN_PIN`: the passcode door staff will use. Make it long, e.g. 8+ characters.
-   - `NOTIFY_EMAIL` (optional): a private inbox that receives an alert for every paid order (buyer, tickets, amount). It is only ever read on the server and never shown on the site or in buyers' emails. Keep it out of code and this repo; set it only here.
+   - `EVENT_CAPACITY` (optional): total places, e.g. `300`.
 5. Redeploy.
 
-Without Resend configured, payments and tickets still work and buyers see and download their tickets on the confirmation page; only the email is skipped.
+Without Resend configured, registration and tickets still work: attendees see and download their ticket straight away, and the page doesn't promise an email.
 
 ### Testing
 
-`npm test` runs the payment and ticketing tests: price tampering, mismatched amounts and currencies, failed payments, forged webhooks, duplicate and simultaneous payment callbacks, unique sequential ticket IDs, simultaneous scans, PIN lockout, email rendering and escaping.
+`npm test` runs the registration and ticketing tests: one ticket per inbox (including Gmail dot and `+tag` variants), simultaneous submissions of one email, capacity under simultaneous registrations, closing with capacity 0, reopening when capacity is raised, recovery from a request that died midway, unique sequential ticket IDs, simultaneous scans, PIN rules, confirmation email content and escaping, sheet delivery, and retrying rows the sheet missed.
 
-To run the functions locally, install the Netlify CLI, copy `.env.example` to `.env` with test keys, and run `netlify dev`.
+## Google Sheet: registrations and volunteers
 
-## Volunteer applications
-
-The application form on `/volunteer` posts to Netlify Forms (`volunteer`). After each genuine submission, `netlify/functions/submission-created.ts` passes it to the organiser's Google Sheet, which adds a row and emails the sheet's owner. Setup takes about 10 minutes: see [`integrations/google-sheets/README.md`](integrations/google-sheets/README.md). It needs `VOLUNTEER_SHEET_URL` and `VOLUNTEER_SHEET_KEY` in Netlify. Without them, applications are still kept in Netlify → Forms.
+One Google Sheet receives both ticket registrations (Registrations tab) and volunteer applications (Applications tab, each also emailed to the sheet's owner). Volunteer applications post to Netlify Forms (`volunteer`), and `netlify/functions/submission-created.ts` passes each genuine one to the sheet. Setup takes about 10 minutes: see [`integrations/google-sheets/README.md`](integrations/google-sheets/README.md). It needs `GOOGLE_SHEET_URL` and `GOOGLE_SHEET_KEY` in Netlify (the older `VOLUNTEER_SHEET_*` names also work). Without them, registrations are queued until the sheet is connected, and applications are kept in Netlify → Forms.
 
 ## Search engines (Google Search Console)
 
 `seo.config.ts` runs at build time. It produces:
 - `robots.txt` and `sitemap.xml`, covering the public pages: home, The First Room, Tickets and Volunteer;
-- structured data (schema.org `Event`) for The First Room, with the confirmed date, time, city and ticket prices;
+- structured data (schema.org `Event`) for The First Room, with the confirmed date, time and city, marked as free to attend;
 - the Search Console verification tag, when `GOOGLE_SITE_VERIFICATION` is set in Netlify. Paste either the code or the whole `<meta>` tag, then redeploy.
 
 The site address comes from Netlify's `URL`, so adding a custom domain later updates the sitemap on the next deploy. Staff, order and personal ticket pages are excluded and sent with `noindex`.

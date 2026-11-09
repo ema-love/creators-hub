@@ -58,8 +58,8 @@ export function TicketAttendeeSection({ attendeeName, ticketId, qrValue }: Props
         <g>
           <rect x={191.5} y={383.5} width={51} height={51} rx={3} fill="none" stroke={LABEL} strokeOpacity={0.45} strokeDasharray="3 2.5" />
           <text x={217} y={406} textAnchor="middle" fontFamily={TICKET_SANS} fontWeight={600} fontSize={5.4} letterSpacing="0.08em" fill={LABEL}>
-            <tspan x={217}>QR CODE</tspan>
-            <tspan x={217} dy={7.5}>AFTER PAYMENT</tspan>
+            <tspan x={217}>QR CODE ON</tspan>
+            <tspan x={217} dy={7.5}>REGISTRATION</tspan>
           </text>
         </g>
       )}
