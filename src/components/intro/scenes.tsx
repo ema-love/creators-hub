@@ -109,7 +109,7 @@ export function RevealLayer() {
   return (
     <div className="i-reveal absolute inset-0 grid place-items-center px-6" aria-hidden="true">
       <div className="i-reveal-inner flex flex-col items-center text-center">
-        <Wordmark split className="text-[clamp(3rem,12vw,10rem)] text-cream" />
+        <Wordmark split className="h-auto w-[min(84vw,56rem)]" />
         <span className="i-line mt-6 block h-px w-[min(60vw,28rem)] origin-left bg-electric" />
         <p className="i-meta eyebrow mt-6 text-silver opacity-0">
           {firstRoom.fullName} · {firstRoom.dateLabel} · {firstRoom.city}

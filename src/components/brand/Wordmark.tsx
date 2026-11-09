@@ -1,45 +1,37 @@
+import logoOnDark from '../../assets/brand/logo-on-dark.png'
+import logoOnLight from '../../assets/brand/logo-on-light.png'
 import { cn } from '../../lib/cn'
 
 type WordmarkProps = {
   className?: string
-  /** Render the two words on separate lines. */
-  stacked?: boolean
-  /** Wrap each letter in a masked span (class `wm-char`) for the intro reveal. */
+  /**
+   * The background it sits on. `dark` (default): white "Creator's", green "Hub.".
+   * `light`: near-black "Creator's", for cream backgrounds.
+   */
+  on?: 'dark' | 'light'
+  /** Wrap the logo in a mask (class `wm-char`) for the intro reveal. */
   split?: boolean
 }
 
-const WORDS = ['Creators', 'Hub'] as const
+/** Logo artwork is 1638 × 204 px. */
+const RATIO = 1638 / 204
 
 /**
- * PLACEHOLDER WORDMARK.
- *
- * This is the organisation's name set in the display typeface — it is not the
- * Creators Hub logo and must not be treated as one. When the official logo
- * files are supplied, add them to /src/assets/brand and render them here; every
- * usage across the site (header, intro reveal, footer) flows through this file.
+ * The Creators Hub logo, from the supplied artwork (src/assets/brand/).
+ * Without a className it is 1.15em tall; a className replaces that sizing
+ * (e.g. `h-8` or `h-auto w-full`).
  */
-export function Wordmark({ className, stacked = false, split = false }: WordmarkProps) {
-  return (
-    <span
-      className={cn('font-display font-semibold tracking-[-0.04em] leading-none', className)}
-      data-placeholder="wordmark"
-    >
-      <span className="sr-only">Creators Hub</span>
-      <span aria-hidden="true" className={cn(stacked ? 'flex flex-col' : 'inline-flex gap-[0.25em]')}>
-        {WORDS.map((word) =>
-          split ? (
-            <span key={word} className="inline-flex overflow-hidden pb-[0.1em] -mb-[0.1em]">
-              {Array.from(word).map((ch, i) => (
-                <span key={i} className="wm-char inline-block will-change-transform">
-                  {ch}
-                </span>
-              ))}
-            </span>
-          ) : (
-            <span key={word}>{word}</span>
-          ),
-        )}
-      </span>
-    </span>
+export function Wordmark({ className, on = 'dark', split = false }: WordmarkProps) {
+  const img = (
+    <img
+      src={on === 'light' ? logoOnLight : logoOnDark}
+      alt="Creator's Hub"
+      width={1638}
+      height={204}
+      draggable={false}
+      className={cn('block max-w-none select-none', className ?? 'h-[1.15em] w-auto', split && 'wm-char will-change-transform')}
+      style={{ aspectRatio: String(RATIO) }}
+    />
   )
+  return split ? <span className="inline-block overflow-hidden pb-[0.06em] -mb-[0.06em]">{img}</span> : img
 }

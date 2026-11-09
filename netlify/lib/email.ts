@@ -114,7 +114,7 @@ export function renderRegistrationEmail(
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.ink}">
 <tr><td align="center" style="padding:32px 16px">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
-    <tr><td style="padding:0 4px 24px;font:600 14px/1.1 ${SERIF};letter-spacing:.02em;color:${C.cream}">CREATORS<br>HUB</td></tr>
+    <tr><td style="padding:0 4px 28px"><img src="${origin}/email/logo.png" width="200" height="25" alt="Creator's Hub" style="display:block;width:200px;height:25px;border:0;font:italic 700 22px Georgia,serif;color:${C.cream}"></td></tr>
     <tr><td style="padding:0 4px;font:500 32px/1.1 ${SERIF};color:${C.cream}">You’re in the room, ${esc(firstName)}.</td></tr>
     <tr><td style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:#cfd6d2">Your registration is confirmed. Your ticket is free and admits one person. Show its QR code at the door, on your phone or printed.</td></tr>
     <tr><td style="padding:8px 4px 28px;font:600 15px/1.6 ${SANS};color:${C.cream}">${esc(firstRoom.dateLabel)} · Starts ${esc(firstRoom.time)} (WAT) · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}<br><span style="font-weight:400;color:${C.muted}">Venue: ${esc(firstRoom.venue ?? 'to be announced')}</span></td></tr>

@@ -37,7 +37,7 @@ export function Header() {
         />
         <div className="container-edge flex h-16 items-center justify-between gap-6 md:h-20">
           <Link to="/" className="text-lg md:text-xl" aria-label="Creators Hub — home">
-            <Wordmark />
+            <Wordmark on={light ? 'light' : 'dark'} className="h-[1.05em] w-auto md:h-[1.1em]" />
           </Link>
 
           <nav aria-label="Primary" className="hidden lg:block">

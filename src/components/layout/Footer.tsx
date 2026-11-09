@@ -44,9 +44,8 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-24 select-none text-mega text-cream/95" aria-hidden="true">
-          <Wordmark stacked className="sm:hidden" />
-          <Wordmark className="hidden sm:inline-flex" />
+        <div className="mt-24 select-none" aria-hidden="true">
+          <Wordmark className="h-auto w-full max-w-[68rem]" />
         </div>
 
         <div className="mt-10 flex flex-col gap-4 border-t hairline pt-6 text-sm text-silver sm:flex-row sm:items-center sm:justify-between">

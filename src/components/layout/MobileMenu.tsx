@@ -66,7 +66,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
         >
           <div className="container-edge flex h-16 items-center justify-between">
             <Link to="/" onClick={onClose} className="text-lg" aria-label="Creators Hub — home">
-              <Wordmark />
+              <Wordmark className="h-[1.05em] w-auto" />
             </Link>
             <button
               type="button"
