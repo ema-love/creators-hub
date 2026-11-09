@@ -1,3 +1,4 @@
+import { sendAnnouncements } from '../lib/announce'
 import { mailerFromEnv } from '../lib/delivery'
 import { blobKv } from '../lib/kv'
 import { flushEmailQueue, flushSheetQueue } from '../lib/registrationDelivery'
@@ -7,8 +8,9 @@ import { ticketForRegistration } from '../lib/tickets'
 
 /**
  * Runs every 10 minutes. Sends confirmation emails that didn't go out at the
- * time (cut short, or the Gmail account's daily limit was reached) and writes
- * registrations the Google Sheet didn't receive.
+ * time (cut short, or the Gmail account's daily limit was reached), writes
+ * registrations the Google Sheet didn't receive, and carries on sending any
+ * organiser message to everyone registered. Confirmations go first.
  */
 export default async () => {
   const kv = blobKv('tickets')
@@ -18,10 +20,11 @@ export default async () => {
 
   const mailer = mailerFromEnv()
   const email = mailer && site ? await flushEmailQueue(kv, store, mailer, site, ticketFor) : null
+  const announcements = mailer && site ? await sendAnnouncements(kv, store, mailer, site, { budgetMs: 15000 }) : null
   const sheet = sheetConfigFromEnv()
   const rows = sheet ? await flushSheetQueue(kv, store, sheet, ticketFor) : null
 
-  const result = { email, sheet: rows }
+  const result = { email, sheet: rows, announcements }
   console.log('retry-pending', JSON.stringify(result))
   return new Response(JSON.stringify(result), { headers: { 'Content-Type': 'application/json' } })
 }

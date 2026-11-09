@@ -11,6 +11,7 @@ import { HomePage } from './pages/HomePage'
 const FirstRoomPage = lazy(() => import('./pages/FirstRoomPage'))
 const TicketsPage = lazy(() => import('./pages/TicketsPage'))
 const VolunteerPage = lazy(() => import('./pages/VolunteerPage'))
+const AdminPage = lazy(() => import('./pages/AdminPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const TicketVerifyPage = lazy(() => import('./pages/TicketVerifyPage'))
 const TicketOrderPage = lazy(() => import('./pages/TicketOrderPage'))
@@ -52,6 +53,7 @@ function Shell() {
               <Route path="/v/:token" element={<TicketVerifyPage />} />
               <Route path="/tickets/order" element={<TicketOrderPage />} />
               <Route path="/staff" element={<StaffPage />} />
+              <Route path="/admin" element={<AdminPage />} />
               <Route path="/tickets/check-in" element={<Navigate to="/staff" replace />} />
               <Route path="/tickets/find" element={<FindTicketsPage />} />
               <Route path="*" element={<NotFoundPage />} />

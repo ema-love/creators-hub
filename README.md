@@ -186,6 +186,12 @@ Scanning a ticket with an ordinary camera app still works too: it opens the tick
 - The confirmation email carries the ticket in an email-safe version of the design, with its QR code, plus the private link back to it.
 - Lost the email? `/tickets/find` re-sends the ticket to a registered email (the reply is the same for unregistered emails, so it can't be used to look people up). Without email set up, the email plus the registration reference opens the ticket directly.
 
+### Organiser area (`/admin`)
+
+Signed in with `ADMIN_PIN` (separate from the door staff's `CHECKIN_PIN`):
+- **Download list (CSV)**: everyone registered: time, ticket ID, name, email, creative arm, check-in time, reference.
+- **Message everyone**: write a subject and message (it opens with a venue-announcement template), send yourself a test, then send to every registered attendee. Each email is personal ("Hi Ada,"), comes from the Creators Hub Gmail, and has a button to the person's ticket. Gmail sends about 100 a day, so `retry-pending` carries on every 10 minutes until everyone has it; progress shows on the page, and nobody gets it twice. A message goes to everyone registered when it was sent; confirmations for new registrations always go first.
+
 #### Setting up email and check-in
 
 Confirmation emails are sent from the **Creators Hub Gmail account** by a small Google Apps Script on that account, so no domain is needed. Setup takes about 10 minutes: see [`integrations/gmail-mailer/README.md`](integrations/gmail-mailer/README.md). A free Gmail account sends about 100 of these a day; past that, attendees still get their ticket on screen, and their email is sent automatically by the hourly retry once Gmail allows.
@@ -193,6 +199,7 @@ Confirmation emails are sent from the **Creators Hub Gmail account** by a small 
 In Netlify, add these environment variables, then redeploy:
 - `GMAIL_MAILER_URL` and `GMAIL_MAILER_KEY`: from the mailer setup.
 - `CHECKIN_PIN`: the passcode door staff will use. Make it long, e.g. 8+ characters.
+- `ADMIN_PIN`: the organisers' passcode for `/admin`. Use a different one from `CHECKIN_PIN`.
 - `EVENT_CAPACITY` (optional): total places, e.g. `300`.
 
 With a domain later, `RESEND_API_KEY` and `TICKET_EMAIL_FROM` send through Resend instead; they're only used when the Gmail mailer isn't set. Without any email service, registration and tickets still work: attendees see and download their ticket straight away, and the page doesn't promise an email.

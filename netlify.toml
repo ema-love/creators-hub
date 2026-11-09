@@ -62,6 +62,12 @@
     X-Robots-Tag = "noindex"
 
 [[headers]]
+  for = "/admin"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex"
+
+[[headers]]
   for = "/staff"
   [headers.values]
     Cache-Control = "no-store"

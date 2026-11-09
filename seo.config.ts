@@ -19,7 +19,7 @@ const FALLBACK_ORIGIN = 'https://thecreators-hub.netlify.app'
 export const PUBLIC_PAGES = ['/', '/the-first-room', '/tickets', '/volunteer']
 
 /** Kept out of search: personal tickets, orders and the staff area. */
-export const PRIVATE_PATHS = ['/staff', '/v/', '/tickets/order', '/tickets/confirmation', '/tickets/find', '/tickets/check-in', '/.netlify/']
+export const PRIVATE_PATHS = ['/staff', '/admin', '/v/', '/tickets/order', '/tickets/confirmation', '/tickets/find', '/tickets/check-in', '/.netlify/']
 
 const origin = () => (process.env.URL || FALLBACK_ORIGIN).replace(/\/+$/, '')
 
