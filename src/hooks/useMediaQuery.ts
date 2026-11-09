@@ -15,3 +15,5 @@ export function useMediaQuery(query: string): boolean {
 export const usePrefersReducedMotion = () => useMediaQuery('(prefers-reduced-motion: reduce)')
 export const useIsMobile = () => useMediaQuery('(max-width: 767px)')
 export const useFinePointer = () => useMediaQuery('(hover: hover) and (pointer: fine)')
+/** True when the visitor's device is set to light mode (or has no preference). */
+export const usePrefersLight = () => useMediaQuery('(prefers-color-scheme: light)')

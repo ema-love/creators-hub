@@ -1,6 +1,6 @@
 import { firstRoom } from '../../src/content/event'
 import { designById } from '../../src/content/ticketDesigns'
-import type { Email, Mailer } from './email'
+import { emailShell, L, type Email, type Mailer } from './email'
 import { registrationUrl } from './http'
 import type { Kv } from './kv'
 import type { Registration, RegistrationStore } from './registrations'
@@ -110,7 +110,7 @@ export async function sendAnnouncements(
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!)
 
-const C = { ink: '#070708', cream: '#F7F3EA', body: '#cfd6d2', muted: '#A4B2C0', electric: '#00E5A0' }
+const C = { ink: '#070708', electric: '#00E5A0' }
 const SERIF = "'EB Garamond', Garamond, Georgia, 'Times New Roman', serif"
 const SANS = "Montserrat, 'Helvetica Neue', Arial, sans-serif"
 
@@ -123,24 +123,18 @@ export function renderAnnouncementEmail(
   const firstName = registration.name.split(/\s+/)[0] ?? registration.name
   const url = registrationUrl(origin, registration.ref, registration.accessKey)
   const paragraphs = a.message.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
-  const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(a.subject)}</title></head>
-<body style="margin:0;padding:0;background:${C.ink}">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.ink}">
-<tr><td align="center" style="padding:32px 16px">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px">
-    <tr><td style="padding:0 4px 28px"><img src="${origin}/email/logo.png" width="200" height="25" alt="Creator's Hub" style="display:block;width:200px;height:25px;border:0;font:italic 700 22px Georgia,serif;color:${C.cream}"></td></tr>
-    <tr><td style="padding:0 4px 8px;font:500 28px/1.15 ${SERIF};color:${C.cream}">Hi ${esc(firstName)},</td></tr>
+  const html = emailShell(
+    origin,
+    a.subject,
+    `<tr><td class="t-head" style="padding:0 4px 8px;font:500 28px/1.15 ${SERIF};color:${L.head}">Hi ${esc(firstName)},</td></tr>
     ${paragraphs
-      .map((p) => `<tr><td style="padding:8px 4px;font:400 15px/1.65 ${SANS};color:${C.body}">${esc(p).replace(/\n/g, '<br>')}</td></tr>`)
+      .map((p) => `<tr><td class="t-body" style="padding:8px 4px;font:400 15px/1.65 ${SANS};color:${L.body}">${esc(p).replace(/\n/g, '<br>')}</td></tr>`)
       .join('\n    ')}
     <tr><td style="padding:24px 4px 8px">
       <a href="${esc(url)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View your ticket (${esc(ticket.id)})</a>
     </td></tr>
-    <tr><td style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:#6f7a76">You’re receiving this because you registered for ${esc(firstRoom.fullName)} (${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}). Questions? Just reply to this email.</td></tr>
-  </table>
-</td></tr></table>
-</body></html>`
+    <tr><td class="t-foot" style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:${L.foot}">You’re receiving this because you registered for ${esc(firstRoom.fullName)} (${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}). Questions? Just reply to this email.</td></tr>`,
+  )
   const text = [
     `Hi ${firstName},`,
     '',

@@ -5,6 +5,7 @@ import { Menu } from 'lucide-react'
 import { nav } from '../../content/site'
 import { firstRoom } from '../../content/event'
 import { useHeaderSurface } from '../../hooks/useHeaderSurface'
+import { usePrefersLight } from '../../hooks/useMediaQuery'
 import { ease } from '../../lib/motion'
 import { cn } from '../../lib/cn'
 import { Wordmark } from '../brand/Wordmark'
@@ -13,7 +14,9 @@ import { MobileMenu } from './MobileMenu'
 export function Header() {
   const { surface, hidden, scrolled } = useHeaderSurface()
   const [menuOpen, setMenuOpen] = useState(false)
-  const light = surface === 'light'
+  // Light mode on the device: a cream bar with the black logo. Dark mode: follow the section beneath.
+  const systemLight = usePrefersLight()
+  const light = systemLight || surface === 'light'
   const { pathname } = useLocation()
 
   return (
@@ -30,9 +33,9 @@ export function Header() {
           aria-hidden="true"
           className={cn(
             'absolute inset-0 -z-10 transition-opacity duration-500',
-            light ? 'bg-cream/85' : 'bg-ink/75',
+            light ? (systemLight ? 'bg-cream/95' : 'bg-cream/85') : 'bg-ink/75',
             'backdrop-blur-md',
-            scrolled ? 'opacity-100' : 'opacity-0',
+            scrolled || systemLight ? 'opacity-100' : 'opacity-0',
           )}
         />
         <div className="container-edge flex h-16 items-center justify-between gap-6 md:h-20">
