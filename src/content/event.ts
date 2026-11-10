@@ -22,10 +22,14 @@ export const firstRoom = {
   /** Start time, confirmed: 9:00 AM West Africa Time (UTC+1). */
   time: '9:00 AM',
   startUtc: '2026-12-19T08:00:00Z',
+  /** Free registration opened on the website. */
+  registrationOpened: '2026-11-09T00:00:00+01:00',
 
   // ——— Unconfirmed: rendered as placeholders ———
   // Registration settings live in ./tickets.ts.
   venue: null as string | null,
+  /** End time in UTC (e.g. '2026-12-19T17:00:00Z' for 6 PM in Lagos). Not confirmed yet. */
+  endUtc: null as string | null,
   speakers: [] as Array<{ name: string; role: string }>,
   programme: [] as Array<{ time: string; title: string }>,
   partners: [] as Array<{ name: string }>,

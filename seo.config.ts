@@ -47,14 +47,19 @@ export function eventJsonLd(site = origin()) {
       priceCurrency: 'NGN',
       availability: 'https://schema.org/InStock',
       url: `${site}/tickets`,
+      validFrom: firstRoom.registrationOpened,
     },
   ]
+  // Speakers and the end time are added automatically once they are confirmed in src/content/event.ts.
+  const performers = firstRoom.speakers.map((s) => ({ '@type': 'Person', name: s.name }))
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: firstRoom.fullName,
     description: firstRoom.direction,
     startDate: toLagosTime(firstRoom.startUtc),
+    ...(firstRoom.endUtc ? { endDate: toLagosTime(firstRoom.endUtc) } : {}),
+    image: [`${site}/og-image.jpg`],
     eventStatus: 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     location: {
@@ -63,6 +68,7 @@ export function eventJsonLd(site = origin()) {
       address: { '@type': 'PostalAddress', addressLocality: firstRoom.city, addressCountry: 'NG' },
     },
     organizer: { '@type': 'Organization', name: 'Creators Hub', url: site },
+    ...(performers.length ? { performer: performers } : {}),
     url: `${site}/the-first-room`,
     isAccessibleForFree: true,
     offers,
