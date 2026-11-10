@@ -45,7 +45,7 @@ const VENUE_TEMPLATE = {
 Venue: [venue name]
 Address: [full address]
 Date: ${firstRoom.dateLabel}
-Doors open: ${firstRoom.time}
+Time: ${firstRoom.timeRange}
 
 [Directions, parking or anything else people should know.]
 

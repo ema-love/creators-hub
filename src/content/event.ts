@@ -19,8 +19,10 @@ export const firstRoom = {
   intro:
     'The inaugural Creators Hub gathering. One day, one room, every discipline at the same table.',
 
-  /** Start time, confirmed: 9:00 AM West Africa Time (UTC+1). */
+  /** Confirmed: 9:00 AM to 5:00 PM West Africa Time (UTC+1). */
   time: '9:00 AM',
+  endTime: '5:00 PM',
+  timeRange: '9:00 AM – 5:00 PM',
   startUtc: '2026-12-19T08:00:00Z',
   /** Free registration opened on the website. */
   registrationOpened: '2026-11-09T00:00:00+01:00',
@@ -28,8 +30,8 @@ export const firstRoom = {
   // ——— Unconfirmed: rendered as placeholders ———
   // Registration settings live in ./tickets.ts.
   venue: null as string | null,
-  /** End time in UTC (e.g. '2026-12-19T17:00:00Z' for 6 PM in Lagos). Not confirmed yet. */
-  endUtc: null as string | null,
+  /** 5:00 PM in Lagos. */
+  endUtc: '2026-12-19T16:00:00Z' as string | null,
   speakers: [] as Array<{ name: string; role: string }>,
   programme: [] as Array<{ time: string; title: string }>,
   partners: [] as Array<{ name: string }>,
@@ -39,5 +41,5 @@ export const firstRoomDetails = [
   { label: 'Date', value: firstRoom.dateLabel },
   { label: 'City', value: `${firstRoom.city}, ${firstRoom.country}` },
   { label: 'Venue', value: firstRoom.venue },
-  { label: 'Time', value: firstRoom.time },
+  { label: 'Time', value: firstRoom.timeRange },
 ] as const

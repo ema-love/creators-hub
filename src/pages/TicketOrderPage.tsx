@@ -66,7 +66,7 @@ export default function TicketOrderPage() {
             <>
               <div className="max-w-2xl space-y-3 text-cream/75 print:hidden">
                 <p>
-                  {firstRoom.dateLabel} · Starts {firstRoom.time} · {firstRoom.city}. Venue: {firstRoom.venue ?? 'to be announced'}.
+                  {firstRoom.dateLabel} · {firstRoom.timeRange} · {firstRoom.city}. Venue: {firstRoom.venue ?? 'to be announced'}.
                 </p>
                 <p>
                   Your ticket is free and admits one person. Show its QR code at the door, on your phone or printed.{' '}

@@ -154,7 +154,7 @@ export function renderRegistrationEmail(
     subject,
     `<tr><td class="t-head" style="padding:0 4px;font:500 32px/1.1 ${SERIF};color:${L.head}">You’re in the room, ${esc(firstName)}.</td></tr>
     <tr><td class="t-body" style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:${L.body}">Thank you for registering for ${esc(firstRoom.fullName)}. Your ticket is below. It admits one person: show its QR code at the door, on your phone or printed.</td></tr>
-    <tr><td class="t-head" style="padding:8px 4px 28px;font:600 15px/1.6 ${SANS};color:${L.head}">${esc(firstRoom.dateLabel)} · Starts ${esc(firstRoom.time)} (WAT) · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}<br><span class="t-muted" style="font-weight:400;color:${L.muted}">Venue: ${esc(firstRoom.venue ?? 'to be announced')}</span></td></tr>
+    <tr><td class="t-head" style="padding:8px 4px 28px;font:600 15px/1.6 ${SANS};color:${L.head}">${esc(firstRoom.dateLabel)} · ${esc(firstRoom.timeRange)} (WAT) · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}<br><span class="t-muted" style="font-weight:400;color:${L.muted}">Venue: ${esc(firstRoom.venue ?? 'to be announced')}</span></td></tr>
     ${ticketBlock(ticket, origin)}
     <tr><td align="center" style="padding:4px 4px 8px">
       <a href="${esc(viewUrl)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View and download your ticket</a>
@@ -169,7 +169,7 @@ export function renderRegistrationEmail(
     `Thank you for registering for ${firstRoom.fullName}. Your ticket is below. It admits one person: show its QR code at the door, on your phone or printed.`,
     '',
     `${firstRoom.fullName}`,
-    `${firstRoom.dateLabel} · Starts ${firstRoom.time} (WAT) · ${firstRoom.city}, ${firstRoom.country}`,
+    `${firstRoom.dateLabel} · ${firstRoom.timeRange} (WAT) · ${firstRoom.city}, ${firstRoom.country}`,
     `Venue: ${firstRoom.venue ?? 'to be announced'}`,
     '',
     `${ticket.id} · ${designById(ticket.design).name} · ${categoryStyle[ticket.category].label}`,
