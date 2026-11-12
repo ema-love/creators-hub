@@ -75,6 +75,27 @@ export function eventJsonLd(site = origin()) {
   }
 }
 
+export function brandJsonLd(site = origin()) {
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Creators Hub',
+      alternateName: ["Creator's Hub", 'Creators Hub Lagos'],
+      url: `${site}/`,
+      logo: `${site}/logo.png`,
+      description: 'A creative community in Lagos, Nigeria, across fashion, technology, film and storytelling, and arts and design.',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Creators Hub',
+      alternateName: ["Creator's Hub"],
+      url: `${site}/`,
+    },
+  ]
+}
+
 export function seo(): Plugin {
   return {
     name: 'creators-hub-seo',
@@ -101,6 +122,14 @@ export function seo(): Plugin {
       }
       for (const [property, content] of Object.entries(og)) tags.push({ tag: 'meta', attrs: { property, content }, injectTo: 'head' })
       tags.push({ tag: 'meta', attrs: { name: 'twitter:image', content: `${site}/og-image.jpg` }, injectTo: 'head' })
+
+      // Who Creators Hub is (name, both spellings, logo), so Google can show the brand.
+      tags.push({
+        tag: 'script',
+        attrs: { type: 'application/ld+json' },
+        children: JSON.stringify(brandJsonLd(site)).replace(/</g, '\\u003c'),
+        injectTo: 'head',
+      })
 
       const verification = (process.env.GOOGLE_SITE_VERIFICATION ?? '').trim()
       if (verification) {
