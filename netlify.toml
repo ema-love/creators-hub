@@ -5,10 +5,13 @@
 [build.environment]
   NODE_VERSION = "22"
 
-# Single-page app: let React Router resolve client-side routes.
+# Single-page app: let React Router resolve client-side routes. The public
+# pages (/, /the-first-room, /tickets, /volunteer) have their own pre-built
+# files for search engines and are served directly; every other address gets
+# the blank app shell.
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/app.html"
   status = 200
 
 [[headers]]
