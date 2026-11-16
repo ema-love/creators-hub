@@ -11,7 +11,7 @@ import { volunteerDepartments, volunteerIntro, volunteerWhy, experienceLabel } f
  *
  * The site is built in the browser with JavaScript, so without this every
  * page reaches Google blank and with the same title. Each public page now has
- * its own file (dist/<page>/index.html) with its own title, description and
+ * its own file (dist/<page>.html) with its own title, description and
  * canonical link, and the page's real words inside #root. Visitors see the
  * full site as soon as the app starts, which replaces this content; Netlify
  * serves these files before the single-page fallback.
@@ -122,7 +122,8 @@ export function prerender(): Plugin {
       // Blank shell for every other address (staff, tickets/order, …): see netlify.toml.
       fs.writeFileSync(path.join(outDir, 'app.html'), template)
       for (const page of staticPages()) {
-        const file = page.path === '/' ? indexFile : path.join(outDir, page.path.slice(1), 'index.html')
+        // the-first-room.html, not the-first-room/index.html: Netlify serves it at /the-first-room with no redirect.
+        const file = page.path === '/' ? indexFile : path.join(outDir, `${page.path.slice(1)}.html`)
         fs.mkdirSync(path.dirname(file), { recursive: true })
         fs.writeFileSync(file, renderPage(template, page, site))
       }
