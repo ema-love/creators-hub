@@ -46,7 +46,8 @@ src/
   main.tsx
   styles/index.css        Tailwind v4 theme: colour, type scale, motion tokens
   content/                ALL copy and data (no copy hard-coded in components)
-    site.ts               nav, hero, manifesto, sections, contact
+    founding.ts           Creators Hub: the Founding Document (homepage and intro)
+    site.ts               nav, The First Room's four arms, volunteer teaser, partnership, contact
     event.ts              The First Room (confirmed vs. unconfirmed fields)
     disciplineStories.ts  per-discipline photos, taglines, focus areas, alt text
     forms.ts              Netlify form names
@@ -98,18 +99,20 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 
 ### The cinematic intro (`src/components/intro/`)
 
+Told from the Founding Document: an idea, the mission's three beats, the four pillars, then the name. Its words are in `src/content/founding.ts` (`introLines`, `introSignoff`, each pillar's `line`).
+
 | Time | Scene | What happens |
 | --- | --- | --- |
-| 0–2s | Spark | A pulsing point of electric green; ambient light and depth particles (canvas) |
-| 2–4s | Possibility | Light becomes drawn ribbons and dimensional planes; "Imagine. Make. Share." |
-| 4–7s | The Creators | A four-photo spread per discipline, with its name and tagline, cut in with clip-paths |
-| 7–9s | Convergence | Frames gather into a grid, then collapse into the light as particles converge |
-| 9–12s | Reveal | Wordmark letters rise from a mask, rule draws, hand-off to the homepage |
+| 0–2s | Spark | A pulsing point of electric green (an idea); ambient light and depth particles (canvas) |
+| 2–4.8s | Possibility | Light becomes drawn ribbons and dimensional planes; "Not someday." "Not by someone else." "Now. By them." |
+| 4.8–7.8s | The four pillars | Recognition, Creative Space, Education, Guidance, each with its own closing words over a spread of young creators, cut in with clip-paths |
+| 7.8–9.8s | Convergence | Frames gather into a grid, then collapse into the light as particles converge |
+| 9.8–13s | Reveal | Wordmark letters rise from a mask, rule draws, "Pan-African · Est. 2026", hand-off to the homepage |
 
 - The site is rendered underneath the whole time (`inert` while the intro plays). It is never a gate.
 - **Skip intro** is focused on load. **Escape** also skips. **Replay intro** is in the hero and the footer.
 - Plays once per session, homepage only.
-- **Mobile**: fewer particles, ~7s.
+- **Mobile**: fewer particles, ~8.5s.
 - **Reduced motion**: never autoplays. Replay runs a ~5s cross-fade-only version with static particles.
 - **Sound**: off by default, starts only from the toggle.
 - A safety timeout ends the intro if anything stalls.
@@ -133,7 +136,7 @@ The First Room has four creative arms: **Fashion**, **Technology**, **Film & Sto
 The photographs were cut from the Creators Hub moodboards and recomposed in the site's own layouts, so they share its type, colour and shapes:
 
 - **Disciplines section**: a mosaic per discipline (`src/components/ui/DisciplineMosaic.tsx`) with five photos and a text tile, beside the discipline's tagline and focus areas.
-- **Intro montage**: a four-photo spread per discipline with its name and tagline.
+- **Intro montage**: the four-photo spreads appear behind the four pillars of Creators Hub (not labelled as disciplines).
 
 Photos, taglines, focus areas, the text-tile line and alt text all live in `src/content/disciplineStories.ts`. The image files are in `src/assets/crops/` (named like `fashion-portrait.webp`).
 

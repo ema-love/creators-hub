@@ -1,8 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { SkipForward, Volume2, VolumeX } from 'lucide-react'
-import { disciplines } from '../../content/site'
-import { disciplineStories } from '../../content/disciplineStories'
+import { pillars } from '../../content/founding'
+import { disciplineStories, type Photo } from '../../content/disciplineStories'
 import { gsap } from '../../lib/gsap'
 import { useIsMobile, usePrefersReducedMotion } from '../../hooks/useMediaQuery'
 import { useIntro } from './IntroContext'
@@ -10,17 +10,29 @@ import { createFieldState, ParticleField, type FieldState } from './ParticleFiel
 import { IntroSound } from './introSound'
 import { MontageLayer, PossibilityLayer, RevealLayer } from './scenes'
 
-/** Mobile plays the same story in roughly 7 seconds with fewer particles. */
-const MOBILE_TIME_SCALE = 1.7
+/** Mobile plays the same story in roughly 8.5 seconds with fewer particles. */
+const MOBILE_TIME_SCALE = 1.5
+
+/** Seconds added to scene 2 so its three lines can be read. Later scenes start this much later. */
+const D = 0.8
+
+/** Photographs of young creators behind each pillar. */
+const PILLAR_PHOTOS: Photo[][] = [
+  disciplineStories.fashion.montage,
+  disciplineStories.artdesign.montage,
+  disciplineStories.technology.montage,
+  disciplineStories.film.montage,
+]
 
 /**
- * Cinematic opening — five scenes on one GSAP timeline (~12s desktop).
+ * Cinematic opening, told from the Creators Hub Founding Document — five
+ * scenes on one GSAP timeline (~13s desktop).
  *
- *   0–2s   Spark        a point of light pulses; atmosphere and particles arrive
- *   2–4s   Possibility  light becomes ribbons, dimensional planes, brief words
- *   4–7s   Creators     fashion, technology, film & storytelling, arts & design
- *   7–9s   Convergence  the montage gathers into a grid and collapses into the light
- *   9–12s  Reveal       wordmark, then a hand-off to the homepage
+ *   0–2s      Spark        a point of light (an idea) pulses; particles arrive
+ *   2–4.8s    Possibility  ribbons and planes; "Not someday." "Not by someone else." "Now. By them."
+ *   4.8–7.8s  Pillars      Recognition, Creative Space, Education, Guidance, over young creators
+ *   7.8–9.8s  Convergence  the pillars gather into a grid and collapse into the light
+ *   9.8–13s   Reveal       wordmark, "Pan-African · Est. 2026", then a hand-off to the homepage
  *
  * The site is already rendered underneath. Skip (button or Escape) is always
  * available, and the sequence never autoplays for reduced-motion users.
@@ -32,11 +44,11 @@ export function Intro() {
 
   // Freeze the configuration for this run so a resize mid-play does not rebuild it.
   const [config] = useState(() => ({ isMobile, reduce }))
-  const frames = disciplines.map((d) => ({
-    id: d.id,
-    name: d.name,
-    tagline: disciplineStories[d.id].tagline,
-    photos: disciplineStories[d.id].montage,
+  const frames = pillars.items.map((p, i) => ({
+    id: p.icon,
+    name: p.title,
+    tagline: p.line,
+    photos: PILLAR_PHOTOS[i % PILLAR_PHOTOS.length]!,
   }))
 
   const rootRef = useRef<HTMLDivElement>(null)
@@ -174,23 +186,23 @@ function buildTimeline(state: FieldState, frameCount: number, sound: React.RefOb
     .to('.i-plane', { rotateZ: (i) => (i - 1) * 14, rotateY: -12, duration: 1.4, ease: 'sine.inOut' }, 'possibility+=1.2')
 
   gsap.utils.toArray<HTMLElement>('.i-word').forEach((word, i) => {
-    // Each word fully exits before the next arrives.
-    const at = 2.2 + i * 0.55
-    tl.to(word, { yPercent: 0, duration: 0.3, ease: 'power3.out' }, at).to(
+    // Each line fully exits before the next arrives.
+    const at = 2.2 + i * 0.8
+    tl.to(word, { yPercent: 0, duration: 0.32, ease: 'power3.out' }, at).to(
       word,
-      { yPercent: -110, duration: 0.2, ease: 'power3.in' },
-      at + 0.33,
+      { yPercent: -110, duration: 0.22, ease: 'power3.in' },
+      at + 0.56,
     )
   })
 
-  tl.to('.i-possibility', { opacity: 0, scale: 1.12, duration: 0.6, ease: 'power2.in' }, 'possibility+=1.7')
-    .to(state, { spark: 0.35, glow: 0.3, particles: 0.35, duration: 0.6 }, 'possibility+=1.7')
+  tl.to('.i-possibility', { opacity: 0, scale: 1.12, duration: 0.6, ease: 'power2.in' }, `possibility+=${1.7 + D}`)
+    .to(state, { spark: 0.35, glow: 0.3, particles: 0.35, duration: 0.6 }, `possibility+=${1.7 + D}`)
 
-  // ——— Scene 3: The Creators (4–7s) ———
+  // ——— Scene 3: The four pillars ———
   const step = 3 / frameCount
-  tl.addLabel('creators', 4).set('.i-montage', { opacity: 1 }, 'creators')
+  tl.addLabel('creators', 4 + D).set('.i-montage', { opacity: 1 }, 'creators')
   gsap.utils.toArray<HTMLElement>('.i-frame').forEach((frame, i) => {
-    const at = 4 + i * step
+    const at = 4 + D + i * step
     const media = frame.querySelector('.i-frame-media')
     tl.call(cue('cut'), [], at)
       .to(frame, { clipPath: 'inset(0% 0% 0% 0%)', duration: Math.min(0.55, step * 0.9), ease: 'power4.inOut' }, at)
@@ -200,7 +212,7 @@ function buildTimeline(state: FieldState, frameCount: number, sound: React.RefOb
   // ——— Scene 4: Convergence (7–9s) ———
   const cols = frameCount > 4 ? 3 : 2
   const rows = Math.ceil(frameCount / cols)
-  tl.addLabel('converge', 7)
+  tl.addLabel('converge', 7 + D)
     .to(
       '.i-frame',
       {
@@ -233,7 +245,7 @@ function buildTimeline(state: FieldState, frameCount: number, sound: React.RefOb
     .to(state, { spark: 0, particles: 0, glow: 0.45, duration: 0.5 }, 'converge+=1.9')
 
   // ——— Scene 5: Brand reveal (9–12s) ———
-  tl.addLabel('reveal', 9)
+  tl.addLabel('reveal', 9 + D)
     .call(cue('reveal'), [], 'reveal')
     .to('.wm-char', { yPercent: 0, duration: 1.2, stagger: 0.035 }, 'reveal')
     .to(state, { flash: 0, duration: 1.2, ease: 'power2.out' }, 'reveal')

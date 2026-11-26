@@ -12,6 +12,10 @@
 
 export const founding = {
   eyebrow: 'Founding document · Est. 2026 · Pan-African',
+  /** The three beats of the opening animation, from the mission. */
+  introLines: ['Not someday.', 'Not by someone else.', 'Now. By them.'],
+  /** Under the logo at the end of the opening animation. */
+  introSignoff: 'Pan-African · Est. 2026',
   headline: ['Africa does', 'not lack ideas.'],
   statement: 'Africa lacks the space, the support, and the belief that those ideas can be built — by the very people who thought them.',
 }
@@ -60,21 +64,26 @@ export const pillars = {
     {
       icon: 'recognition' as PillarIcon,
       title: 'Recognition',
+      /** Short line for the opening animation, from the pillar's own words. */
+      line: 'We create that visibility.',
       body: 'Africa’s big thinkers deserve to be seen and celebrated on this continent — before the world discovers them. We create that visibility.',
     },
     {
       icon: 'space' as PillarIcon,
       title: 'Creative Space',
+      line: 'Treated as the raw material of something real.',
       body: 'A physical and digital environment where ideas are welcomed, taken seriously, and treated as the raw material of something real.',
     },
     {
       icon: 'education' as PillarIcon,
       title: 'Education',
+      line: 'Not theory. Execution.',
       body: 'Practical, hands-on learning in the skills that close the gap — coding, design, storytelling, pitching, building. Not theory. Execution.',
     },
     {
       icon: 'guidance' as PillarIcon,
       title: 'Guidance',
+      line: 'No one builds alone here.',
       body: 'Mentors, community, and structure that walk alongside creators from first idea to finished product. No one builds alone here.',
     },
   ],

@@ -1,5 +1,5 @@
 import type { Photo } from '../../content/disciplineStories'
-import { firstRoom } from '../../content/event'
+import { founding } from '../../content/founding'
 import { Wordmark } from '../brand/Wordmark'
 
 /*
@@ -8,7 +8,8 @@ import { Wordmark } from '../brand/Wordmark'
  * be read and tuned in one place. Class names prefixed `i-` are animation hooks.
  */
 
-export const POSSIBILITY_WORDS = ['Imagine.', 'Make.', 'Share.']
+/** Three beats from the Creators Hub mission. */
+export const INTRO_LINES = founding.introLines
 
 const RIBBONS = [
   { d: 'M-50 620 C 260 380, 520 760, 820 470 S 1320 260, 1700 420', stroke: '#00E5A0', width: 1.4 },
@@ -17,7 +18,7 @@ const RIBBONS = [
   { d: 'M-50 820 C 380 760, 700 640, 980 720 S 1420 860, 1700 760', stroke: '#C4622D', width: 0.9 },
 ]
 
-/** Scene 2 — Possibility: light becomes flowing form, planes and words. */
+/** Scene 2 — Possibility: light becomes flowing form, planes, and the mission's three beats. */
 export function PossibilityLayer() {
   return (
     <div className="i-possibility absolute inset-0 opacity-0" aria-hidden="true">
@@ -46,9 +47,11 @@ export function PossibilityLayer() {
       </div>
 
       <div className="absolute inset-0 grid place-items-center">
-        {POSSIBILITY_WORDS.map((w) => (
-          <span key={w} className="absolute overflow-hidden">
-            <span className="i-word block font-display text-display font-medium text-cream">{w}</span>
+        {INTRO_LINES.map((w, i) => (
+          <span key={w} className="absolute w-[min(92vw,72rem)] overflow-hidden px-4 pb-[0.06em] text-center">
+            <span className={`i-word block font-display text-display font-medium ${i === INTRO_LINES.length - 1 ? 'text-electric' : 'text-cream'}`}>
+              {w}
+            </span>
           </span>
         ))}
       </div>
@@ -67,8 +70,8 @@ const SPREAD = [
 ]
 
 /**
- * Scene 3 — The Creators: one photo spread per discipline, cut from the
- * Creators Hub moodboards and set in the site's own type.
+ * Scene 3 — The four pillars of Creators Hub, each over a photo spread of
+ * young creators (cut from the Creators Hub moodboards).
  */
 export function MontageLayer({ frames }: { frames: MontageFrame[] }) {
   return (
@@ -112,7 +115,7 @@ export function RevealLayer() {
         <Wordmark split className="h-auto w-[min(84vw,56rem)]" />
         <span className="i-line mt-6 block h-px w-[min(60vw,28rem)] origin-left bg-electric" />
         <p className="i-meta eyebrow mt-6 text-silver opacity-0">
-          {firstRoom.fullName} · {firstRoom.dateLabel} · {firstRoom.city}
+          {founding.introSignoff}
         </p>
       </div>
     </div>
