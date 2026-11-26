@@ -44,7 +44,7 @@ export function Header() {
           </Link>
 
           <nav aria-label="Primary" className="hidden lg:block">
-            <ul className="flex items-center gap-8 text-[0.9375rem]">
+            <ul className="flex items-center gap-4 whitespace-nowrap text-sm xl:gap-8 xl:text-[0.9375rem]">
               {nav.map((item) => (
                 <li key={item.href}>
                   <Link
@@ -63,13 +63,13 @@ export function Header() {
             <Link
               to="/tickets"
               className={cn(
-                'hidden items-center gap-2.5 rounded-full border px-4 py-2 font-display text-sm transition-colors sm:inline-flex',
+                'hidden items-center gap-2.5 whitespace-nowrap rounded-full border px-4 py-2 font-display text-sm transition-colors sm:inline-flex',
                 light ? 'border-ink/20 hover:border-ink' : 'border-cream/20 hover:border-cream',
               )}
             >
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-rust" />
               <span>
-                Register free · {firstRoom.dateShort}
+                Register free<span className="lg:max-xl:hidden"> · {firstRoom.dateShort}</span>
               </span>
             </Link>
             <button

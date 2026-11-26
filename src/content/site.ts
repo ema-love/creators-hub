@@ -8,6 +8,7 @@
 export const nav = [
   { label: 'About', href: '/#about' },
   { label: 'Manifesto', href: '/#manifesto' },
+  { label: 'Meet the team', href: '/team' },
   { label: 'The First Room', href: '/the-first-room' },
   { label: 'Tickets', href: '/tickets' },
   { label: 'Volunteer', href: '/volunteer' },
