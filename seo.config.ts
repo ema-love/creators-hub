@@ -109,7 +109,7 @@ export function profileJsonLd(m: TeamMember, site = origin()) {
     mainEntity: {
       ...person(m, site),
       description: p.about.replace(/’/g, "'"),
-      worksFor: { '@type': 'Organization', name: BRAND_PLAIN, url: site },
+      worksFor: { '@type': 'Organization', '@id': `${site}/#organization`, name: BRAND_PLAIN, url: site },
     },
   }
 }
@@ -122,9 +122,12 @@ export function organizationJsonLd(site = origin()) {
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
+      '@id': `${site}/#organization`,
       name: BRAND_PLAIN,
       alternateName: ['Creators Hub'],
       url: site,
+      foundingDate: '2026',
+      foundingLocation: { '@type': 'Place', name: 'Lagos, Nigeria', address: { '@type': 'PostalAddress', addressLocality: 'Lagos', addressCountry: 'NG' } },
       logo: `${site}/logo.png`,
       description: brandSummary + ' Founded in Lagos, Nigeria, in 2026.',
       sameAs: socialProfiles,
