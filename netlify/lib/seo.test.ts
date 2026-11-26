@@ -109,8 +109,12 @@ describe('search: structured data', () => {
         jobTitle: 'Founder',
         worksFor: { '@type': 'Organization', name: "Creator's Hub" },
         sameAs: ['https://www.linkedin.com/in/erioluwa-akintayo-76449037a', 'https://www.instagram.com/eri.by.ema/'],
+        affiliation: { '@type': 'CollegeOrUniversity', name: 'African Leadership University' },
       },
     })
+    expect(ema).toContain('Africa doesn’t lack ideas; it lacks the space, support, and belief in the people behind those ideas.')
+    expect(ema).toContain('Software Engineering, African Leadership University')
+    expect((profile as { mainEntity: Record<string, unknown> }).mainEntity).not.toHaveProperty('homeLocation') // location isn't fixed
   })
 
   it('dates the sitemap with each deploy', () => {

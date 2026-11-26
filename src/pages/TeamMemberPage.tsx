@@ -79,7 +79,52 @@ function Profile({ member: m }: { member: TeamMember }) {
           </div>
         </div>
       </Section>
+      {profile.story?.length ? <Story member={m} /> : null}
       {m.founder && <Oath />}
     </>
+  )
+}
+
+/** The person's story in their own words, with quick facts. */
+function Story({ member: m }: { member: TeamMember }) {
+  const p = m.profile!
+  return (
+    <Section surface="dark" aria-labelledby="story-title" className="py-24 md:py-36">
+      <div className="container-edge grid gap-14 md:grid-cols-12">
+        <div className="md:col-span-4">
+          <div className="md:sticky md:top-32">
+            <Eyebrow className="text-electric">About {m.shortName}</Eyebrow>
+            <h2 id="story-title" className="mt-6 text-headline font-medium">
+              <MaskText lines={['In ' + m.shortName + '’s', <span key="w" className="text-electric">words</span>]} />
+            </h2>
+            {p.facts?.length ? (
+              <dl className="mt-12 space-y-5 border-t border-cream/15 pt-8">
+                {p.facts.map((f) => (
+                  <div key={f.label}>
+                    <dt className="eyebrow text-[0.6875rem] text-cream/50">{f.label}</dt>
+                    <dd className="mt-1.5 text-cream/90">{f.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
+          </div>
+        </div>
+        <div className="space-y-8 md:col-span-7 md:col-start-6 md:pt-14">
+          {p.story!.map((para, i) => (
+            <Reveal key={i} delay={i * 0.04}>
+              <p
+                className={
+                  i === 0
+                    ? 'font-display text-[clamp(1.4rem,2.4vw,2.1rem)] font-medium leading-[1.3] tracking-[-0.01em]'
+                    : 'text-lede leading-relaxed text-cream/80'
+                }
+              >
+                {para}
+              </p>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </Section>
   )
 }

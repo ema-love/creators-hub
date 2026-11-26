@@ -129,6 +129,8 @@ ${volunteerTeams
 <p>${esc(m.role)} · Creator’s Hub</p>
 ${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)} of Creator’s Hub" width="320" height="320" />` : ''}
 <p>${esc(m.profile!.about)}</p>
+${m.profile!.facts?.length ? `<dl>${m.profile!.facts.map((f) => `<dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd>`).join('')}</dl>` : ''}
+${m.profile!.story?.length ? `<h2>In ${esc(m.shortName)}’s words</h2>${m.profile!.story.map((p) => `<p>${esc(p)}</p>`).join('')}` : ''}
 ${socialLinksOf(m).map((l) => `<p><a href="${esc(l.url)}" rel="me">${esc(m.shortName)} on ${esc(l.label)}</a></p>`).join('\n')}
 ${m.founder ? `<h2>${esc(oath.eyebrow)}</h2><blockquote><p>${esc(oath.before)} ${esc(oath.highlight)} ${esc(oath.after)}</p><p>${esc(founderLine)}</p></blockquote>` : ''}
 <p><a href="/team">Meet the team</a> · <a href="/">Creator’s Hub</a></p>`,

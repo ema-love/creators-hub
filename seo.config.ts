@@ -110,6 +110,11 @@ export function profileJsonLd(m: TeamMember, site = origin()) {
       ...person(m, site),
       description: p.about.replace(/’/g, "'"),
       worksFor: { '@type': 'Organization', '@id': `${site}/#organization`, name: BRAND_PLAIN, url: site },
+      ...(p.affiliation
+        ? { affiliation: { '@type': 'CollegeOrUniversity', name: p.affiliation.name, ...(p.affiliation.url ? { url: p.affiliation.url } : {}) } }
+        : {}),
+      ...(p.basedIn ? { homeLocation: { '@type': 'Place', name: p.basedIn } } : {}),
+      ...(p.knowsAbout?.length ? { knowsAbout: p.knowsAbout } : {}),
     },
   }
 }

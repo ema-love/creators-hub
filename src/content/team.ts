@@ -41,6 +41,14 @@ export type TeamMember = {
     alternateNames: string[]
     /** One or two sentences about the person, shown on the profile page. */
     about: string
+    /** Longer story in the person's own words: one string per paragraph. */
+    story?: string[]
+    /** Quick facts shown beside the story. */
+    facts?: Array<{ label: string; value: string }>
+    /** For Google: where they study or work besides Creator's Hub, where they're based, what they know about. */
+    affiliation?: { name: string; url?: string }
+    basedIn?: string
+    knowsAbout?: string[]
   }
 }
 
@@ -64,11 +72,26 @@ export const teamMembers: TeamMember[] = [
     profile: {
       path: '/team/erioluwa-akintayo',
       title: "Erioluwa Mercy Akintayo (Ema) · Founder of Creator's Hub",
-      description: "Erioluwa Mercy Akintayo (Ema) is the founder of Creator's Hub, a community built to turn idealists into builders.",
+      description:
+        "Erioluwa Mercy Akintayo (Ema), founder of Creator's Hub, turning idealists into builders. Software Engineering student at African Leadership University.",
       alternateNames: ['Ema', 'Erioluwa Akintayo', 'Ema Akintayo'],
       // Ema's own words.
       about:
         'Erioluwa Mercy Akintayo (Ema) is the founder of Creator’s Hub, a community built to turn idealists into builders. She leads the vision of creating spaces where young people can explore their ideas, find support, and bring their creativity to life.',
+      // Ema's own words.
+      story: [
+        'I’m Erioluwa Mercy Akintayo, known as Ema, and I’m the founder of Creator’s Hub. I’m a Software Engineering student at African Leadership University, with a growing interest in artificial intelligence, technology, and building products that solve meaningful problems.',
+        'Creator’s Hub was born from a belief I deeply hold: Africa doesn’t lack ideas; it lacks the space, support, and belief in the people behind those ideas. I wanted to build a community that gives young people, creatives, and aspiring builders the opportunity to move beyond imagining and begin creating.',
+        'Creator’s Hub is about turning idealists into builders. It is a space for people figuring things out, exploring their potential, and bringing their ideas to life through community, collaboration, and real opportunities.',
+        'I’m currently based in Lagos, Nigeria, and I’m building Creator’s Hub with the long-term vision of growing it across Africa and beyond.',
+      ],
+      facts: [
+        { label: 'Role', value: 'Founder, Creator’s Hub' },
+        { label: 'Studying', value: 'Software Engineering, African Leadership University' },
+        { label: 'Interests', value: 'Artificial intelligence, technology, and building products that solve meaningful problems' },
+      ],
+      affiliation: { name: 'African Leadership University', url: 'https://www.alueducation.com' },
+      knowsAbout: ['Software engineering', 'Artificial intelligence', 'Technology', 'Product building', 'Community building'],
     },
   },
   {
