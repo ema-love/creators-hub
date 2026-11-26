@@ -4,7 +4,7 @@ import { renderPage, staticPages } from '../../prerender.config'
 import { pageMeta } from '../../src/content/seo'
 
 const SITE = 'https://thecreators-hub.netlify.app'
-const TEMPLATE = `<html><head><title>x</title><meta name="description" content="x" /><meta property="og:title" content="x" /><meta property="og:description" content="x" /></head><body><div id="root"></div></body></html>`
+const TEMPLATE = `<html><head><title>x</title><meta property="og:image" content="${SITE}/og-image.jpg"><meta name="twitter:image" content="${SITE}/og-image.jpg"><meta name="description" content="x" /><meta property="og:title" content="x" /><meta property="og:description" content="x" /></head><body><div id="root"></div></body></html>`
 const jsonLdIn = (html: string) =>
   [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].flatMap((m) => JSON.parse(m[1]!) as unknown[])
 
@@ -99,6 +99,7 @@ describe('search: structured data', () => {
     expect(ema).toContain("<title>Erioluwa Mercy Akintayo (Ema) · Founder of Creator's Hub</title>")
     expect(ema).toContain('is the founder of Creator’s Hub, a community built to turn idealists into builders. She leads the vision')
     expect(ema).toContain(`<link rel="canonical" href="${SITE}/team/erioluwa-akintayo" />`)
+    expect(ema).not.toContain('og-image.jpg') // the profile's share image is the person's photo
     const [profile] = jsonLdIn(ema) as Array<Record<string, unknown>>
     expect(profile).toMatchObject({
       '@type': 'ProfilePage',

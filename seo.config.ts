@@ -168,6 +168,8 @@ export function seo(): Plugin {
       }
       for (const [property, content] of Object.entries(og)) tags.push({ tag: 'meta', attrs: { property, content }, injectTo: 'head' })
       tags.push({ tag: 'meta', attrs: { name: 'twitter:image', content: `${site}/og-image.jpg` }, injectTo: 'head' })
+      // Lets Google show a large image (e.g. a team member's photo) beside a result.
+      tags.push({ tag: 'meta', attrs: { name: 'robots', content: 'max-image-preview:large' }, injectTo: 'head' })
 
       const verification = (process.env.GOOGLE_SITE_VERIFICATION ?? '').trim()
       if (verification) {

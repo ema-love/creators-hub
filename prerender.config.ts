@@ -24,7 +24,16 @@ import { experienceText, volunteerBenefits, volunteerIntro, volunteerTeams } fro
 const FALLBACK_ORIGIN = 'https://thecreators-hub.netlify.app'
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-type Page = { path: string; title: string; description: string; body: string; /** Structured data for this page only. */ jsonLd?: unknown[] }
+type Page = {
+  path: string
+  title: string
+  description: string
+  body: string
+  /** Structured data for this page only. */
+  jsonLd?: unknown[]
+  /** The page's own share image (path, alt, size), instead of the site's event image. */
+  image?: { path: string; alt: string; width: number; height: number }
+}
 
 const when = `${firstRoom.dateLabel} · ${firstRoom.timeRange} · ${firstRoom.city}, ${firstRoom.country}, and online`
 const venue = `Venue: ${firstRoom.venue ?? 'to be announced'}`
@@ -115,6 +124,7 @@ ${volunteerTeams
       title: m.profile!.title,
       description: m.profile!.description,
       jsonLd: [profileJsonLd(m, site)],
+      ...(m.photo ? { image: { path: m.photo, alt: `${m.name}, ${m.role} of Creator’s Hub`, width: 720, height: 720 } } : {}),
       body: `<h1>${esc(m.name)}</h1>
 <p>${esc(m.role)} · Creator’s Hub</p>
 ${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)} of Creator’s Hub" width="320" height="320" />` : ''}
@@ -137,6 +147,15 @@ export function renderPage(template: string, page: Page, site: string): string {
     .replace(/<meta\s+property="og:title"\s+content="[^"]*"\s*\/?>/, `<meta property="og:title" content="${t}" />`)
     .replace(/<meta\s+property="og:description"\s+content="[^"]*"\s*\/?>/, `<meta property="og:description" content="${d}" />`)
     .replace(/<meta property="og:url" content="[^"]*">/, `<meta property="og:url" content="${url}">`)
+  if (page.image) {
+    const img = `${site}${page.image.path}`
+    html = html
+      .replace(/<meta property="og:image" content="[^"]*">/, `<meta property="og:image" content="${img}">`)
+      .replace(/<meta property="og:image:width" content="[^"]*">/, `<meta property="og:image:width" content="${page.image.width}">`)
+      .replace(/<meta property="og:image:height" content="[^"]*">/, `<meta property="og:image:height" content="${page.image.height}">`)
+      .replace(/<meta property="og:image:alt" content="[^"]*">/, `<meta property="og:image:alt" content="${esc(page.image.alt)}">`)
+      .replace(/<meta name="twitter:image" content="[^"]*">/, `<meta name="twitter:image" content="${img}">`)
+  }
   html = html.replace(
     '</head>',
     `<link rel="canonical" href="${url}" />
