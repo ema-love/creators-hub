@@ -4,6 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { X } from 'lucide-react'
 import { nav } from '../../content/site'
 import { firstRoom } from '../../content/event'
+import { EVENT_NAME } from '../../content/founding'
 import { ease } from '../../lib/motion'
 import { cn } from '../../lib/cn'
 import { usePrefersLight } from '../../hooks/useMediaQuery'
@@ -68,7 +69,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           transition={{ duration: 0.8, ease: ease.inOut }}
         >
           <div className="container-edge flex h-16 items-center justify-between">
-            <Link to="/" onClick={onClose} className="text-lg" aria-label="Creators Hub — home">
+            <Link to="/" onClick={onClose} className="text-lg" aria-label="Creator’s Hub — home">
               <Wordmark on={light ? 'light' : 'dark'} className="h-[1.05em] w-auto" />
             </Link>
             <button
@@ -105,7 +106,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           </nav>
 
           <div className={cn('container-edge pb-10 text-sm', light ? 'text-ink/65' : 'text-cream/70')}>
-            {firstRoom.fullName} — {firstRoom.dateLabel}, {firstRoom.timeRange}, {firstRoom.city} & online
+            {EVENT_NAME} — {firstRoom.dateLabel}, {firstRoom.timeRange}, {firstRoom.city} & online
           </div>
         </motion.div>
       )}

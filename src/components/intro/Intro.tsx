@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
 import { SkipForward, Volume2, VolumeX } from 'lucide-react'
-import { pillars } from '../../content/founding'
+import { howWeWork } from '../../content/founding'
 import { disciplineStories, type Photo } from '../../content/disciplineStories'
 import { gsap } from '../../lib/gsap'
 import { useIsMobile, usePrefersReducedMotion } from '../../hooks/useMediaQuery'
@@ -16,23 +16,22 @@ const MOBILE_TIME_SCALE = 1.5
 /** Seconds added to scene 2 so its three lines can be read. Later scenes start this much later. */
 const D = 0.8
 
-/** Photographs of young creators behind each pillar. */
-const PILLAR_PHOTOS: Photo[][] = [
-  disciplineStories.fashion.montage,
+/** Photographs of young creators behind each step. */
+const STEP_PHOTOS: Photo[][] = [
   disciplineStories.artdesign.montage,
-  disciplineStories.technology.montage,
+  disciplineStories.fashion.montage,
   disciplineStories.film.montage,
+  disciplineStories.technology.montage,
 ]
 
 /**
- * Cinematic opening, told from the Creators Hub Founding Document — five
- * scenes on one GSAP timeline (~13s desktop).
+ * Cinematic opening for Creator’s Hub — five scenes on one GSAP timeline (~13s desktop).
  *
  *   0–2s      Spark        a point of light (an idea) pulses; particles arrive
- *   2–4.8s    Possibility  ribbons and planes; "Not someday." "Not by someone else." "Now. By them."
- *   4.8–7.8s  Pillars      Recognition, Creative Space, Education, Guidance, over young creators
- *   7.8–9.8s  Convergence  the pillars gather into a grid and collapse into the light
- *   9.8–13s   Reveal       wordmark, "Pan-African · Est. 2026", then a hand-off to the homepage
+ *   2–4.8s    Possibility  ribbons and planes; "Not someday." "Not by someone else." "Now." (manifesto 08)
+ *   4.8–7.8s  How we work  Imagine, Gather, Connect, Build, over young creators
+ *   7.8–9.8s  Convergence  the four steps gather into a grid and collapse into the light
+ *   9.8–13s   Reveal       wordmark, "Est. 2026 · Lagos", then a hand-off to the homepage
  *
  * The site is already rendered underneath. Skip (button or Escape) is always
  * available, and the sequence never autoplays for reduced-motion users.
@@ -44,11 +43,11 @@ export function Intro() {
 
   // Freeze the configuration for this run so a resize mid-play does not rebuild it.
   const [config] = useState(() => ({ isMobile, reduce }))
-  const frames = pillars.items.map((p, i) => ({
-    id: p.icon,
-    name: p.title,
-    tagline: p.line,
-    photos: PILLAR_PHOTOS[i % PILLAR_PHOTOS.length]!,
+  const frames = howWeWork.steps.map((s, i) => ({
+    id: s.id,
+    name: s.title,
+    tagline: s.body,
+    photos: STEP_PHOTOS[i % STEP_PHOTOS.length]!,
   }))
 
   const rootRef = useRef<HTMLDivElement>(null)
@@ -115,7 +114,7 @@ export function Intro() {
       ref={rootRef}
       role="dialog"
       aria-modal="true"
-      aria-label="Creators Hub introduction"
+      aria-label="Creator’s Hub introduction"
       className="fixed inset-0 z-[80] overflow-hidden bg-ink text-cream grain"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -198,7 +197,7 @@ function buildTimeline(state: FieldState, frameCount: number, sound: React.RefOb
   tl.to('.i-possibility', { opacity: 0, scale: 1.12, duration: 0.6, ease: 'power2.in' }, `possibility+=${1.7 + D}`)
     .to(state, { spark: 0.35, glow: 0.3, particles: 0.35, duration: 0.6 }, `possibility+=${1.7 + D}`)
 
-  // ——— Scene 3: The four pillars ———
+  // ——— Scene 3: How we work (Imagine, Gather, Connect, Build) ———
   const step = 3 / frameCount
   tl.addLabel('creators', 4 + D).set('.i-montage', { opacity: 1 }, 'creators')
   gsap.utils.toArray<HTMLElement>('.i-frame').forEach((frame, i) => {

@@ -1,54 +1,44 @@
-import { useRef } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
-import { ArrowRight } from 'lucide-react'
-import { mission, oath, philosophy, pillars, problem, roadmap, type PillarIcon } from '../content/founding'
+import { Fragment, useRef } from 'react'
+import { ArrowDown, ArrowRight } from 'lucide-react'
+import { founderLine, howWeWork, manifesto, oath, whoWeAre, type StepId } from '../content/founding'
 import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { MaskText } from '../components/ui/MaskText'
 import { Reveal } from '../components/ui/Reveal'
 import { useGsapContext } from '../hooks/useGsapContext'
 import { gsap } from '../lib/gsap'
-import { ease } from '../lib/motion'
-import { cn } from '../lib/cn'
 
 /*
- * Creators Hub, the organisation: the six parts of the Founding Document,
- * in its order. Words come from src/content/founding.ts.
+ * Creator’s Hub, the organisation: who we are, the manifesto, how we work and
+ * the founder’s oath. Words come from src/content/founding.ts.
  */
 
-/** "01 — Mission & vision" over a two-line title whose last word is green. */
+/** Eyebrow over a two-line title whose second line is green. */
 function SectionHead({
-  n,
   eyebrow,
   title,
   id,
   tone = 'dark',
   className,
 }: {
-  n: string
   eyebrow: string
   title: string[]
   id: string
   tone?: 'dark' | 'light'
   className?: string
 }) {
+  const accent = tone === 'light' ? 'text-bright' : 'text-electric'
   return (
     <div className={className}>
-      <Eyebrow className={tone === 'light' ? 'text-bright' : 'text-electric'}>
-        <span className="tabular-nums">{n}</span>
-        <span aria-hidden="true">—</span>
-        {eyebrow}
-      </Eyebrow>
+      <Eyebrow className={accent}>{eyebrow}</Eyebrow>
       <h2 id={id} className="mt-6 text-headline font-medium">
-        <MaskText
-          lines={[title[0], <span key="a" className={tone === 'light' ? 'text-bright' : 'text-electric'}>{title[1]}</span>]}
-        />
+        <MaskText lines={title.length > 1 ? [title[0], <span key="a" className={accent}>{title[1]}</span>] : title} />
       </h2>
     </div>
   )
 }
 
-/** Splits a paragraph into words that brighten as the reader scrolls (see Mission). */
+/** Splits a paragraph into words that brighten as the reader scrolls. */
 function Words({ text }: { text: string }) {
   return (
     <>
@@ -61,11 +51,8 @@ function Words({ text }: { text: string }) {
   )
 }
 
-/* ───────────── 01 Mission & vision ───────────── */
-
-export function Mission() {
-  const ref = useRef<HTMLElement>(null)
-
+/** Words inside [data-reveal-words] brighten from faint to full as they scroll through. */
+function useWordReveal(ref: React.RefObject<HTMLElement | null>) {
   useGsapContext(ref, () => {
     const mm = gsap.matchMedia()
     mm.add('(prefers-reduced-motion: no-preference)', () => {
@@ -73,58 +60,59 @@ export function Mission() {
         gsap.fromTo(
           p.querySelectorAll('[data-word]'),
           { opacity: 0.14 },
-          { opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: { trigger: p, start: 'top 80%', end: 'bottom 50%', scrub: 0.6 } },
+          { opacity: 1, ease: 'none', stagger: 0.1, scrollTrigger: { trigger: p, start: 'top 85%', end: 'bottom 55%', scrub: 0.6 } },
         )
       })
     })
   })
+}
 
+/* ───────────── Who we are ───────────── */
+
+export function WhoWeAre() {
+  const ref = useRef<HTMLElement>(null)
+  useWordReveal(ref)
   return (
-    <Section ref={ref} id="mission" surface="light" aria-labelledby="mission-title" className="scroll-mt-0 py-28 md:py-44">
+    <Section ref={ref} id="about" surface="light" aria-labelledby="about-title" className="scroll-mt-0 py-28 md:py-44">
       <div className="container-edge grid gap-12 md:grid-cols-12">
-        <div className="md:col-span-4">
-          <SectionHead n={mission.n} eyebrow={mission.eyebrow} title={mission.title} id="mission-title" tone="light" className="md:sticky md:top-28" />
+        <div className="md:col-span-5">
+          <SectionHead eyebrow={whoWeAre.eyebrow} title={whoWeAre.title} id="about-title" tone="light" className="md:sticky md:top-28" />
         </div>
-        <div className="space-y-16 md:col-span-8">
-          <div>
-            <p className="eyebrow text-ink/50">Our mission</p>
-            <p data-reveal-words className="mt-5 font-display text-title font-medium leading-[1.15] tracking-[-0.02em] md:text-[clamp(1.75rem,3.2vw,3rem)]">
-              <Words text={mission.mission} />
-            </p>
-          </div>
-          <div className="md:pl-[12%]">
-            <p className="eyebrow text-ink/50">Our vision</p>
-            <p data-reveal-words className="mt-5 font-display text-title font-normal text-ink/85">
-              <Words text={mission.vision} />
-            </p>
-          </div>
+        <div className="md:col-span-7 md:pt-16">
+          <p data-reveal-words className="font-display text-title font-medium leading-[1.2] tracking-[-0.02em] md:text-[clamp(1.6rem,2.6vw,2.4rem)]">
+            <Words text={whoWeAre.body} />
+          </p>
         </div>
       </div>
     </Section>
   )
 }
 
-/* ───────────── 02 The problem ───────────── */
+/* ───────────── The manifesto (#manifesto) ───────────── */
 
-export function Problem() {
+export function Manifesto() {
+  const ref = useRef<HTMLElement>(null)
+  useWordReveal(ref)
+  const last = manifesto.lines.length - 1
   return (
-    <Section id="problem" surface="dark" aria-labelledby="problem-title" className="py-28 md:py-40">
-      <div className="container-edge">
-        <SectionHead n={problem.n} eyebrow={problem.eyebrow} title={problem.title} id="problem-title" />
-
-        <ol className="mt-16 grid gap-px overflow-hidden rounded-sm bg-cream/10 md:mt-20 md:grid-cols-2">
-          {problem.items.map((item, i) => (
-            <Reveal as="li" key={item.title} delay={(i % 2) * 0.06} className="group relative overflow-hidden bg-ink p-8 md:p-12">
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute -right-2 -top-6 select-none font-display text-[8rem] font-semibold leading-none text-transparent transition-colors duration-700 md:text-[10rem]"
-                style={{ WebkitTextStroke: '1px rgba(245,240,232,0.12)' }}
+    <Section ref={ref} id="manifesto" surface="dark" aria-labelledby="manifesto-title" className="scroll-mt-0 py-28 md:py-40">
+      <div className="container-edge grid gap-14 md:grid-cols-12">
+        <div className="md:col-span-4">
+          <SectionHead eyebrow={manifesto.eyebrow} title={manifesto.title} id="manifesto-title" className="md:sticky md:top-32" />
+        </div>
+        <ol className="md:col-span-8">
+          {manifesto.lines.map((line, i) => (
+            <li key={line} className="grid grid-cols-[2.75rem_1fr] gap-x-3 border-t hairline py-7 last:border-b md:grid-cols-[4.5rem_1fr] md:py-9">
+              <span className="pt-2 font-display text-sm tabular-nums text-electric md:pt-3">{String(i + 1).padStart(2, '0')}.</span>
+              <p
+                data-reveal-words
+                className={
+                  'font-display text-[clamp(1.5rem,3.4vw,3rem)] font-medium leading-[1.12] tracking-[-0.02em]' + (i === last ? ' text-electric' : '')
+                }
               >
-                {i + 1}
-              </span>
-              <h3 className="eyebrow relative text-electric">{item.title}</h3>
-              <p className="relative mt-5 max-w-md text-lg leading-relaxed text-cream/75">{item.body}</p>
-            </Reveal>
+                <Words text={line} />
+              </p>
+            </li>
           ))}
         </ol>
       </div>
@@ -132,169 +120,83 @@ export function Problem() {
   )
 }
 
-/* ───────────── 03 The four pillars ───────────── */
+/* ───────────── How we work ───────────── */
 
-/** Small marks for the four pillars, after the founding document's ◎ ◈ ◇ ◉. */
-function PillarMark({ icon }: { icon: PillarIcon }) {
-  const common = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 }
+/** A small mark for each step. */
+function StepMark({ id }: { id: StepId }) {
+  const c = { fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 }
   return (
     <svg viewBox="0 0 32 32" className="h-8 w-8 text-electric" aria-hidden="true">
-      {icon === 'recognition' && (
+      {id === 'imagine' && (
         <>
-          <circle cx="16" cy="16" r="12" {...common} />
-          <circle cx="16" cy="16" r="5" {...common} />
+          <circle cx="16" cy="16" r="3" fill="currentColor" />
+          <circle cx="16" cy="16" r="9" {...c} strokeDasharray="2 3" />
         </>
       )}
-      {icon === 'space' && (
+      {id === 'gather' && (
         <>
-          <path d="M16 3 29 16 16 29 3 16Z" {...common} />
-          <path d="M16 10 22 16 16 22 10 16Z" fill="currentColor" />
+          <circle cx="10" cy="16" r="5" {...c} />
+          <circle cx="22" cy="16" r="5" {...c} />
+          <circle cx="16" cy="9" r="5" {...c} />
         </>
       )}
-      {icon === 'education' && <path d="M16 3 29 16 16 29 3 16Z" {...common} />}
-      {icon === 'guidance' && (
+      {id === 'connect' && (
         <>
-          <circle cx="16" cy="16" r="12" {...common} />
-          <circle cx="16" cy="16" r="6" fill="currentColor" />
+          <circle cx="8" cy="16" r="4" {...c} />
+          <circle cx="24" cy="16" r="4" {...c} />
+          <path d="M12 16h8" {...c} />
+        </>
+      )}
+      {id === 'build' && (
+        <>
+          <rect x="6" y="18" width="20" height="8" {...c} />
+          <rect x="10" y="10" width="12" height="8" {...c} />
+          <rect x="13" y="4" width="6" height="6" fill="currentColor" />
         </>
       )}
     </svg>
   )
 }
 
-export function Pillars() {
+export function HowWeWork() {
   return (
-    <Section id="pillars" surface="forest" aria-labelledby="pillars-title" className="grain py-28 md:py-40">
+    <Section id="how-we-work" surface="forest" aria-labelledby="how-title" className="grain py-28 md:py-40">
       <div className="container-edge">
-        <div className="grid gap-8 md:grid-cols-12 md:items-end">
-          <SectionHead n={pillars.n} eyebrow={pillars.eyebrow} title={pillars.title} id="pillars-title" className="md:col-span-7" />
-        </div>
+        <h2 id="how-title" className="text-headline font-medium">
+          <MaskText lines={[howWeWork.eyebrow]} />
+        </h2>
 
-        <ul className="mt-16 grid gap-4 sm:grid-cols-2 md:mt-20 lg:grid-cols-4">
-          {pillars.items.map((p, i) => (
-            <Reveal
-              as="li"
-              key={p.title}
-              delay={i * 0.07}
-              className="group relative flex flex-col overflow-hidden rounded-sm border border-cream/12 bg-ink/25 p-7 transition-colors duration-500 hover:border-electric/50 md:p-8"
-            >
-              <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px origin-left bg-electric transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-x-100 sm:scale-x-[0.25]" />
-              <div className="flex items-center justify-between">
-                <PillarMark icon={p.icon} />
-                <span className="font-display text-sm tabular-nums text-cream/40">{String(i + 1).padStart(2, '0')}</span>
-              </div>
-              <h3 className="mt-12 font-display text-title font-medium tracking-[-0.02em]">{p.title}</h3>
-              <p className="mt-3 text-cream/75">{p.body}</p>
-            </Reveal>
-          ))}
-        </ul>
-      </div>
-    </Section>
-  )
-}
-
-/* ───────────── 04 The philosophy ───────────── */
-
-export function Philosophy() {
-  const reduce = useReducedMotion()
-  return (
-    <Section id="philosophy" surface="light" aria-labelledby="philosophy-title" className="py-28 md:py-40">
-      <div className="container-edge">
-        <SectionHead n={philosophy.n} eyebrow={philosophy.eyebrow} title={philosophy.title} id="philosophy-title" tone="light" />
-
-        <ol className="mt-16 md:mt-20">
-          {philosophy.shifts.map((s, i) => (
-            <motion.li
-              key={s.from}
-              className="grid gap-3 border-t border-ink/15 py-7 last:border-b md:grid-cols-[minmax(0,5fr)_3rem_minmax(0,6fr)] md:items-center md:gap-6 md:py-9"
-              initial={reduce ? false : 'hide'}
-              whileInView="show"
-              viewport={{ once: true, margin: '0px 0px -15% 0px' }}
-              transition={{ staggerChildren: 0.25, delayChildren: i * 0.04 }}
-            >
-              <p className="relative w-fit text-lg text-ink/45 md:text-xl">
-                <span className="sr-only">Not: </span>“{s.from}”
-                <motion.span
-                  aria-hidden="true"
-                  className="absolute left-0 top-1/2 h-px w-full origin-left bg-rust"
-                  variants={{ hide: { scaleX: 0 }, show: { scaleX: 1 } }}
-                  transition={{ duration: 0.7, ease: ease.out }}
-                />
-              </p>
-              <motion.span
-                aria-hidden="true"
-                className="hidden text-bright md:block"
-                variants={{ hide: { opacity: 0, x: -8 }, show: { opacity: 1, x: 0 } }}
-                transition={{ duration: 0.5, ease: ease.out }}
+        <ol className="mt-16 flex flex-col items-stretch gap-3 md:mt-20 lg:grid lg:grid-cols-[1fr_auto_1fr_auto_1fr_auto_1fr] lg:items-stretch lg:gap-4">
+          {howWeWork.steps.map((s, i) => (
+            <Fragment key={s.id}>
+              <Reveal
+                as="li"
+                delay={i * 0.08}
+                className="group relative flex flex-col overflow-hidden rounded-sm border border-cream/12 bg-ink/25 p-7 transition-colors duration-500 hover:border-electric/50 md:p-8"
               >
-                <ArrowRight className="h-6 w-6" />
-              </motion.span>
-              <motion.p
-                className="font-display text-title font-medium tracking-[-0.02em]"
-                variants={{ hide: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}
-                transition={{ duration: 0.7, ease: ease.out }}
-              >
-                <span className="sr-only">But: </span>
-                {s.to}
-              </motion.p>
-            </motion.li>
-          ))}
-        </ol>
-      </div>
-    </Section>
-  )
-}
-
-/* ───────────── 05 The roadmap ───────────── */
-
-export function Roadmap() {
-  const listRef = useRef<HTMLOListElement>(null)
-  const reduce = useReducedMotion()
-  const { scrollYProgress } = useScroll({ target: listRef, offset: ['start 75%', 'end 60%'] })
-  const progress = useTransform(scrollYProgress, [0, 1], [reduce ? 1 : 0, 1])
-
-  return (
-    <Section id="roadmap" surface="dark" aria-labelledby="roadmap-title" className="scroll-mt-0 py-28 md:py-40">
-      <div className="container-edge grid gap-16 md:grid-cols-12">
-        <div className="md:col-span-4">
-          <div className="md:sticky md:top-32">
-            <SectionHead n={roadmap.n} eyebrow={roadmap.eyebrow} title={roadmap.title} id="roadmap-title" />
-          </div>
-        </div>
-
-        <ol ref={listRef} className="relative md:col-span-7 md:col-start-6">
-          {/* The track, and the part already travelled */}
-          <span aria-hidden="true" className="absolute bottom-2 left-[7px] top-2 w-px bg-cream/15" />
-          <motion.span aria-hidden="true" className="absolute left-[7px] top-2 h-[calc(100%-1rem)] w-px origin-top bg-electric" style={{ scaleY: progress }} />
-
-          {roadmap.phases.map((p, i) => {
-            const now = i === 0
-            return (
-              <Reveal as="li" key={p.phase} className="relative pb-14 pl-12 last:pb-0 md:pb-16 md:pl-16">
-                <span aria-hidden="true" className="absolute left-0 top-1 grid h-[15px] w-[15px] place-items-center">
-                  {now && <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-electric opacity-50" />}
-                  <span className={cn('relative h-[15px] w-[15px] rounded-full border-2', now ? 'border-electric bg-electric' : 'border-electric/70 bg-ink')} />
-                </span>
-                <p className="eyebrow flex flex-wrap items-center gap-x-2 text-[0.6875rem] text-electric">
-                  <span>{p.phase}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{p.when}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{p.where}</span>
-                  {now && <span className="ml-1 rounded-full bg-electric px-2 py-0.5 text-ink">We are here</span>}
-                </p>
-                <h3 className="mt-4 font-display text-title font-medium tracking-[-0.02em]">{p.title}</h3>
-                <p className="mt-3 max-w-xl text-cream/70">{p.body}</p>
+                <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px origin-left scale-x-[0.25] bg-electric transition-transform duration-700 ease-[var(--ease-out-expo)] group-hover:scale-x-100" />
+                <div className="flex items-center justify-between">
+                  <StepMark id={s.id} />
+                  <span className="font-display text-sm tabular-nums text-cream/40">{String(i + 1).padStart(2, '0')}</span>
+                </div>
+                <h3 className="mt-10 font-display text-title font-medium tracking-[-0.02em]">{s.title}</h3>
+                <p className="mt-3 text-cream/75">{s.body}</p>
               </Reveal>
-            )
-          })}
+              {i < howWeWork.steps.length - 1 && (
+                <li aria-hidden="true" className="grid place-items-center py-1 text-electric/80 lg:py-0">
+                  <ArrowDown className="h-5 w-5 lg:hidden" />
+                  <ArrowRight className="hidden h-6 w-6 lg:block" />
+                </li>
+              )}
+            </Fragment>
+          ))}
         </ol>
       </div>
     </Section>
   )
 }
 
-/* ───────────── 06 The founder's oath ───────────── */
+/* ───────────── The founder's oath (words unchanged) ───────────── */
 
 export function Oath() {
   return (
@@ -316,6 +218,7 @@ export function Oath() {
               {oath.before} <span className="text-electric">{oath.highlight}</span> {oath.after}
             </p>
           </blockquote>
+          <p className="mt-8 font-display text-lg text-cream/90 md:text-xl">{founderLine}</p>
         </Reveal>
         <p className="mt-12 flex items-center justify-center gap-4">
           <span aria-hidden="true" className="h-px w-12 bg-electric/60" />

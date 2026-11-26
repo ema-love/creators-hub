@@ -6,8 +6,8 @@
  */
 
 export const nav = [
-  { label: 'Mission', href: '/#mission' },
-  { label: 'Roadmap', href: '/#roadmap' },
+  { label: 'About', href: '/#about' },
+  { label: 'Manifesto', href: '/#manifesto' },
   { label: 'The First Room', href: '/the-first-room' },
   { label: 'Tickets', href: '/tickets' },
   { label: 'Volunteer', href: '/volunteer' },
@@ -15,9 +15,9 @@ export const nav = [
 ] as const
 
 /*
- * What Creators Hub is (mission, problem, pillars, philosophy, roadmap, oath)
- * lives in ./founding.ts. The four creative arms below belong to The First
- * Room, the first Creators Hub event, not to Creators Hub as a whole.
+ * What Creator’s Hub is (who we are, manifesto, how we work, oath) lives in
+ * ./founding.ts. The four creative arms below belong ONLY to The First Room,
+ * the first Creator’s Hub event, never to Creator’s Hub as a whole.
  */
 
 export type DisciplineId = 'fashion' | 'technology' | 'film' | 'artdesign'
@@ -55,7 +55,7 @@ export const partnership = {
   title: 'Build the room with us.',
   body: 'Africa grows from within. We are looking for organisations that want to back Africa’s next generation of builders. Partnerships can take many forms — tell us what you have in mind.',
   types: [
-    { title: 'Event partner', body: 'Support The First Room and future Creators Hub gatherings.' },
+    { title: 'Event partner', body: 'Support The First Room and future Creator’s Hub gatherings.' },
     { title: 'Venue & production', body: 'Spaces, equipment and technical production.' },
     { title: 'Programme & content', body: 'Co-create sessions, workshops or exhibitions.' },
     { title: 'Media & community', body: 'Help the stories and the work travel further.' },
@@ -66,5 +66,5 @@ export const partnership = {
 export const contact = {
   eyebrow: 'Contact',
   title: 'Say hello.',
-  body: 'Questions about The First Room, tickets, volunteering or working together? Write to us here. Your message comes straight to the Creators Hub team, and we’ll reply to the email address you give.',
+  body: 'Questions about The First Room, tickets, volunteering or working together? Write to us here. Your message comes straight to the Creator’s Hub team, and we’ll reply to the email address you give.',
 }

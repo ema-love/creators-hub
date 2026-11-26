@@ -1,6 +1,6 @@
 # Creators Hub
 
-Website for **Creators Hub**, a pan-African ecosystem where young thinkers are given the education, community, and creative space to turn their own ideas into reality (see its Founding Document, in `src/content/founding.ts`), and its inaugural event, **Creators Hub 001: The First Room** (19 December 2026, Lagos, Nigeria).
+Website for **Creator’s Hub**, a community for young African creatives and builders (homepage copy in `src/content/founding.ts`), and its inaugural event, **Creators Hub 001: The First Room** (19 December 2026, Lagos, Nigeria).
 
 Built with React, TypeScript, Vite, Tailwind CSS v4, Motion for React, GSAP + ScrollTrigger, Lucide and React Router. Deployed on Netlify.
 
@@ -46,7 +46,7 @@ src/
   main.tsx
   styles/index.css        Tailwind v4 theme: colour, type scale, motion tokens
   content/                ALL copy and data (no copy hard-coded in components)
-    founding.ts           Creators Hub: the Founding Document (homepage and intro)
+    founding.ts           Creator’s Hub: homepage copy, intro words, founder’s oath
     site.ts               nav, The First Room's four arms, volunteer teaser, partnership, contact
     event.ts              The First Room (confirmed vs. unconfirmed fields)
     disciplineStories.ts  per-discipline photos, taglines, focus areas, alt text
@@ -68,16 +68,14 @@ src/
 
 ### Homepage sections
 
-The homepage tells the Creators Hub story in the order of its Founding Document. All of its words are in `src/content/founding.ts`.
+Creator’s Hub is a community for young African creatives and builders of every kind. The four arms (Tech, Art & Design, Fashion, Film & Storytelling) belong **only** to the event, Creator’s Hub 001: The First Room. The homepage's words are in `src/content/founding.ts`.
 
-1. **Hero**: "Africa does not lack ideas.", pointer-following ambient light, link to the event, replay intro
-2. **01 Mission & vision** (`#mission`): words brighten as you read (GSAP scrub)
-3. **02 The problem**: the waiting trap, the confidence gap, the education mismatch, the isolation problem
-4. **03 The four pillars** (`#pillars`): Recognition, Creative Space, Education, Guidance
-5. **04 The philosophy**: each old belief is struck through as the new one arrives
-6. **05 The roadmap** (`#roadmap`): five phases on a timeline that fills as you scroll; Phase 01 is marked "We are here"
-7. **06 The founder's oath**
-8. **The First Room 001**: pinned scroll sequence where a doorway opens into the event (own rust-and-ink treatment), with its four arms
+1. **Hero**: "Africa does not lack ideas.", pointer-following ambient light, Register for The First Room and Volunteer, replay intro
+2. **Who we are** (`#about`): "Turning idealists into builders."; words brighten as you read
+3. **The manifesto** (`#manifesto`): "What we believe", eight numbered lines in large type
+4. **How we work**: Imagine → Gather → Connect → Build
+5. **The founder’s oath**, with the founder's signature line
+6. **Creator’s Hub 001: The First Room**: pinned scroll sequence where a doorway opens into the event, then the four arms of Creator’s Hub 001 as cards
 9. **Volunteer**: six core teams and the application form (`/volunteer#apply`)
 10. **Partnership**: partnership types + enquiry form
 11. **Contact** + footer
@@ -99,15 +97,15 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 
 ### The cinematic intro (`src/components/intro/`)
 
-Told from the Founding Document: an idea, the mission's three beats, the four pillars, then the name. Its words are in `src/content/founding.ts` (`introLines`, `introSignoff`, each pillar's `line`).
+An idea, three beats from manifesto line 08, the four steps of how we work, then the name. Its words are in `src/content/founding.ts` (`intro`, `howWeWork`).
 
 | Time | Scene | What happens |
 | --- | --- | --- |
 | 0–2s | Spark | A pulsing point of electric green (an idea); ambient light and depth particles (canvas) |
-| 2–4.8s | Possibility | Light becomes drawn ribbons and dimensional planes; "Not someday." "Not by someone else." "Now. By them." |
-| 4.8–7.8s | The four pillars | Recognition, Creative Space, Education, Guidance, each with its own closing words over a spread of young creators, cut in with clip-paths |
+| 2–4.8s | Possibility | Light becomes drawn ribbons and dimensional planes; "Not someday." "Not by someone else." "Now." |
+| 4.8–7.8s | How we work | Imagine, Gather, Connect, Build, each with its line over a spread of young creators, cut in with clip-paths |
 | 7.8–9.8s | Convergence | Frames gather into a grid, then collapse into the light as particles converge |
-| 9.8–13s | Reveal | Wordmark letters rise from a mask, rule draws, "Pan-African · Est. 2026", hand-off to the homepage |
+| 9.8–13s | Reveal | Wordmark letters rise from a mask, rule draws, "Est. 2026 · Lagos", hand-off to the homepage |
 
 - The site is rendered underneath the whole time (`inert` while the intro plays). It is never a gate.
 - **Skip intro** is focused on load. **Escape** also skips. **Replay intro** is in the hero and the footer.
@@ -136,7 +134,7 @@ The First Room has four creative arms: **Fashion**, **Technology**, **Film & Sto
 The photographs were cut from the Creators Hub moodboards and recomposed in the site's own layouts, so they share its type, colour and shapes:
 
 - **Disciplines section**: a mosaic per discipline (`src/components/ui/DisciplineMosaic.tsx`) with five photos and a text tile, beside the discipline's tagline and focus areas.
-- **Intro montage**: the four-photo spreads appear behind the four pillars of Creators Hub (not labelled as disciplines).
+- **Intro montage**: the four-photo spreads appear behind the four steps of how we work (not labelled as arms).
 
 Photos, taglines, focus areas, the text-tile line and alt text all live in `src/content/disciplineStories.ts`. The image files are in `src/assets/crops/` (named like `fashion-portrait.webp`).
 

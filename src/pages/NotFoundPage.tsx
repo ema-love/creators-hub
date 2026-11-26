@@ -12,7 +12,7 @@ export default function NotFoundPage() {
           This room hasn’t been built yet.
         </h1>
         <div className="mt-10">
-          <ArrowLink to="/">Back to Creators Hub</ArrowLink>
+          <ArrowLink to="/">Back to Creator’s Hub</ArrowLink>
         </div>
       </div>
     </Section>

@@ -1,5 +1,8 @@
 import type { Plugin } from 'vite'
+import { BRAND_PLAIN, brandSummary } from './src/content/founding.ts'
 import { firstRoom } from './src/content/event.ts'
+
+const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
 
 /**
  * Search engine setup, generated at build time:
@@ -55,7 +58,7 @@ export function eventJsonLd(site = origin()) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
-    name: firstRoom.fullName,
+    name: EVENT_NAME_PLAIN,
     description: `${firstRoom.direction} In Lagos and online.`,
     startDate: toLagosTime(firstRoom.startUtc),
     ...(firstRoom.endUtc ? { endDate: toLagosTime(firstRoom.endUtc) } : {}),
@@ -71,7 +74,7 @@ export function eventJsonLd(site = origin()) {
       },
       { '@type': 'VirtualLocation', url: `${site}/tickets` },
     ],
-    organizer: { '@type': 'Organization', name: 'Creators Hub', url: site },
+    organizer: { '@type': 'Organization', name: BRAND_PLAIN, url: site },
     ...(performers.length ? { performer: performers } : {}),
     url: `${site}/the-first-room`,
     isAccessibleForFree: true,
@@ -84,17 +87,17 @@ export function brandJsonLd(site = origin()) {
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'Creators Hub',
-      alternateName: ["Creator's Hub", 'Creators Hub Lagos'],
+      name: BRAND_PLAIN,
+      alternateName: ['Creators Hub', 'Creators Hub Lagos', "Creator's Hub Lagos"],
       url: `${site}/`,
       logo: `${site}/logo.png`,
-      description: 'A pan-African ecosystem where young thinkers are given the education, community, and creative space to turn their own ideas into reality. Founded in Lagos, Nigeria, in 2026.',
+      description: brandSummary + ' Founded in Lagos, Nigeria, in 2026.',
     },
     {
       '@context': 'https://schema.org',
       '@type': 'WebSite',
-      name: 'Creators Hub',
-      alternateName: ["Creator's Hub"],
+      name: BRAND_PLAIN,
+      alternateName: ['Creators Hub'],
       url: `${site}/`,
     },
   ]
@@ -120,14 +123,14 @@ export function seo(): Plugin {
         'og:image': `${site}/og-image.jpg`,
         'og:image:width': '1200',
         'og:image:height': '630',
-        'og:image:alt': `${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.city}`,
+        'og:image:alt': `${EVENT_NAME_PLAIN}, ${firstRoom.dateLabel}, ${firstRoom.city}`,
         'og:url': `${site}/`,
-        'og:site_name': 'Creators Hub',
+        'og:site_name': BRAND_PLAIN,
       }
       for (const [property, content] of Object.entries(og)) tags.push({ tag: 'meta', attrs: { property, content }, injectTo: 'head' })
       tags.push({ tag: 'meta', attrs: { name: 'twitter:image', content: `${site}/og-image.jpg` }, injectTo: 'head' })
 
-      // Who Creators Hub is (name, both spellings, logo), so Google can show the brand.
+      // Who Creator's Hub is (name, both spellings, logo), so Google can show the brand.
       tags.push({
         tag: 'script',
         attrs: { type: 'application/ld+json' },

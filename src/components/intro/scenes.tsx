@@ -1,5 +1,5 @@
 import type { Photo } from '../../content/disciplineStories'
-import { founding } from '../../content/founding'
+import { intro } from '../../content/founding'
 import { Wordmark } from '../brand/Wordmark'
 
 /*
@@ -8,8 +8,8 @@ import { Wordmark } from '../brand/Wordmark'
  * be read and tuned in one place. Class names prefixed `i-` are animation hooks.
  */
 
-/** Three beats from the Creators Hub mission. */
-export const INTRO_LINES = founding.introLines
+/** Three beats from manifesto line 08. */
+export const INTRO_LINES = intro.lines
 
 const RIBBONS = [
   { d: 'M-50 620 C 260 380, 520 760, 820 470 S 1320 260, 1700 420', stroke: '#00E5A0', width: 1.4 },
@@ -18,7 +18,7 @@ const RIBBONS = [
   { d: 'M-50 820 C 380 760, 700 640, 980 720 S 1420 860, 1700 760', stroke: '#C4622D', width: 0.9 },
 ]
 
-/** Scene 2 — Possibility: light becomes flowing form, planes, and the mission's three beats. */
+/** Scene 2 — Possibility: light becomes flowing form, planes, and three beats from the manifesto. */
 export function PossibilityLayer() {
   return (
     <div className="i-possibility absolute inset-0 opacity-0" aria-hidden="true">
@@ -70,8 +70,8 @@ const SPREAD = [
 ]
 
 /**
- * Scene 3 — The four pillars of Creators Hub, each over a photo spread of
- * young creators (cut from the Creators Hub moodboards).
+ * Scene 3 — How we work: Imagine, Gather, Connect, Build, each over a photo
+ * spread of young creators (cut from the Creator’s Hub moodboards).
  */
 export function MontageLayer({ frames }: { frames: MontageFrame[] }) {
   return (
@@ -115,7 +115,7 @@ export function RevealLayer() {
         <Wordmark split className="h-auto w-[min(84vw,56rem)]" />
         <span className="i-line mt-6 block h-px w-[min(60vw,28rem)] origin-left bg-electric" />
         <p className="i-meta eyebrow mt-6 text-silver opacity-0">
-          {founding.introSignoff}
+          {intro.signoff}
         </p>
       </div>
     </div>

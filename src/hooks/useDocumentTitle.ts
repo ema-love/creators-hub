@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
 
 const DEFAULT_DESCRIPTION =
-  'Creators Hub is a pan-African ecosystem where young thinkers get the education, community and creative space to turn their own ideas into reality. Register free for Creators Hub 001: The First Room, Saturday 19 December 2026, 9:00 AM – 3:00 PM (WAT), in Lagos or online.'
+  "Creator's Hub is a community for young African creatives and builders: anyone carrying an idea they haven't started yet. Register free for Creator's Hub 001: The First Room, Saturday 19 December 2026, 9:00 AM – 3:00 PM (WAT), in Lagos or online."
 
-/** Homepage title: specific enough to stand out from other organisations named Creators Hub. */
-const HOME_TITLE = 'Creators Hub · The First Room · Lagos & online · 19 Dec 2026'
+/** Homepage title: specific enough to stand out from other organisations with a similar name. */
+const HOME_TITLE = "Creator's Hub · The First Room · Lagos & online · 19 Dec 2026"
 
 /** Sets the tab title and, for public pages, the search description. */
 export function useDocumentTitle(title?: string, description?: string) {
   useEffect(() => {
-    document.title = title ? `${title} — Creators Hub` : HOME_TITLE
+    document.title = title ? `${title} — Creator's Hub` : HOME_TITLE
     const meta = document.querySelector<HTMLMetaElement>('meta[name="description"]')
     if (meta) meta.content = description ?? DEFAULT_DESCRIPTION
   }, [title, description])

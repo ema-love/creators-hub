@@ -115,7 +115,7 @@ function EcosystemMap({ active }: { active: Discipline }) {
   const ap = point(active.angle)
   return (
     <div className="shrink-0">
-      <svg viewBox="0 0 120 120" className="h-14 w-14 md:h-16 md:w-16" role="img" aria-label={`${active.name}, connected to every other discipline through Creators Hub`}>
+      <svg viewBox="0 0 120 120" className="h-14 w-14 md:h-16 md:w-16" role="img" aria-label={`${active.name}, connected to every other arm in The First Room`}>
         <circle cx={C} cy={C} r={R} fill="none" stroke="rgba(245,240,232,0.2)" />
         {disciplines.map((d) => {
           const p = point(d.angle)

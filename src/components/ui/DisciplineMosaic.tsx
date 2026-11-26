@@ -51,7 +51,7 @@ export function DisciplineMosaic({ story, name, className }: DisciplineMosaicPro
         className={cn('flex flex-col justify-end bg-cream p-3 text-ink md:justify-between md:p-5', QUOTE_SLOT)}
         {...tile(5)}
       >
-        <span className="eyebrow hidden text-[0.625rem] text-forest/70 md:block">Creators Hub · {name}</span>
+        <span className="eyebrow hidden text-[0.625rem] text-forest/70 md:block">The First Room · {name}</span>
         <p className="font-display text-[clamp(1rem,1.6vw,1.5rem)] font-medium leading-tight tracking-[-0.02em] text-forest">
           {story.quote}
         </p>

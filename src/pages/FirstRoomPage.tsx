@@ -1,5 +1,6 @@
 import { CalendarPlus } from 'lucide-react'
 import { firstRoom, firstRoomDetails } from '../content/event'
+import { EVENT_NAME } from '../content/founding'
 import { Section } from '../components/layout/Section'
 import { MaskText } from '../components/ui/MaskText'
 import { Reveal } from '../components/ui/Reveal'
@@ -13,8 +14,8 @@ import { daysUntil } from '../lib/date'
 
 export default function FirstRoomPage() {
   useDocumentTitle(
-    firstRoom.fullName,
-    `${firstRoom.fullName}: ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in ${firstRoom.city} and online. ${firstRoom.direction}`,
+    EVENT_NAME,
+    `${EVENT_NAME}: ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in ${firstRoom.city} and online. ${firstRoom.direction}`,
   )
   const days = daysUntil(firstRoom.dateISO)
 
@@ -35,7 +36,7 @@ export default function FirstRoomPage() {
         </span>
 
         <div className="container-edge relative">
-          <Eyebrow className="text-rust">Creators Hub {firstRoom.edition} · The inaugural event</Eyebrow>
+          <Eyebrow className="text-rust">Creator’s Hub {firstRoom.edition} · The inaugural event</Eyebrow>
           <h1 id="event-title" className="mt-8 text-mega font-medium">
             <MaskText inView={false} lines={['The First', 'Room']} className="[&>span:nth-child(2)]:pl-[10vw]" />
           </h1>

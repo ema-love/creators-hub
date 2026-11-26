@@ -1,15 +1,18 @@
 import { useRef } from 'react'
-import { Link } from 'react-router'
-import { firstRoom, firstRoomDetails } from '../content/event'
-import { disciplines } from '../content/site'
+import { firstRoom } from '../content/event'
+import { BRAND, firstRoomSection } from '../content/founding'
+import { disciplineStories } from '../content/disciplineStories'
+import { Eyebrow } from '../components/ui/Eyebrow'
+import { MaskText } from '../components/ui/MaskText'
+import { Reveal } from '../components/ui/Reveal'
 import { Section } from '../components/layout/Section'
 import { ArrowLink } from '../components/ui/ArrowLink'
-import { Placeholder } from '../components/ui/Placeholder'
 import { useGsapContext } from '../hooks/useGsapContext'
 import { gsap } from '../lib/gsap'
 
 /**
- * The First Room — scroll opens a doorway into the event.
+ * Creator’s Hub 001: The First Room — scroll opens a doorway into the event,
+ * then its four arms. The arms belong to this event only, not to Creator’s Hub.
  *
  * Desktop with motion: the section pins and a narrow door of light widens
  * into the full room. Mobile and reduced motion: the room is simply open.
@@ -48,7 +51,7 @@ export function FirstRoom() {
         {/* Outside the door */}
         <div className="pointer-events-none absolute inset-0 hidden items-center justify-between px-[6vw] md:flex" aria-hidden="true">
           <span data-door-left className="font-display text-headline font-medium text-cream/80">
-            Creators Hub {firstRoom.edition}
+            {BRAND} {firstRoom.edition}
           </span>
           <span data-door-right className="font-display text-headline font-medium text-cream/80">
             {firstRoom.name}
@@ -77,43 +80,61 @@ export function FirstRoom() {
           <div data-room-content className="container-edge relative flex flex-1 flex-col justify-center py-24 md:py-20">
             <p className="eyebrow flex items-center gap-3 text-rust">
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-rust" />
-              The inaugural Creators Hub event
+              {firstRoomSection.eyebrow}
             </p>
-            <h2 id="first-room-title" className="mt-6 max-w-4xl text-display font-medium">
-              <span className="block text-cream/60 text-title tracking-[-0.02em]">Creators Hub {firstRoom.edition}:</span>
-              {firstRoom.name}
+            <h2 id="first-room-title" className="mt-6 max-w-5xl text-display font-medium">
+              <span className="block">{firstRoomSection.title[0]}</span>
+              <span className="block text-rust">{firstRoomSection.title[1]}</span>
             </h2>
-            <p className="mt-6 max-w-xl text-lede text-cream/80">{firstRoom.direction}</p>
-            <ul className="mt-6 flex flex-wrap gap-2" aria-label="The First Room’s four arms">
-              {disciplines.map((d) => (
-                <li key={d.id}>
-                  <Link
-                    to="/the-first-room#arms"
-                    className="inline-block rounded-full border border-cream/25 px-4 py-1.5 text-sm text-cream/85 transition-colors hover:border-rust hover:text-cream"
-                  >
-                    {d.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <p className="mt-8 max-w-2xl text-lede text-cream/85">{firstRoomSection.body}</p>
+          </div>
+        </div>
+      </div>
 
-            <dl className="mt-10 grid max-w-3xl grid-cols-2 gap-x-8 gap-y-6 border-t border-cream/15 pt-8 md:grid-cols-4">
-              {firstRoomDetails.map((d) => (
-                <div key={d.label}>
-                  <dt className="eyebrow text-[0.6875rem] text-cream/50">{d.label}</dt>
-                  <dd className="mt-2 font-display text-lg">{d.value ?? <Placeholder className="mt-1" />}</dd>
-                </div>
-              ))}
-            </dl>
+      {/* The four arms of the event */}
+      <div className="relative bg-[#120d0a] pb-28 pt-4 md:pb-36 md:pt-20">
+        <div className="container-edge">
+          <Eyebrow className="text-rust">{firstRoomSection.armsLabel}</Eyebrow>
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {firstRoomSection.arms.map((arm, i) => {
+              const photo = disciplineStories[arm.id].montage[0]
+              return (
+                <Reveal
+                  as="li"
+                  key={arm.id}
+                  delay={i * 0.07}
+                  className="group flex flex-col overflow-hidden rounded-sm border border-cream/12 bg-ink/40 transition-colors duration-500 hover:border-rust/60"
+                >
+                  <div className="aspect-[4/3] overflow-hidden bg-ink-2">
+                    <img
+                      src={photo.src}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      className="h-full w-full object-cover transition-transform duration-[1.2s] ease-[var(--ease-out-expo)] group-hover:scale-[1.04]"
+                      style={photo.position ? { objectPosition: photo.position } : undefined}
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col p-6 md:p-7">
+                    <span className="font-display text-sm tabular-nums text-rust">{String(i + 1).padStart(2, '0')}</span>
+                    <h3 className="mt-3 font-display text-title font-medium tracking-[-0.02em]">{arm.name}</h3>
+                    <p className="mt-3 text-cream/75">{arm.body}</p>
+                  </div>
+                </Reveal>
+              )
+            })}
+          </ul>
 
-            <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-              <ArrowLink to="/tickets" variant="rust">
-                Register free
+          <div className="mt-14 grid gap-10 md:mt-20 md:grid-cols-12 md:items-end">
+            <h3 className="font-display text-headline font-medium md:col-span-8">
+              <MaskText lines={[firstRoomSection.after]} />
+            </h3>
+            <Reveal className="flex flex-col items-start gap-5 md:col-span-4 md:items-end">
+              <ArrowLink to={firstRoomSection.cta.to} variant="rust">
+                {firstRoomSection.cta.label}
               </ArrowLink>
-              <ArrowLink to="/the-first-room" variant="text">
-                Explore The First Room
-              </ArrowLink>
-            </div>
+              <p className="eyebrow text-cream/55">{firstRoomSection.small}</p>
+            </Reveal>
           </div>
         </div>
       </div>

@@ -19,7 +19,7 @@ export const firstRoom = {
   direction:
     'A multidisciplinary conference bringing together people across fashion, technology, film and storytelling, arts and design.',
   intro:
-    'The inaugural Creators Hub gathering. One day, one room, every discipline at the same table.',
+    'The inaugural Creator’s Hub gathering. One day, one room, every discipline at the same table.',
 
   /** Confirmed: 9:00 AM to 3:00 PM West Africa Time (UTC+1). */
   time: '9:00 AM',

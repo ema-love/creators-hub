@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { ArrowUpRight, RotateCcw } from 'lucide-react'
 import { nav } from '../../content/site'
 import { firstRoom } from '../../content/event'
+import { EVENT_NAME } from '../../content/founding'
 import { Wordmark } from '../brand/Wordmark'
 import { useIntro } from '../intro/IntroContext'
 import { usePrefersLight } from '../../hooks/useMediaQuery'
@@ -24,7 +25,7 @@ export function Footer() {
           <div className="md:col-span-5">
             <p className={cn('eyebrow', muted)}>Next</p>
             <Link to="/the-first-room" className="group mt-4 block">
-              <span className="font-display text-title font-medium">{firstRoom.fullName}</span>
+              <span className="font-display text-title font-medium">{EVENT_NAME}</span>
               <span className={cn('mt-2 block', muted)}>
                 {firstRoom.dateLabel} · {firstRoom.timeRange} · {firstRoom.city} & online
               </span>
@@ -58,7 +59,7 @@ export function Footer() {
         </div>
 
         <div className={cn('mt-10 flex flex-col gap-4 border-t hairline pt-6 text-sm sm:flex-row sm:items-center sm:justify-between', muted)}>
-          <p>© {new Date().getFullYear()} Creators Hub. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Creator’s Hub. All rights reserved.</p>
           <span className="flex items-center gap-6">
           <Link to="/staff" className={cn('link-draw', hoverStrong)}>
             Staff
