@@ -1,5 +1,6 @@
 import type { Plugin } from 'vite'
 import { BRAND_PLAIN, brandSummary } from './src/content/founding.ts'
+import { eventSeo, socialProfiles } from './src/content/seo.ts'
 import { firstRoom } from './src/content/event.ts'
 
 const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
@@ -10,7 +11,8 @@ const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
  *  - Google Search Console verification tag, from the GOOGLE_SITE_VERIFICATION
  *    environment variable (set in Netlify; the value is the `content` of the
  *    tag Search Console gives you)
- *  - structured data so Google can show The First Room as an event
+ *  - structured data (JSON-LD) builders: Event and Organization, placed on
+ *    their pages by prerender.config.ts
  *
  * The site address comes from Netlify's URL variable (your primary domain),
  * so a custom domain added later is picked up on the next deploy.
@@ -40,58 +42,56 @@ export function sitemapXml(site = origin(), lastmod = new Date().toISOString().s
 /** 2026-12-19T08:00:00Z → 2026-12-19T09:00:00+01:00 (West Africa Time). */
 const toLagosTime = (utc: string) => new Date(Date.parse(utc) + 3600_000).toISOString().replace(/\.\d{3}Z$/, '+01:00')
 
+/**
+ * Google Event data for Creator's Hub 001: The First Room, on /the-first-room
+ * and /tickets. When the venue is confirmed, set `venue` and `venueAddress` in
+ * src/content/event.ts and it appears here on the next deploy.
+ */
 export function eventJsonLd(site = origin()) {
-  // Free registration, one per person, in Lagos or online.
-  const offers = [
-    {
-      '@type': 'Offer',
-      name: 'Free registration',
-      price: '0',
-      priceCurrency: 'NGN',
-      availability: 'https://schema.org/InStock',
-      url: `${site}/tickets`,
-      validFrom: firstRoom.registrationOpened,
-    },
-  ]
-  // Speakers and the end time are added automatically once they are confirmed in src/content/event.ts.
+  const address: Record<string, string> = { '@type': 'PostalAddress', addressLocality: firstRoom.city, addressCountry: 'NG' }
+  if (firstRoom.venueAddress) address.streetAddress = firstRoom.venueAddress
+  // Speakers are added automatically once they are confirmed in src/content/event.ts.
   const performers = firstRoom.speakers.map((s) => ({ '@type': 'Person', name: s.name }))
   return {
     '@context': 'https://schema.org',
     '@type': 'Event',
-    name: EVENT_NAME_PLAIN,
-    description: `${firstRoom.direction} In Lagos and online.`,
+    name: eventSeo.name,
+    description: eventSeo.description,
     startDate: toLagosTime(firstRoom.startUtc),
     ...(firstRoom.endUtc ? { endDate: toLagosTime(firstRoom.endUtc) } : {}),
-    image: [`${site}/og-image.jpg`],
     eventStatus: 'https://schema.org/EventScheduled',
     // In person in Lagos, plus a virtual option.
     eventAttendanceMode: 'https://schema.org/MixedEventAttendanceMode',
     location: [
-      {
-        '@type': 'Place',
-        name: firstRoom.venue ?? `Venue to be announced, ${firstRoom.city}`,
-        address: { '@type': 'PostalAddress', addressLocality: firstRoom.city, addressCountry: 'NG' },
-      },
+      { '@type': 'Place', name: firstRoom.venue ?? 'Venue to be announced', address },
       { '@type': 'VirtualLocation', url: `${site}/tickets` },
     ],
+    image: `${site}/og-image.jpg`,
     organizer: { '@type': 'Organization', name: BRAND_PLAIN, url: site },
     ...(performers.length ? { performer: performers } : {}),
-    url: `${site}/the-first-room`,
-    isAccessibleForFree: true,
-    offers,
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'NGN',
+      availability: 'https://schema.org/InStock',
+      url: `${site}/tickets`,
+      validFrom: eventSeo.offerValidFrom,
+    },
   }
 }
 
-export function brandJsonLd(site = origin()) {
+/** Google Organization data for Creator's Hub, on the homepage. */
+export function organizationJsonLd(site = origin()) {
   return [
     {
       '@context': 'https://schema.org',
       '@type': 'Organization',
       name: BRAND_PLAIN,
-      alternateName: ['Creators Hub', 'Creators Hub Lagos', "Creator's Hub Lagos"],
-      url: `${site}/`,
+      alternateName: ['Creators Hub'],
+      url: site,
       logo: `${site}/logo.png`,
       description: brandSummary + ' Founded in Lagos, Nigeria, in 2026.',
+      sameAs: socialProfiles,
     },
     {
       '@context': 'https://schema.org',
@@ -103,20 +103,18 @@ export function brandJsonLd(site = origin()) {
   ]
 }
 
+/** A JSON-LD script tag. `<` is escaped so the JSON can never close the tag. */
+export const jsonLdScript = (data: unknown) =>
+  `<script type="application/ld+json">${JSON.stringify(data).replace(/</g, '\\u003c')}</script>`
+
 export function seo(): Plugin {
   return {
     name: 'creators-hub-seo',
     apply: 'build',
     transformIndexHtml() {
-      const tags: { tag: string; attrs?: Record<string, string>; children?: string; injectTo: 'head' }[] = [
-        {
-          tag: 'script',
-          attrs: { type: 'application/ld+json' },
-          // `<` is escaped so the JSON can never close the script tag.
-          children: JSON.stringify(eventJsonLd()).replace(/</g, '\\u003c'),
-          injectTo: 'head',
-        },
-      ]
+      // Structured data is added per page by prerender.config.ts (Organization on the
+      // homepage, Event on /the-first-room and /tickets), not to every page.
+      const tags: { tag: string; attrs?: Record<string, string>; children?: string; injectTo: 'head' }[] = []
       // Share image: social apps need an absolute URL.
       const site = origin()
       const og: Record<string, string> = {
@@ -129,14 +127,6 @@ export function seo(): Plugin {
       }
       for (const [property, content] of Object.entries(og)) tags.push({ tag: 'meta', attrs: { property, content }, injectTo: 'head' })
       tags.push({ tag: 'meta', attrs: { name: 'twitter:image', content: `${site}/og-image.jpg` }, injectTo: 'head' })
-
-      // Who Creator's Hub is (name, both spellings, logo), so Google can show the brand.
-      tags.push({
-        tag: 'script',
-        attrs: { type: 'application/ld+json' },
-        children: JSON.stringify(brandJsonLd(site)).replace(/</g, '\\u003c'),
-        injectTo: 'head',
-      })
 
       const verification = (process.env.GOOGLE_SITE_VERIFICATION ?? '').trim()
       if (verification) {

@@ -60,7 +60,7 @@ Time: ${firstRoom.timeRange}
 Bring your ticket on your phone or printed. We'll scan its QR code at the door.
 
 See you in the room,
-Creators Hub`,
+Creator’s Hub`,
 }
 
 /**
@@ -80,7 +80,7 @@ export default function AdminPage() {
       <div className="container-edge max-w-2xl">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow text-electric">Creators Hub {firstRoom.edition} · Organisers</p>
+            <p className="eyebrow text-electric">Creator’s Hub {firstRoom.edition} · Organisers</p>
             <h1 id="admin-title" className="mt-3 text-title font-medium">
               Attendees and messages
             </h1>
@@ -309,7 +309,7 @@ function Compose({
       <div>
         <h2 className="font-display text-xl font-medium">Message everyone</h2>
         <p className="mt-1 text-sm text-cream/60">
-          Goes to every registered attendee from Creators Hub, with a button to their ticket. Ready for the venue
+          Goes to every registered attendee from Creator’s Hub, with a button to their ticket. Ready for the venue
           announcement: fill in the parts in [square brackets].
         </p>
       </div>

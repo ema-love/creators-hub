@@ -1,6 +1,6 @@
 /**
- * The Creators Hub Volunteer Collective: the six core teams, what volunteers
- * get, and the FAQ for Creators Hub 001: The First Room.
+ * The Creator’s Hub Volunteer Collective: the six core teams, what volunteers
+ * get, and the FAQ for Creator’s Hub 001: The First Room.
  *
  * Keep to what is confirmed. A team with `status: 'conditional'` is shown as
  * "Subject to confirmation"; switch it to 'confirmed' once it is final.
@@ -38,7 +38,7 @@ export type VolunteerTeam = {
 }
 
 export const volunteerIntro = {
-  eyebrow: 'Creators Hub 001 · Volunteer',
+  eyebrow: 'Creator’s Hub 001 · Volunteer',
   title: ['The Volunteer', 'Collective'],
   lede: `The First Room runs on people who build. Volunteer with us on ${firstRoom.dateCompact} and get front-row access to Lagos’ next generation of creatives.`,
   body: 'Six core teams, and most of them welcome beginners. Pick the one that fits you, or the one that stretches you.',
@@ -149,7 +149,7 @@ export const volunteerBenefits = {
   title: ['Give a day.', 'Leave with more.'],
   items: [
     { title: 'Volunteer certificate & recognition', body: 'A certificate for every volunteer, and recognition on the day.' },
-    { title: 'A feature on our page', body: 'A Creators Hub volunteer feature on our page, introducing you and your work.' },
+    { title: 'A feature on our page', body: 'A Creator’s Hub volunteer feature on our page, introducing you and your work.' },
     { title: 'Connections that last', body: 'Time with the speakers and partners behind The First Room.' },
   ],
 }

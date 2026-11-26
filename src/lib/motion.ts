@@ -1,5 +1,5 @@
 /**
- * Creators Hub motion language — "Spark, Flow, Converge".
+ * Creator’s Hub motion language — "Spark, Flow, Converge".
  *
  * Spark:    things begin small and precise (short, crisp entrances).
  * Flow:     movement is continuous and spatial, never bouncy for its own sake.

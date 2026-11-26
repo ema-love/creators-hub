@@ -85,10 +85,10 @@ export const oath = {
   eyebrow: 'The founder’s oath',
   /** The middle sentence is highlighted. */
   before:
-    'I am building Creators Hub not for a grade, not for recognition, not for a moment. I am building it because I believe Africa’s greatest chapter has not been written yet — and I intend to be part of writing it.',
+    'I am building Creator’s Hub not for a grade, not for recognition, not for a moment. I am building it because I believe Africa’s greatest chapter has not been written yet — and I intend to be part of writing it.',
   highlight: 'This is my life’s work.',
   after: 'I will look back on it with pride. I will look forward and watch it go further than I could ever imagine.',
-  signature: 'Founder · Creators Hub · 2026',
+  signature: 'Founder · Creator’s Hub · 2026',
 }
 
 /** Shown directly under the Founder’s Oath. */

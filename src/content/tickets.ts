@@ -1,5 +1,5 @@
 /**
- * Registration for Creators Hub 001: The First Room.
+ * Registration for Creator’s Hub 001: The First Room.
  *
  * Tickets are free. Each person registers for exactly one ticket, and an
  * email address can only be registered once.

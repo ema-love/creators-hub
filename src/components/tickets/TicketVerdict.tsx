@@ -32,7 +32,7 @@ export function TicketVerdict({ outcome, ticket, staff }: { outcome: VerifyOutco
       tone: 'bad',
       icon: <XCircle className="h-7 w-7" />,
       title: 'Invalid ticket',
-      body: 'This code doesn’t match a Creators Hub 001 ticket. Do not admit.',
+      body: 'This code doesn’t match a Creator’s Hub 001 ticket. Do not admit.',
     },
   }[outcome]
 

@@ -4,7 +4,7 @@ import { FirstRoom } from '../sections/FirstRoom'
 import { VolunteerTeaser } from '../sections/Volunteer'
 import { Partnership } from '../sections/Partnership'
 import { Contact } from '../sections/Contact'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { usePageMeta } from '../hooks/useDocumentTitle'
 
 /**
  * Creator’s Hub, the organisation (who we are, the manifesto, how we work,
@@ -12,7 +12,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
  * get involved.
  */
 export function HomePage() {
-  useDocumentTitle()
+  usePageMeta('/')
   return (
     <>
       <Hero />

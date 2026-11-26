@@ -1,10 +1,7 @@
 import { Tickets } from '../sections/Tickets'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { firstRoom } from '../content/event'
-
-const description = `Register free for ${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.timeRange}. Join in ${firstRoom.city} or online. One registration per person.`
+import { usePageMeta } from '../hooks/useDocumentTitle'
 
 export default function TicketsPage() {
-  useDocumentTitle('Free registration', description)
+  usePageMeta('/tickets')
   return <Tickets asPage />
 }

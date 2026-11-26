@@ -1,14 +1,14 @@
 /**
- * Creators Hub 001: The First Room.
+ * Creator’s Hub 001: The First Room.
  *
  * Confirmed: name, date, time, city, the online option and direction.
  * Anything set to `null` is unconfirmed and renders as a labelled placeholder.
- * Do not fill these in without approval from the Creators Hub team.
+ * Do not fill these in without approval from the Creator’s Hub team.
  */
 export const firstRoom = {
   edition: '001',
   name: 'The First Room',
-  fullName: 'Creators Hub 001: The First Room',
+  fullName: 'Creator’s Hub 001: The First Room',
   dateISO: '2026-12-19',
   dateLabel: 'Saturday 19 December 2026',
   /** Compact form for tight spaces. */
@@ -37,6 +37,8 @@ export const firstRoom = {
   // ——— Unconfirmed: rendered as placeholders ———
   // Registration settings live in ./tickets.ts.
   venue: null as string | null,
+  /** Street address once the venue is confirmed (shown to Google in the event data). */
+  venueAddress: null as string | null,
   /** 3:00 PM in Lagos. */
   endUtc: '2026-12-19T14:00:00Z' as string | null,
   speakers: [] as Array<{ name: string; role: string }>,

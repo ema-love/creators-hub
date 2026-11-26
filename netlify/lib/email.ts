@@ -29,7 +29,7 @@ export function createResendMailer(apiKey: string, from: string, fetchImpl: type
 }
 
 /**
- * Sends through a Google Apps Script web app running on the Creators Hub
+ * Sends through a Google Apps Script web app running on the Creator’s Hub
  * Gmail account (integrations/gmail-mailer/), so emails come from that
  * address. The script drops repeats of the same idempotency key, and says
  * "quota" when the account has used its daily sending allowance.

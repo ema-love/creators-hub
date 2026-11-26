@@ -1,6 +1,6 @@
-# Creators Hub
+# Creator’s Hub
 
-Website for **Creator’s Hub**, a community for young African creatives and builders (homepage copy in `src/content/founding.ts`), and its inaugural event, **Creators Hub 001: The First Room** (19 December 2026, Lagos, Nigeria).
+Website for **Creator’s Hub**, a community for young African creatives and builders (homepage copy in `src/content/founding.ts`), and its inaugural event, **Creator’s Hub 001: The First Room** (19 December 2026, Lagos, Nigeria).
 
 Built with React, TypeScript, Vite, Tailwind CSS v4, Motion for React, GSAP + ScrollTrigger, Lucide and React Router. Deployed on Netlify.
 
@@ -129,9 +129,9 @@ An idea, three beats from manifesto line 08, the four steps of how we work, then
 
 ### Disciplines and photography
 
-The First Room has four creative arms: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`). They belong to the event, not to Creators Hub as a whole, and are shown on `/the-first-room#arms`.
+The First Room has four creative arms: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`). They belong to the event, not to Creator’s Hub as a whole, and are shown on `/the-first-room#arms`.
 
-The photographs were cut from the Creators Hub moodboards and recomposed in the site's own layouts, so they share its type, colour and shapes:
+The photographs were cut from the Creator’s Hub moodboards and recomposed in the site's own layouts, so they share its type, colour and shapes:
 
 - **Disciplines section**: a mosaic per discipline (`src/components/ui/DisciplineMosaic.tsx`) with five photos and a text tile, beside the discipline's tagline and focus areas.
 - **Intro montage**: the four-photo spreads appear behind the four steps of how we work (not labelled as arms).
@@ -157,7 +157,7 @@ Tickets for The First Room are **free**. Registration is on `/tickets`. There is
 1. The attendee enters their name and email and picks their creative arm. The ticket preview appears only once the arm is chosen.
 2. `netlify/functions/register.ts` validates the details, claims the email (and a place, if capacity is set), saves the registration and issues one ticket.
 3. The attendee lands on their private ticket page (`/tickets/order?ref=…&k=…`), with the QR ticket ready to download or print.
-4. At the same time the confirmation email is sent (from the Creators Hub Gmail account, see below) and the row is added to the Google Sheet. Neither can undo a registration. An email or row that doesn't go through is queued and retried every hour by `netlify/functions/retry-pending.ts`.
+4. At the same time the confirmation email is sent (from the Creator’s Hub Gmail account, see below) and the row is added to the Google Sheet. Neither can undo a registration. An email or row that doesn't go through is queued and retried every hour by `netlify/functions/retry-pending.ts`.
 5. Registering again with the same email is refused with "already registered", and the ticket is re-sent to that email (at most once an hour).
 
 Registrations are stored in **Netlify Blobs** (store `registrations`, keyed by a reference such as `CH001-3F9A…`), and tickets and claims in the store `tickets`.
@@ -196,11 +196,11 @@ Scanning a ticket with an ordinary camera app still works too: it opens the tick
 
 Signed in with `ADMIN_PIN` (separate from the door staff's `CHECKIN_PIN`):
 - **Download list (CSV)**: everyone registered: time, ticket ID, name, email, creative arm, check-in time, reference.
-- **Message everyone**: write a subject and message (it opens with a venue-announcement template), send yourself a test, then send to every registered attendee. Each email is personal ("Hi Ada,"), comes from the Creators Hub Gmail, and has a button to the person's ticket. Gmail sends about 100 a day, so `retry-pending` carries on every 10 minutes until everyone has it; progress shows on the page, and nobody gets it twice. A message goes to everyone registered when it was sent; confirmations for new registrations always go first.
+- **Message everyone**: write a subject and message (it opens with a venue-announcement template), send yourself a test, then send to every registered attendee. Each email is personal ("Hi Ada,"), comes from the Creator’s Hub Gmail, and has a button to the person's ticket. Gmail sends about 100 a day, so `retry-pending` carries on every 10 minutes until everyone has it; progress shows on the page, and nobody gets it twice. A message goes to everyone registered when it was sent; confirmations for new registrations always go first.
 
 #### Setting up email and check-in
 
-Confirmation emails are sent from the **Creators Hub Gmail account** by a small Google Apps Script on that account, so no domain is needed. Setup takes about 10 minutes: see [`integrations/gmail-mailer/README.md`](integrations/gmail-mailer/README.md). A free Gmail account sends about 100 of these a day; past that, attendees still get their ticket on screen, and their email is sent automatically by the hourly retry once Gmail allows.
+Confirmation emails are sent from the **Creator’s Hub Gmail account** by a small Google Apps Script on that account, so no domain is needed. Setup takes about 10 minutes: see [`integrations/gmail-mailer/README.md`](integrations/gmail-mailer/README.md). A free Gmail account sends about 100 of these a day; past that, attendees still get their ticket on screen, and their email is sent automatically by the hourly retry once Gmail allows.
 
 In Netlify, add these environment variables, then redeploy:
 - `GMAIL_MAILER_URL` and `GMAIL_MAILER_KEY`: from the mailer setup.
@@ -222,8 +222,12 @@ One Google Sheet receives both registrations (Registrations tab, with Attendance
 
 `seo.config.ts` runs at build time. It produces:
 - `robots.txt` and `sitemap.xml`, covering the public pages: home, The First Room, Tickets and Volunteer;
-- structured data (schema.org `Event`) for The First Room, with the confirmed date, time and city, marked as free to attend;
-- the Search Console verification tag, when `GOOGLE_SITE_VERIFICATION` is set in Netlify. Paste either the code or the whole `<meta>` tag, then redeploy.
+- structured data (JSON-LD), placed on its own page by `prerender.config.ts`: schema.org `Organization` (with Instagram, LinkedIn and the WhatsApp channel as `sameAs`) on the homepage, and `Event` for Creator’s Hub 001: The First Room on `/the-first-room` and `/tickets`;
+- a `lastmod` on every sitemap entry, set to the deploy date.
+
+Titles and descriptions for the homepage, `/the-first-room` and `/tickets`, the event's Google description and the social links are in `src/content/seo.ts`. Each public page is pre-rendered with its title, description, canonical link, structured data and main text, so Google receives them without running JavaScript. When the venue is confirmed, set `venue` and `venueAddress` in `src/content/event.ts`; the event data's `Place` updates on the next deploy. `netlify/lib/seo.test.ts` checks all of this.
+
+It also adds the Search Console verification tag, when `GOOGLE_SITE_VERIFICATION` is set in Netlify. Paste either the code or the whole `<meta>` tag, then redeploy.
 
 The site address comes from Netlify's `URL`, so adding a custom domain later updates the sitemap on the next deploy. Staff, order and personal ticket pages are excluded and sent with `noindex`.
 

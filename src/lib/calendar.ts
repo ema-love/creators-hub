@@ -11,7 +11,7 @@ export function firstRoomCalendarHref(): string {
   const ics = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Creators Hub//The First Room//EN',
+    'PRODID:-//Creator’s Hub//The First Room//EN',
     'BEGIN:VEVENT',
     `UID:creators-hub-001-${firstRoom.dateISO.replaceAll('-', '')}@creatorshub`,
     `DTSTAMP:${icsTime(new Date().toISOString())}`,

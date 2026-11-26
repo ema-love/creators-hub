@@ -84,9 +84,9 @@ export default function TicketOrderPage() {
                 </p>
                 <p>
                   {ready.registration.emailSent
-                    ? 'We’ve also emailed this to you from Creators Hub (check Spam or Promotions if you can’t see it).'
+                    ? 'We’ve also emailed this to you from Creator’s Hub (check Spam or Promotions if you can’t see it).'
                     : ready.registration.emailEnabled
-                      ? 'We’re also emailing this to you from Creators Hub. If it isn’t in your inbox in a few minutes, check your Spam or Promotions folder.'
+                      ? 'We’re also emailing this to you from Creator’s Hub. If it isn’t in your inbox in a few minutes, check your Spam or Promotions folder.'
                       : 'Bookmark this page: it’s your private link back to your registration.'}
                 </p>
                 <p className="text-sm text-cream/55">
@@ -113,9 +113,9 @@ export default function TicketOrderPage() {
                 <p>
                   Your ticket is free and admits one person. Show its QR code at the door, on your phone or printed.{' '}
                   {ready.registration.emailSent
-                    ? 'We’ve also emailed it to you from Creators Hub (check Spam or Promotions if you can’t see it).'
+                    ? 'We’ve also emailed it to you from Creator’s Hub (check Spam or Promotions if you can’t see it).'
                     : ready.registration.emailEnabled
-                      ? 'We’re also emailing it to you from Creators Hub. If it isn’t in your inbox in a few minutes, check your Spam or Promotions folder.'
+                      ? 'We’re also emailing it to you from Creator’s Hub. If it isn’t in your inbox in a few minutes, check your Spam or Promotions folder.'
                       : 'Download it below and bookmark this page: it’s your private link back to your ticket.'}
                 </p>
                 <p className="text-sm text-cream/55">

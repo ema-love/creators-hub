@@ -31,7 +31,7 @@ const buzz = (pattern: number | number[]) => {
 }
 
 /**
- * Creators Hub staff area (/staff): sign in with the staff PIN, then scan
+ * Creator’s Hub staff area (/staff): sign in with the staff PIN, then scan
  * tickets with the camera, look them up by ID, and watch the door numbers.
  */
 export default function StaffPage() {
@@ -54,7 +54,7 @@ export default function StaffPage() {
       <div className="container-edge max-w-xl">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow text-rust">Creators Hub {firstRoom.edition} · Staff</p>
+            <p className="eyebrow text-rust">Creator’s Hub {firstRoom.edition} · Staff</p>
             <h1 id="staff-title" className="mt-3 text-title font-medium">
               Staff area
             </h1>

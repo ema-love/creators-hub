@@ -2,7 +2,7 @@ import type { DisciplineId } from './site'
 import type { TicketTierId } from './tickets'
 
 /**
- * The four Creators Hub 001 ticket designs, one per creative arm.
+ * The four Creator’s Hub 001 ticket designs, one per creative arm.
  * Used by the website and the server, so it holds no image imports.
  * Artwork lives in src/assets/tickets/<id>.webp.
  */

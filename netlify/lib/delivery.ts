@@ -3,7 +3,7 @@ import { siteOrigin } from './http'
 
 /**
  * How confirmation emails are sent, from environment variables:
- *  - GMAIL_MAILER_URL + GMAIL_MAILER_KEY: the Creators Hub Gmail account
+ *  - GMAIL_MAILER_URL + GMAIL_MAILER_KEY: the Creator’s Hub Gmail account
  *    (integrations/gmail-mailer/). No domain needed.
  *  - RESEND_API_KEY + TICKET_EMAIL_FROM: Resend, for a verified domain.
  * With neither, emails are off and attendees use their ticket page.

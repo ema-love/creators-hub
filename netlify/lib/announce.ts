@@ -8,7 +8,7 @@ import { withCheckIn, type Ticket } from './tickets'
 
 /**
  * Messages to everyone registered (e.g. the venue announcement), sent from
- * the Creators Hub Gmail. Gmail allows about 100 emails a day, so a message
+ * the Creator’s Hub Gmail. Gmail allows about 100 emails a day, so a message
  * goes out in batches: each run sends what it can, and the 10-minute retry
  * carries on until everyone has it. Each person gets it once.
  *

@@ -78,7 +78,7 @@ export default function TicketVerifyPage() {
     <Section surface="dark" aria-labelledby="verify-title" className="min-h-[90svh] bg-[#0c0b0a] pt-24 pb-20 md:pt-32">
       <div className="container-edge max-w-md">
         <p className="eyebrow text-rust">
-          {staff ? 'Door check-in' : 'Your ticket'} · Creators Hub {firstRoom.edition}
+          {staff ? 'Door check-in' : 'Your ticket'} · Creator’s Hub {firstRoom.edition}
         </p>
         <h1 id="verify-title" className="sr-only">
           Ticket verification

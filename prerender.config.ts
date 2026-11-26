@@ -5,6 +5,8 @@ import { firstRoom } from './src/content/event.ts'
 import { disciplines } from './src/content/site.ts'
 import { BRAND_PLAIN, EVENT_NAME, firstRoomSection, founderLine, heroCopy, howWeWork, manifesto, oath, whoWeAre } from './src/content/founding.ts'
 import { registrationCopy } from './src/content/tickets.ts'
+import { pageMeta } from './src/content/seo.ts'
+import { eventJsonLd, jsonLdScript, organizationJsonLd } from './seo.config.ts'
 import { experienceText, volunteerBenefits, volunteerIntro, volunteerTeams } from './src/content/volunteer.ts'
 
 /**
@@ -21,19 +23,19 @@ import { experienceText, volunteerBenefits, volunteerIntro, volunteerTeams } fro
 const FALLBACK_ORIGIN = 'https://thecreators-hub.netlify.app'
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-type Page = { path: string; title: string; description: string; body: string }
+type Page = { path: string; title: string; description: string; body: string; /** Structured data for this page only. */ jsonLd?: unknown[] }
 
 const when = `${firstRoom.dateLabel} · ${firstRoom.timeRange} · ${firstRoom.city}, ${firstRoom.country}, and online`
 const venue = `Venue: ${firstRoom.venue ?? 'to be announced'}`
 const nav = `<nav aria-label="Pages"><a href="/">Home</a> · <a href="/the-first-room">${esc(EVENT_NAME)}</a> · <a href="/tickets">Free registration</a> · <a href="/volunteer">Volunteer</a></nav>`
 const arms = `<ul>${disciplines.map((d) => `<li><strong>${esc(d.name)}</strong>: ${esc(d.line)}</li>`).join('')}</ul>`
 
-export function staticPages(): Page[] {
+export function staticPages(site = FALLBACK_ORIGIN): Page[] {
   return [
     {
       path: '/',
-      title: `${BRAND_PLAIN} · The First Room · Lagos & online · 19 Dec 2026`,
-      description: `${BRAND_PLAIN} is a community for young African creatives and builders: anyone carrying an idea they haven't started yet. Register free for ${BRAND_PLAIN} 001: The First Room, ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in Lagos or online.`,
+      ...pageMeta['/'],
+      jsonLd: organizationJsonLd(site),
       body: `<h1>${esc(BRAND_PLAIN)}</h1>
 <p>${esc(heroCopy.eyebrow)}</p>
 <p><strong>${esc(heroCopy.headline.join(' '))}</strong> ${esc(heroCopy.statement)}</p>
@@ -56,8 +58,8 @@ export function staticPages(): Page[] {
     },
     {
       path: '/the-first-room',
-      title: `${BRAND_PLAIN} 001: The First Room · Sat 19 Dec 2026, Lagos & online`,
-      description: `${BRAND_PLAIN} 001: The First Room: ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in ${firstRoom.city}, ${firstRoom.country} and online. ${firstRoom.direction} Free registration.`,
+      ...pageMeta['/the-first-room'],
+      jsonLd: [eventJsonLd(site)],
       body: `<h1>${esc(EVENT_NAME)}</h1>
 <p>The inaugural Creator’s Hub event. ${esc(firstRoom.direction)} ${esc(firstRoom.intro)}</p>
 <dl><dt>Date</dt><dd>${esc(firstRoom.dateLabel)}</dd><dt>Time</dt><dd>${esc(firstRoom.timeRange)}</dd><dt>Where</dt><dd>${esc(firstRoom.city)}, ${esc(firstRoom.country)}, and online from anywhere</dd><dt>Venue</dt><dd>${esc(firstRoom.venue ?? 'To be announced')}</dd><dt>Entry</dt><dd>Free, one registration per person</dd></dl>
@@ -66,8 +68,8 @@ export function staticPages(): Page[] {
     },
     {
       path: '/tickets',
-      title: `Free registration · ${firstRoom.fullName}`,
-      description: `Register free for ${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.timeRange}. Join in ${firstRoom.city} or online. One registration per person.`,
+      ...pageMeta['/tickets'],
+      jsonLd: [eventJsonLd(site)],
       body: `<h1>Free registration: ${esc(firstRoom.fullName)}</h1>
 <p>${esc(registrationCopy.lede)}</p>
 <ul>${registrationCopy.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
@@ -109,6 +111,7 @@ export function renderPage(template: string, page: Page, site: string): string {
   html = html.replace(
     '</head>',
     `<link rel="canonical" href="${url}" />
+${(page.jsonLd ?? []).map(jsonLdScript).join('\n')}
 <style>[data-prerendered] h1{font-size:2.4rem;line-height:1.1;margin:1.5rem 0 1rem}[data-prerendered] h2{font-size:1.4rem;margin:2rem 0 .5rem}[data-prerendered] p,[data-prerendered] ul,[data-prerendered] dl{margin:0 0 1rem}[data-prerendered] ul{padding-left:1.2rem;list-style:disc}[data-prerendered] dt{opacity:.6;font-size:.85rem;text-transform:uppercase;letter-spacing:.1em}[data-prerendered] dd{margin:0 0 .6rem}[data-prerendered] a{color:#00E5A0}</style>
 </head>`,
   )
@@ -134,7 +137,7 @@ export function prerender(): Plugin {
       const template = fs.readFileSync(indexFile, 'utf8')
       // Blank shell for every other address (staff, tickets/order, …): see netlify.toml.
       fs.writeFileSync(path.join(outDir, 'app.html'), template)
-      for (const page of staticPages()) {
+      for (const page of staticPages(site)) {
         // the-first-room.html, not the-first-room/index.html: Netlify serves it at /the-first-room with no redirect.
         const file = page.path === '/' ? indexFile : path.join(outDir, `${page.path.slice(1)}.html`)
         fs.mkdirSync(path.dirname(file), { recursive: true })

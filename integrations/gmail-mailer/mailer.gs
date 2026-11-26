@@ -1,15 +1,15 @@
 /**
- * Creators Hub · Ticket mailer
+ * Creator’s Hub · Ticket mailer
  *
  * Sends each attendee their registration confirmation and ticket from the
- * Creators Hub Gmail account. Create this script while signed in to THAT
+ * Creator’s Hub Gmail account. Create this script while signed in to THAT
  * account only: emails are sent from whichever account owns the script.
  *
  * Paste this whole file into a new project at script.google.com.
  * Setup steps are in README.md next to this file.
  */
 
-const SENDER_NAME = 'Creators Hub'
+const SENDER_NAME = 'Creator’s Hub'
 /** How long a sent email's ID is remembered, so retries never send twice (Google's maximum is 6 hours). */
 const REMEMBER_SECONDS = 6 * 60 * 60
 
@@ -49,7 +49,7 @@ function doPost(e) {
 }
 
 function doGet() {
-  return reply({ ok: true, service: 'Creators Hub ticket mailer' })
+  return reply({ ok: true, service: 'Creator’s Hub ticket mailer' })
 }
 
 function reply(obj) {
@@ -72,10 +72,10 @@ function sendTestEmail() {
   const me = Session.getEffectiveUser().getEmail()
   MailApp.sendEmail({
     to: me,
-    subject: 'Creators Hub mailer: test',
+    subject: 'Creator’s Hub mailer: test',
     htmlBody:
       '<div style="font-family:Arial,sans-serif;background:#0A0A0A;color:#F5F0E8;padding:28px;border-radius:8px">' +
-      '<p style="color:#00E5A0;font-size:12px;letter-spacing:.15em;margin:0">CREATORS HUB</p>' +
+      '<p style="color:#00E5A0;font-size:12px;letter-spacing:.15em;margin:0">CREATOR’S HUB</p>' +
       '<h1 style="font-weight:500;margin:12px 0">The mailer works.</h1>' +
       '<p style="margin:0">Ticket confirmations will be sent from this account as “' + SENDER_NAME + '”.</p></div>',
     body: 'The mailer works. Ticket confirmations will be sent from this account as "' + SENDER_NAME + '".',

@@ -20,15 +20,15 @@ Do this while signed in to the Google account that should own the data.
 1. Go to [sheets.new](https://sheets.new) to make a blank Google Sheet.
 2. Open **Extensions → Apps Script**.
 3. Delete everything in the editor, then paste the whole of [`creators-hub.gs`](./creators-hub.gs).
-4. Click **Save** (the disk icon). You can name the project "Creators Hub".
-5. Go back to the sheet tab and **reload the page**. A **Creators Hub** menu appears next to Help.
-6. Click **Creators Hub → 1. Set up this sheet**.
-   - Google asks for permission the first time: choose your account, then **Advanced → Go to Creators Hub (unsafe) → Allow**. ("Unsafe" only means Google hasn't reviewed your own private script.)
+4. Click **Save** (the disk icon). You can name the project "Creator’s Hub".
+5. Go back to the sheet tab and **reload the page**. A **Creator’s Hub** menu appears next to Help.
+6. Click **Creator’s Hub → 1. Set up this sheet**.
+   - Google asks for permission the first time: choose your account, then **Advanced → Go to Creator’s Hub (unsafe) → Allow**. ("Unsafe" only means Google hasn't reviewed your own private script.)
    - Once it finishes, the sheet has **Registrations**, **Volunteers** and **Overview** tabs.
 
 ### 2. Check it works
 
-Use **Creators Hub → Send a test registration** and **Send a test application**. A test row appears on each tab, and a "New volunteer" email reaches your inbox. Delete the test rows afterwards.
+Use **Creator’s Hub → Send a test registration** and **Send a test application**. A test row appears on each tab, and a "New volunteer" email reaches your inbox. Delete the test rows afterwards.
 
 ### 3. Connect the website
 
@@ -37,7 +37,7 @@ Use **Creators Hub → Send a test registration** and **Send a test application*
 3. Set **Execute as: Me** and **Who has access: Anyone**, then click **Deploy**.
    - "Anyone" only lets the website reach the script. Nobody can read the sheet through it, and requests without the secret key are refused.
 4. Copy the **Web app URL** (it ends in `/exec`).
-5. In the sheet, click **Creators Hub → 2. Show connection key** and copy the key.
+5. In the sheet, click **Creator’s Hub → 2. Show connection key** and copy the key.
 6. In Netlify, go to **Site configuration → Environment variables** and add:
    - `GOOGLE_SHEET_URL`: the web app URL
    - `GOOGLE_SHEET_KEY`: the connection key
@@ -48,7 +48,7 @@ Use **Creators Hub → Send a test registration** and **Send a test application*
 Do this once after the website update that added online registration and the six volunteer teams:
 
 1. In **Extensions → Apps Script**, select all the code, replace it with the new [`creators-hub.gs`](./creators-hub.gs) and click **Save**.
-2. Reload the sheet and run **Creators Hub → 1. Set up this sheet**. This:
+2. Reload the sheet and run **Creator’s Hub → 1. Set up this sheet**. This:
    - adds **Attendance** and **City / country** columns at the end of Registrations (after Reference), so every existing row stays lined up. Rows from before have a blank Attendance; they're all in person;
    - adds the **Volunteers** tab for the new form, and keeps the old **Applications** tab, renamed in its title to "Earlier applications";
    - rebuilds the Overview with in person and online counts.
@@ -58,7 +58,7 @@ Do this once after the website update that added online registration and the six
 ## Already set up the volunteer-only version?
 
 1. In **Extensions → Apps Script**, replace all the code with [`creators-hub.gs`](./creators-hub.gs) and save.
-2. Reload the sheet and run **Creators Hub → 1. Set up this sheet** again. It adds the Registrations tab and refreshes the Overview. Existing rows are kept.
+2. Reload the sheet and run **Creator’s Hub → 1. Set up this sheet** again. It adds the Registrations tab and refreshes the Overview. Existing rows are kept.
 3. Publish the new code: **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. The URL and key stay the same.
 4. If you used `VOLUNTEER_SHEET_URL` / `VOLUNTEER_SHEET_KEY` in Netlify, they still work. You can rename them to `GOOGLE_SHEET_URL` / `GOOGLE_SHEET_KEY` whenever you like.
 

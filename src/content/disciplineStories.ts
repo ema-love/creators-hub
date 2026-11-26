@@ -1,7 +1,7 @@
 import type { DisciplineId } from './site'
 
 /**
- * Photography and copy for each discipline, cut from the Creators Hub
+ * Photography and copy for each discipline, cut from the Creator’s Hub
  * moodboards and recomposed in the site's own layouts.
  *
  * Photos live in src/assets/crops. To swap one, replace the file (keep the

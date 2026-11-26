@@ -1,22 +1,18 @@
 import { CalendarPlus } from 'lucide-react'
 import { firstRoom, firstRoomDetails } from '../content/event'
-import { EVENT_NAME } from '../content/founding'
 import { Section } from '../components/layout/Section'
 import { MaskText } from '../components/ui/MaskText'
 import { Reveal } from '../components/ui/Reveal'
 import { ArrowLink } from '../components/ui/ArrowLink'
 import { Placeholder } from '../components/ui/Placeholder'
 import { Eyebrow } from '../components/ui/Eyebrow'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { usePageMeta } from '../hooks/useDocumentTitle'
 import { Disciplines } from '../sections/Disciplines'
 import { firstRoomCalendarHref } from '../lib/calendar'
 import { daysUntil } from '../lib/date'
 
 export default function FirstRoomPage() {
-  useDocumentTitle(
-    EVENT_NAME,
-    `${EVENT_NAME}: ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in ${firstRoom.city} and online. ${firstRoom.direction}`,
-  )
+  usePageMeta('/the-first-room')
   const days = daysUntil(firstRoom.dateISO)
 
   return (

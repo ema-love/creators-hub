@@ -17,7 +17,7 @@ type WordmarkProps = {
 const RATIO = 1638 / 204
 
 /**
- * The Creators Hub logo, from the supplied artwork (src/assets/brand/).
+ * The Creator’s Hub logo, from the supplied artwork (src/assets/brand/).
  * Without a className it is 1.15em tall; a className replaces that sizing
  * (e.g. `h-8` or `h-auto w-full`).
  */

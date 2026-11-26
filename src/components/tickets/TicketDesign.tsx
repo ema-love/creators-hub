@@ -32,7 +32,7 @@ const OUTLINE = [
 ].join('')
 
 /**
- * Creators Hub 001 digital ticket, recreated from the approved reference.
+ * Creator’s Hub 001 digital ticket, recreated from the approved reference.
  * One shared layout; each creative arm supplies its photograph, title and
  * rule colour. Layout coordinates are in the reference's 264 × 455 px space.
  */
@@ -53,7 +53,7 @@ export function TicketDesign({ design, category, attendeeName, ticketId, qrValue
       xmlns="http://www.w3.org/2000/svg"
       className={cn('block h-auto w-full', className)}
       role="img"
-      aria-label={`${spec.name} ticket for ${attendeeName}, ${cat.label.toLowerCase()}, ${ticketId}. Creators Hub 001: The First Room, 19 December 2026, Lagos, Nigeria.`}
+      aria-label={`${spec.name} ticket for ${attendeeName}, ${cat.label.toLowerCase()}, ${ticketId}. Creator’s Hub 001: The First Room, 19 December 2026, Lagos, Nigeria.`}
       style={{ fontVariantNumeric: 'lining-nums' }}
     >
       <defs>
@@ -67,7 +67,7 @@ export function TicketDesign({ design, category, attendeeName, ticketId, qrValue
 
         {/* Wordmark and edition */}
         <text fontFamily={TICKET_SERIF} fontWeight={500} fontSize={14.6} fill={CREAM} letterSpacing="-0.01em">
-          <tspan x={20.5} y={41.7}>CREATORS</tspan>
+          <tspan x={20.5} y={41.7}>CREATOR’S</tspan>
           <tspan x={20.5} y={55}>HUB</tspan>
         </text>
         <rect x={21} y={63.4} width={44} height={1.3} fill={spec.rule} />

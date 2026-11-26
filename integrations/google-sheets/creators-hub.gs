@@ -1,5 +1,5 @@
 /**
- * Creators Hub · Registrations and volunteer applications
+ * Creator’s Hub · Registrations and volunteer applications
  *
  * Paste this whole file into the Google Sheet's Apps Script editor
  * (Extensions → Apps Script). Setup steps are in README.md next to this file.
@@ -94,7 +94,7 @@ const STATUSES = [
 
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('Creators Hub')
+    .createMenu('Creator’s Hub')
     .addItem('1. Set up this sheet', 'setUpSheet')
     .addItem('2. Show connection key', 'showConnectionKey')
     .addSeparator()
@@ -129,7 +129,7 @@ function doPost(e) {
 }
 
 function doGet() {
-  return reply({ ok: true, service: 'Creators Hub volunteer applications' })
+  return reply({ ok: true, service: 'Creator’s Hub volunteer applications' })
 }
 
 function reply(obj) {
@@ -256,7 +256,7 @@ function emailOwner(app, rowUrl) {
         '</p>',
     )
     .join('')
-  const replyHref = 'mailto:' + encodeURIComponent(text(app.email)) + '?subject=' + encodeURIComponent('Creators Hub 001: your volunteer application')
+  const replyHref = 'mailto:' + encodeURIComponent(text(app.email)) + '?subject=' + encodeURIComponent('Creator’s Hub 001: your volunteer application')
   const digits = text(app.phone).replace(/[^0-9]/g, '').replace(/^0/, '234')
   const whatsapp = digits.length >= 8 ? 'https://wa.me/' + digits : ''
 
@@ -264,7 +264,7 @@ function emailOwner(app, rowUrl) {
     '<div style="background:' + C.cream + ';padding:32px 12px;font-family:Inter,Helvetica,Arial,sans-serif">' +
     '<div style="max-width:600px;margin:0 auto;background:' + C.white + ';border-radius:6px;overflow:hidden">' +
     '<div style="background:' + C.ink + ';padding:28px 32px">' +
-    '<p style="margin:0;color:' + C.electric + ';font-size:11px;letter-spacing:.18em;text-transform:uppercase">● Creators Hub 001 · Volunteer Collective</p>' +
+    '<p style="margin:0;color:' + C.electric + ';font-size:11px;letter-spacing:.18em;text-transform:uppercase">● Creator’s Hub 001 · Volunteer Collective</p>' +
     '<h1 style="margin:14px 0 0;color:' + C.cream + ';font-family:\'Space Grotesk\',Helvetica,Arial,sans-serif;font-size:28px;font-weight:500;line-height:1.2">' +
     esc(name) +
     '</h1>' +
@@ -291,7 +291,7 @@ function emailOwner(app, rowUrl) {
     subject: 'New volunteer: ' + name + ' · ' + role,
     htmlBody: html,
     body: plain,
-    name: 'Creators Hub Volunteers',
+    name: 'Creator’s Hub Volunteers',
     replyTo: isEmail(app.email) ? text(app.email) : undefined,
   })
 }
@@ -301,7 +301,7 @@ function emailOwner(app, rowUrl) {
 function setUpSheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet()
   ss.setSpreadsheetTimeZone('Africa/Lagos')
-  if (/^Untitled/i.test(ss.getName()) || /Volunteer Applications$/.test(ss.getName())) ss.rename('Creators Hub 001')
+  if (/^Untitled/i.test(ss.getName()) || /Volunteer Applications$/.test(ss.getName())) ss.rename('Creator’s Hub 001')
 
   const sheets = ss.getSheets()
   const blank = sheets.length === 1 && sheets[0].getLastRow() === 0 && !ss.getSheetByName(REGS) && !ss.getSheetByName(VOLS) ? sheets[0] : null
@@ -323,7 +323,7 @@ function setUpSheet() {
   try {
     SpreadsheetApp.getUi().alert(
       'Your sheet is ready',
-      'Next: Creators Hub → Show connection key, then follow the steps in the README to connect the website.',
+      'Next: Creator’s Hub → Show connection key, then follow the steps in the README to connect the website.',
       SpreadsheetApp.getUi().ButtonSet.OK,
     )
   } catch (e) {
@@ -391,7 +391,7 @@ function styleTable(sheet, title, subtitle, columns, frozenCols) {
 
 function styleRegistrations(sheet) {
   sheet.setTabColor(C.electric)
-  const dataRows = styleTable(sheet, 'Registrations', '●  CREATORS HUB 001 · THE FIRST ROOM · FREE TICKETS', REG_COLUMNS, 3)
+  const dataRows = styleTable(sheet, 'Registrations', '●  CREATOR’S HUB 001 · THE FIRST ROOM · FREE TICKETS', REG_COLUMNS, 3)
   sheet.getRange(FIRST_DATA_ROW, REG['Ticket ID'], dataRows, 1).setFontFamily('Roboto Mono').setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, REG['Name'], dataRows, 1).setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, REG['Reference'], dataRows, 1).setFontColor('#A8A8A0').setFontSize(8)
@@ -404,7 +404,7 @@ function styleRegistrations(sheet) {
 
 function styleVolunteers(sheet) {
   sheet.setTabColor(C.forest)
-  const dataRows = styleTable(sheet, 'Volunteers', '●  CREATORS HUB 001 · THE FIRST ROOM · VOLUNTEER APPLICATIONS', VOL_COLUMNS, 3)
+  const dataRows = styleTable(sheet, 'Volunteers', '●  CREATOR’S HUB 001 · THE FIRST ROOM · VOLUNTEER APPLICATIONS', VOL_COLUMNS, 3)
   sheet.getRange(FIRST_DATA_ROW, VOL['Name'], dataRows, 1).setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, VOL['Status'], dataRows, 1).setHorizontalAlignment('center').setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, VOL['Briefing'], dataRows, 1).setHorizontalAlignment('center')
@@ -468,7 +468,7 @@ function styleOverview(ss) {
   const last = String(ROWS)
   sheet.getRange('A1:H3').setBackground(C.ink)
   sheet.getRange('B1:F1').merge().setValue('Overview').setFontFamily(DISPLAY_FONT).setFontSize(22).setFontWeight('bold').setFontColor(C.cream).setVerticalAlignment('bottom')
-  sheet.getRange('B2:F2').merge().setValue('●  CREATORS HUB 001 · UPDATES AUTOMATICALLY').setFontSize(9).setFontWeight('bold').setFontColor(C.electric).setFontFamily(DISPLAY_FONT)
+  sheet.getRange('B2:F2').merge().setValue('●  CREATOR’S HUB 001 · UPDATES AUTOMATICALLY').setFontSize(9).setFontWeight('bold').setFontColor(C.electric).setFontFamily(DISPLAY_FONT)
   sheet.setRowHeight(1, 56)
   sheet.setRowHeight(2, 30)
   sheet.setRowHeight(3, 10)
