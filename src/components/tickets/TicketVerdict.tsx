@@ -20,6 +20,14 @@ export function TicketVerdict({ outcome, ticket, staff }: { outcome: VerifyOutco
       title: `Already checked in${ticket?.checkedInAt ? ` at ${formatTime(ticket.checkedInAt)}` : ''}`,
       body: staff ? `${who}. This ticket has been used. Do not admit again.` : 'This ticket has already been used at the door.',
     },
+    online: {
+      tone: 'bad',
+      icon: <XCircle className="h-7 w-7" />,
+      title: 'Online pass',
+      body: staff
+        ? `${who}. Registered to join online, so this isn’t an entry ticket.`
+        : 'This is an online pass for joining The First Room online. It isn’t an entry ticket.',
+    },
     invalid: {
       tone: 'bad',
       icon: <XCircle className="h-7 w-7" />,

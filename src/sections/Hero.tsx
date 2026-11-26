@@ -113,7 +113,7 @@ export function Hero() {
               <span className="relative inline-flex h-2 w-2 rounded-full bg-rust" />
             </span>
             <span className="link-draw">
-              {firstRoom.fullName} · {firstRoom.dateLabel} · {firstRoom.city}
+              {firstRoom.fullName} · {firstRoom.dateCompact} · {firstRoom.timeCompact} · {firstRoom.city} & online
             </span>
             {days > 0 && <span className="hidden text-silver tabular-nums md:inline">— {days} days</span>}
           </Link>

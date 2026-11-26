@@ -13,6 +13,8 @@ export type OwnedTicket = {
   attendeeName: string
   category: TicketTierId
   design: TicketDesignId
+  /** Online passes have no QR token. Missing = in person. */
+  attendance?: 'in_person' | 'online'
   status: 'valid' | 'checked_in' | 'void'
   token: string
   checkedInAt: string | null

@@ -3,7 +3,7 @@ import { designById } from '../../src/content/ticketDesigns'
 import { emailShell, L, type Email, type Mailer } from './email'
 import { registrationUrl } from './http'
 import type { Kv } from './kv'
-import type { Registration, RegistrationStore } from './registrations'
+import { attendanceLabel, attendanceOf, type Attendance, type Registration, type RegistrationStore } from './registrations'
 import { withCheckIn, type Ticket } from './tickets'
 
 /**
@@ -13,20 +13,33 @@ import { withCheckIn, type Ticket } from './tickets'
  * carries on until everyone has it. Each person gets it once.
  *
  * Keys in the "tickets" store:
- *   announcement/<id>          { id, subject, message, createdAt, total, status }
+ *   announcement/<id>          { id, subject, message, audience, createdAt, total, status }
  *   announce-sent/<id>/<ref>   that registration has been sent this message
  */
 export type Announcement = {
   id: string
   subject: string
   message: string
+  /** Who it goes to. Missing on messages from before the online option (= everyone). */
+  audience?: Audience
   createdAt: string
-  /** Everyone registered when it was created. */
+  /** Everyone in the audience when it was created. */
   total: number
   status: 'sending' | 'done'
 }
 
 export type Recipient = { registration: Registration; ticket: Ticket }
+
+/** Everyone, only people coming in person, or only people joining online. */
+export type Audience = 'all' | Attendance
+export const isAudience = (v: unknown): v is Audience => v === 'all' || v === 'in_person' || v === 'online'
+const inAudience = (audience: Audience | undefined, r: Recipient) => !audience || audience === 'all' || attendanceOf(r.registration) === audience
+
+/** How many people are coming in person and online. */
+export const attendanceCounts = (list: Recipient[]) => {
+  const online = list.filter((r) => attendanceOf(r.registration) === 'online').length
+  return { total: list.length, inPerson: list.length - online, online }
+}
 
 /** Everyone registered (void tickets left out), oldest first. */
 export async function recipients(kv: Kv, store: RegistrationStore): Promise<Recipient[]> {
@@ -53,10 +66,16 @@ export function parseMessage(body: Record<string, unknown> | null): { subject: s
   return { subject, message }
 }
 
-export async function createAnnouncement(kv: Kv, store: RegistrationStore, msg: { subject: string; message: string }, now = new Date()) {
+export async function createAnnouncement(
+  kv: Kv,
+  store: RegistrationStore,
+  msg: { subject: string; message: string },
+  now = new Date(),
+  audience: Audience = 'all',
+) {
   const id = `${now.getTime().toString(36)}${Math.random().toString(36).slice(2, 6)}`
-  const total = (await recipients(kv, store)).length
-  const a: Announcement = { id, ...msg, createdAt: now.toISOString(), total, status: total ? 'sending' : 'done' }
+  const total = (await recipients(kv, store)).filter((r) => inAudience(audience, r)).length
+  const a: Announcement = { id, ...msg, audience, createdAt: now.toISOString(), total, status: total ? 'sending' : 'done' }
   await kv.put(`announcement/${id}`, a)
   return a
 }
@@ -90,7 +109,7 @@ export async function sendAnnouncements(
 
   for (const a of active) {
     const done = new Set((await kv.list(`announce-sent/${a.id}/`)).map((k) => k.split('/').pop()))
-    const todo = people.filter((p) => p.registration.createdAt <= a.createdAt && !done.has(p.registration.ref))
+    const todo = people.filter((p) => inAudience(a.audience, p) && p.registration.createdAt <= a.createdAt && !done.has(p.registration.ref))
     for (const p of todo) {
       if (now() - start > budgetMs) return { sent, stopped: 'time' }
       try {
@@ -131,7 +150,7 @@ export function renderAnnouncementEmail(
       .map((p) => `<tr><td class="t-body" style="padding:8px 4px;font:400 15px/1.65 ${SANS};color:${L.body}">${esc(p).replace(/\n/g, '<br>')}</td></tr>`)
       .join('\n    ')}
     <tr><td style="padding:24px 4px 8px">
-      <a href="${esc(url)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View your ticket (${esc(ticket.id)})</a>
+      <a href="${esc(url)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">${attendanceOf(registration) === 'online' ? 'View your online pass' : 'View your ticket'} (${esc(ticket.id)})</a>
     </td></tr>
     <tr><td class="t-foot" style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:${L.foot}">You’re receiving this because you registered for ${esc(firstRoom.fullName)} (${esc(firstRoom.dateLabel)}, ${esc(firstRoom.city)}). Questions? Just reply to this email.</td></tr>`,
   )
@@ -139,7 +158,7 @@ export function renderAnnouncementEmail(
     `Hi ${firstName},`,
     '',
     ...paragraphs.flatMap((p) => [p, '']),
-    `Your ticket (${ticket.id}, ${designById(ticket.design).name}): ${url}`,
+    `${attendanceOf(registration) === 'online' ? 'Your online pass' : 'Your ticket'} (${ticket.id}, ${designById(ticket.design).name}): ${url}`,
     '',
     `You’re receiving this because you registered for ${firstRoom.fullName}. Questions? Just reply to this email.`,
   ].join('\n')
@@ -152,9 +171,9 @@ export function registrationsCsv(list: Recipient[]): string {
     const s = /^[=+\-@]/.test(v) ? `'${v}` : v
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
   }
-  const rows = [['Registered', 'Ticket ID', 'Name', 'Email', 'Creative arm', 'Checked in', 'Reference']]
+  const rows = [['Registered', 'Ticket ID', 'Name', 'Email', 'Creative arm', 'Attendance', 'City / country', 'Checked in', 'Reference']]
   for (const { registration: r, ticket: t } of list) {
-    rows.push([r.createdAt, t.id, r.name, r.email, designById(t.design).name, t.checkedInAt ?? '', r.ref])
+    rows.push([r.createdAt, t.id, r.name, r.email, designById(t.design).name, attendanceLabel(attendanceOf(r)), r.location ?? '', t.checkedInAt ?? '', r.ref])
   }
   return '﻿' + rows.map((row) => row.map(cell).join(',')).join('\r\n') + '\r\n'
 }

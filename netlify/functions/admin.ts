@@ -1,4 +1,14 @@
-import { createAnnouncement, listAnnouncements, parseMessage, recipients, registrationsCsv, renderAnnouncementEmail, sendAnnouncements } from '../lib/announce'
+import {
+  attendanceCounts,
+  createAnnouncement,
+  isAudience,
+  listAnnouncements,
+  parseMessage,
+  recipients,
+  registrationsCsv,
+  renderAnnouncementEmail,
+  sendAnnouncements,
+} from '../lib/announce'
 import { deliveryConfig } from '../lib/delivery'
 import { clientId, json } from '../lib/http'
 import { blobKv } from '../lib/kv'
@@ -10,10 +20,10 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 /**
  * POST /.netlify/functions/admin  Body: { pin, action, ... }
  * Organisers only (ADMIN_PIN, separate from the door staff's CHECKIN_PIN).
- *   summary   number registered and past messages with their progress
+ *   summary   number registered (in person / online) and past messages with their progress
  *   export    everyone registered, as CSV
  *   test      send a message to one address first ({ subject, message, to })
- *   send      send a message to everyone registered ({ subject, message })
+ *   send      send a message to everyone registered ({ subject, message, audience: all | in_person | online })
  */
 export default async (req: Request, context?: { waitUntil?: (p: Promise<unknown>) => void }) => {
   if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
@@ -29,7 +39,14 @@ export default async (req: Request, context?: { waitUntil?: (p: Promise<unknown>
   const action = body?.action
 
   if (action === 'summary') {
-    return json({ registered: (await recipients(kv, store)).length, emailEnabled: mailer !== null, announcements: await listAnnouncements(kv) })
+    const counts = attendanceCounts(await recipients(kv, store))
+    return json({
+      registered: counts.total,
+      inPerson: counts.inPerson,
+      online: counts.online,
+      emailEnabled: mailer !== null,
+      announcements: await listAnnouncements(kv),
+    })
   }
 
   if (action === 'export') {
@@ -63,7 +80,7 @@ export default async (req: Request, context?: { waitUntil?: (p: Promise<unknown>
       return json({ ok: true })
     }
 
-    const announcement = await createAnnouncement(kv, store, msg)
+    const announcement = await createAnnouncement(kv, store, msg, new Date(), isAudience(body?.audience) ? body.audience : 'all')
     const batch = sendAnnouncements(kv, store, mailer, siteOrigin, { budgetMs: 8000 }).catch((err) => console.error('announcement batch failed', err))
     if (context?.waitUntil) context.waitUntil(batch)
     else await batch

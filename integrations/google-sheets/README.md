@@ -2,8 +2,9 @@
 
 One Google Sheet holds both kinds of record from the website:
 
-- **Registrations**: every free ticket registration (name, email, creative arm, ticket ID) becomes a row. No email is sent to you for these, as there can be hundreds; the attendee gets their confirmation from the website.
-- **Applications**: every volunteer application becomes a row **and** is emailed to you, the owner of the sheet, as a branded summary with a "Reply" button.
+- **Registrations**: every free registration, in person or online, becomes a row (name, email, creative arm, ticket or online-pass ID, **Attendance** and, for online attendees, **City / country**). No email is sent to you for these, as there can be hundreds; the attendee gets their confirmation from the website.
+- **Volunteers**: every volunteer application becomes a row (name, email, phone / WhatsApp, first and second-choice team, in person or online, briefing yes/no, experience or links) **and** is emailed to you, the owner of the sheet, as a branded summary with Email and WhatsApp buttons.
+- **Applications** (only if you set the sheet up before December 2026): applications from the earlier volunteer form. Kept as they were; new ones go to Volunteers.
 - **Overview**: totals and breakdowns for both, updating by themselves.
 
 Your email address is never written in the code or on the website: Google sends volunteer emails to whichever account owns the sheet.
@@ -23,7 +24,7 @@ Do this while signed in to the Google account that should own the data.
 5. Go back to the sheet tab and **reload the page**. A **Creators Hub** menu appears next to Help.
 6. Click **Creators Hub → 1. Set up this sheet**.
    - Google asks for permission the first time: choose your account, then **Advanced → Go to Creators Hub (unsafe) → Allow**. ("Unsafe" only means Google hasn't reviewed your own private script.)
-   - Once it finishes, the sheet has **Registrations**, **Applications** and **Overview** tabs.
+   - Once it finishes, the sheet has **Registrations**, **Volunteers** and **Overview** tabs.
 
 ### 2. Check it works
 
@@ -42,6 +43,18 @@ Use **Creators Hub → Send a test registration** and **Send a test application*
    - `GOOGLE_SHEET_KEY`: the connection key
 7. Redeploy the site (**Deploys → Trigger deploy**).
 
+## Updating an existing sheet (online registration and the new volunteer form)
+
+Do this once after the website update that added online registration and the six volunteer teams:
+
+1. In **Extensions → Apps Script**, select all the code, replace it with the new [`creators-hub.gs`](./creators-hub.gs) and click **Save**.
+2. Reload the sheet and run **Creators Hub → 1. Set up this sheet**. This:
+   - adds **Attendance** and **City / country** columns at the end of Registrations (after Reference), so every existing row stays lined up. Rows from before have a blank Attendance; they're all in person;
+   - adds the **Volunteers** tab for the new form, and keeps the old **Applications** tab, renamed in its title to "Earlier applications";
+   - rebuilds the Overview with in person and online counts.
+3. Publish it: **Deploy → Manage deployments → Edit (pencil) → Version: New version → Deploy**. The URL and key stay the same, so nothing changes in Netlify.
+4. Optional: **Send a test registration** (adds an Online test row) and **Send a test application** (adds a Volunteers row and emails you). Delete the test rows afterwards.
+
 ## Already set up the volunteer-only version?
 
 1. In **Extensions → Apps Script**, replace all the code with [`creators-hub.gs`](./creators-hub.gs) and save.
@@ -51,8 +64,8 @@ Use **Creators Hub → Send a test registration** and **Send a test application*
 
 ## Using the sheet
 
-- **Registrations:** one row per attendee, oldest first. Use the filter buttons in the header row to see one creative arm, and the **Notes** column for your own comments. Check-ins at the door are tracked in the website's staff area (`/staff`), not here.
-- **Applications:** set each applicant's **Status** (New, Reviewing, Shortlisted, Contacted, Selected, Not this time) from its dropdown.
+- **Registrations:** one row per attendee, oldest first. Use the filter buttons in the header row to see one creative arm, or **Attendance** to see only Online or In person, and the **Notes** column for your own comments. Check-ins at the door are tracked in the website's staff area (`/staff`), not here.
+- **Volunteers:** set each applicant's **Status** (New, Reviewing, Shortlisted, Contacted, Selected, Not this time) from its dropdown.
 - Long answers are cut off in the cell to keep the rows tidy. Click a cell to read all of it.
 
 ## Good to know

@@ -1,6 +1,12 @@
 import { getStore } from '@netlify/blobs'
 import type { TicketDesignId } from '../../src/content/ticketDesigns'
 
+/** How someone will attend. Registrations from before the online option have no value and are in person. */
+export type Attendance = 'in_person' | 'online'
+
+export const attendanceOf = (r: { attendance?: Attendance }): Attendance => r.attendance ?? 'in_person'
+export const attendanceLabel = (a: Attendance) => (a === 'online' ? 'Online' : 'In person')
+
 /** One person's free registration. Each has exactly one ticket. */
 export type Registration = {
   /** Registration reference, e.g. CH001-3F9A0C2B71D45E08. */
@@ -10,6 +16,10 @@ export type Registration = {
   email: string
   /** Creative arm, which sets the ticket design. */
   design: TicketDesignId
+  /** In person in Lagos, or online. Missing on registrations made before the online option (= in person). */
+  attendance?: Attendance
+  /** Optional city / country, for online attendees. */
+  location?: string
   /** Secret for the private "your ticket" link. */
   accessKey: string
   createdAt: string

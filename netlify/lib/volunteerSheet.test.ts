@@ -9,12 +9,13 @@ const submission = (form_name: string, data: Record<string, unknown>) => ({
 const volunteerData = {
   name: '  Ada Obi ',
   email: 'ada@example.com',
-  role: 'Vendor Relations Assistant',
-  second_role: 'Photography Assistant',
-  stage: 'Student',
-  discipline: 'Fashion',
+  phone: '+234 801 234 5678',
+  team: 'Marketplace',
+  second_team: 'Media: photo, video & live Stories',
+  attendance: 'In person, in Lagos',
   experience: 'None yet',
-  message: 'I want to learn.',
+  briefing: 'Yes',
+  role: 'Old field',
   'bot-field': '',
   extra: 'ignored',
 }
@@ -25,22 +26,35 @@ afterEach(() => {
 })
 
 describe('volunteer applications → Google Sheet', () => {
-  it('keeps only the form fields and adds department and level', () => {
+  it('keeps only the form fields and adds the team’s experience tag', () => {
     const app = applicationFromSubmission({ data: volunteerData, created_at: '2026-11-07T10:00:00.000Z', id: 'sub_1' })
-    expect(app.name).toBe('Ada Obi')
-    expect(app.department).toBe('Creative Marketplace')
-    expect(app.conditional).toBe(true)
-    expect(app.roleLevel).toBe('Beginners welcome')
-    expect(app.secondDepartment).toBe('Marketing, Media & Communications')
+    expect(app).toMatchObject({
+      name: 'Ada Obi',
+      email: 'ada@example.com',
+      phone: '+234 801 234 5678',
+      team: 'Marketplace',
+      second_team: 'Media: photo, video & live Stories',
+      attendance: 'In person, in Lagos',
+      experience: 'None yet',
+      briefing: 'Yes',
+      teamLevel: 'Beginners welcome',
+      conditional: true,
+      submittedAt: '2026-11-07T10:00:00.000Z',
+    })
+    expect(applicationFromSubmission({ data: { team: 'Media: photo, video & live Stories' } }).teamLevel).toBe(
+      'Photo & video: Experience preferred · Stories: Beginners welcome',
+    )
+    expect(applicationFromSubmission({ data: { team: 'Online Host' } }).conditional).toBe(false)
     expect(app.submissionId).toBe('sub_1')
+    expect(app).not.toHaveProperty('role')
     expect(app).not.toHaveProperty('extra')
     expect(app).not.toHaveProperty('bot-field')
   })
 
-  it('handles an unknown role and missing fields without failing', () => {
-    const app = applicationFromSubmission({ data: { name: 'X', role: 'Not a role', experience: 42 } })
-    expect(app.department).toBe('')
-    expect(app.roleLevel).toBe('')
+  it('handles an unknown team and missing fields without failing', () => {
+    const app = applicationFromSubmission({ data: { name: 'X', team: 'Not a team', experience: 42 } })
+    expect(app.teamLevel).toBe('')
+    expect(app.conditional).toBe(false)
     expect(app.experience).toBe('')
     expect(app.email).toBe('')
   })
@@ -50,7 +64,7 @@ describe('volunteer applications → Google Sheet', () => {
     const ok = vi.fn(async () => new Response('{"ok":true}'))
     await sendToSheet(app, { url: 'https://sheet.test/exec', key: 'k1', fetch: ok as unknown as typeof fetch })
     const [, init] = ok.mock.calls[0] as unknown as [string, RequestInit]
-    expect(JSON.parse(String(init.body))).toMatchObject({ key: 'k1', application: { role: 'Vendor Relations Assistant' } })
+    expect(JSON.parse(String(init.body))).toMatchObject({ key: 'k1', application: { team: 'Marketplace', phone: '+234 801 234 5678' } })
 
     const refused = vi.fn(async () => new Response('{"ok":false,"error":"Wrong or missing connection key"}'))
     await expect(sendToSheet(app, { url: 'u', key: 'bad', fetch: refused as unknown as typeof fetch })).rejects.toThrow(/connection key/)

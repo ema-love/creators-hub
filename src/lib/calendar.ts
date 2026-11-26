@@ -4,7 +4,7 @@ const icsTime = (iso: string) => iso.replace(/[-:]/g, '').replace(/\.\d{3}/, '')
 
 /**
  * Builds a calendar entry from confirmed details only: name, date,
- * 9:00 AM to 5:00 PM (WAT) and city. The venue is added once announced.
+ * 9:00 AM to 3:00 PM (WAT), city and the online option. The venue is added once announced.
  */
 export function firstRoomCalendarHref(): string {
   const location = [firstRoom.venue, `${firstRoom.city}, ${firstRoom.country}`].filter(Boolean).join(', ')
@@ -19,7 +19,7 @@ export function firstRoomCalendarHref(): string {
     ...(firstRoom.endUtc ? [`DTEND:${icsTime(firstRoom.endUtc)}`] : []),
     `SUMMARY:${firstRoom.fullName}`,
     `LOCATION:${location}`,
-    `DESCRIPTION:${firstRoom.direction} ${firstRoom.timeRange} (WAT). ${firstRoom.venue ? '' : 'Venue to be announced.'}`,
+    `DESCRIPTION:${firstRoom.direction} ${firstRoom.timeRange}. In Lagos and online. ${firstRoom.venue ? '' : 'Venue to be announced.'}`,
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n')

@@ -1,16 +1,16 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { isTicketDesignId, type TicketDesignId } from '../../src/content/ticketDesigns'
 import { claim, type Kv } from './kv'
-import type { Registration, RegistrationStore } from './registrations'
+import type { Attendance, Registration, RegistrationStore } from './registrations'
 import { issueTicket, ticketForRegistration, type Ticket } from './tickets'
 
-export type RegistrationInput = { name: string; email: string; design: TicketDesignId }
+export type RegistrationInput = { name: string; email: string; design: TicketDesignId; attendance: Attendance; location?: string }
 
 export type Result<T> = { ok: true; value: T } | { ok: false; status: number; error: string }
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-/** Validates a registration. There is no quantity: one person, one ticket. */
+/** Validates a registration. There is no quantity: one person, one registration. */
 export function parseRegistration(body: unknown): Result<RegistrationInput> {
   const b = (body ?? {}) as Record<string, unknown>
   const fail = (error: string) => ({ ok: false as const, status: 400, error })
@@ -22,7 +22,12 @@ export function parseRegistration(body: unknown): Result<RegistrationInput> {
   if (name.length < 2 || name.length > 80) return fail('Enter your full name.')
   if (!EMAIL.test(email) || email.length > 200) return fail('Enter a valid email address.')
   if (!isTicketDesignId(b.design)) return fail('Choose the creative arm you’re under.')
-  return { ok: true, value: { name, email, design: b.design } }
+  if (b.attendance !== 'in_person' && b.attendance !== 'online') return fail('Choose how you’ll attend: in person or online.')
+  const location = String(b.location ?? '').trim().replace(/\s+/g, ' ').slice(0, 80)
+  return {
+    ok: true,
+    value: { name, email, design: b.design, attendance: b.attendance, ...(b.attendance === 'online' && location ? { location } : {}) },
+  }
 }
 
 /**
@@ -51,7 +56,7 @@ export function capacityFromEnv(value = process.env.EVENT_CAPACITY): number | nu
   return Number.isInteger(n) && n >= 0 ? n : null
 }
 
-/** Places taken so far. */
+/** In-person places taken so far (online attendance has no limit). */
 export async function seatsTaken(kv: Kv): Promise<number> {
   return (await kv.list('seat/')).length
 }
@@ -85,7 +90,8 @@ async function claimSeat(kv: Kv, ref: string, capacity: number): Promise<number 
  * Exactly one registration per inbox, even when the same email is submitted
  * many times at once: the first request to claim the email's key wins, and
  * every other request is told the email is already registered. With a
- * capacity set, each registration also claims one numbered place.
+ * capacity set, each in-person registration also claims one numbered place;
+ * online attendance has no limit.
  */
 export async function registerAttendee(
   kv: Kv,
@@ -110,7 +116,7 @@ export async function registerAttendee(
     }
   }
 
-  if (capacity !== null && (await claimSeat(kv, ref, capacity)) === null) {
+  if (input.attendance === 'in_person' && capacity !== null && (await claimSeat(kv, ref, capacity)) === null) {
     await kv.delete(key) // free the email so they can register if places open up
     return { state: 'full' }
   }
@@ -120,6 +126,8 @@ export async function registerAttendee(
     name: input.name,
     email: input.email,
     design: input.design,
+    attendance: input.attendance,
+    ...(input.location ? { location: input.location } : {}),
     accessKey: randomBytes(18).toString('base64url'),
     createdAt: now.toISOString(),
   }

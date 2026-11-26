@@ -5,14 +5,17 @@
  * (Extensions → Apps Script). Setup steps are in README.md next to this file.
  *
  * The website sends two kinds of record:
- *   - Ticket registrations: added as a row on the "Registrations" tab.
- *   - Volunteer applications: added to the "Applications" tab and emailed to
+ *   - Registrations (in person and online): added as a row on the
+ *     "Registrations" tab, with an Attendance column.
+ *   - Volunteer applications: added to the "Volunteers" tab and emailed to
  *     the owner of this spreadsheet (you). No address is stored anywhere:
  *     Google sends it to the account that owns the script.
+ *     Applications made with the earlier form stay on the "Applications" tab.
  */
 
 const REGS = 'Registrations'
-const APPS = 'Applications'
+const VOLS = 'Volunteers'
+const APPS = 'Applications' // earlier volunteer form; kept as it was
 const OVERVIEW = 'Overview'
 const FIRST_DATA_ROW = 5
 const ROWS = 1000
@@ -46,6 +49,24 @@ const COLUMNS = [
 ]
 const COL = Object.fromEntries(COLUMNS.map((c, i) => [c.title, i + 1]))
 
+/** The current volunteer form (six teams). */
+const VOL_COLUMNS = [
+  { title: 'Received', width: 150 },
+  { title: 'Status', width: 120 },
+  { title: 'Name', width: 180 },
+  { title: 'Email', width: 220 },
+  { title: 'Phone / WhatsApp', width: 170 },
+  { title: 'First choice', width: 240 },
+  { title: 'Second choice', width: 240 },
+  { title: 'In person / online', width: 170 },
+  { title: 'Briefing', width: 100 },
+  { title: 'Experience / links', width: 320 },
+  { title: 'Team level', width: 220 },
+  { title: 'Notes', width: 240 },
+  { title: 'Submission ID', width: 130 },
+]
+const VOL = Object.fromEntries(VOL_COLUMNS.map((c, i) => [c.title, i + 1]))
+
 const REG_COLUMNS = [
   { title: 'Registered', width: 160 },
   { title: 'Ticket ID', width: 130 },
@@ -54,6 +75,9 @@ const REG_COLUMNS = [
   { title: 'Creative arm', width: 190 },
   { title: 'Notes', width: 260 },
   { title: 'Reference', width: 190 },
+  // Added with the online option. New columns go at the end so existing rows stay lined up.
+  { title: 'Attendance', width: 130 },
+  { title: 'City / country', width: 180 },
 ]
 const REG = Object.fromEntries(REG_COLUMNS.map((c, i) => [c.title, i + 1]))
 
@@ -138,25 +162,27 @@ function recordRegistration(r) {
     safe(r.arm),
     '',
     safe(r.ref),
+    safe(r.attendance || 'In person'),
+    safe(r.location),
   ]
   const next = Math.max(sheet.getLastRow() + 1, FIRST_DATA_ROW)
   sheet.getRange(next, 1, 1, row.length).setValues([row])
   return { duplicate: false }
 }
 
-/** Adds the row (once per submission) and emails the owner. */
+/** Adds the row (once per submission) to the Volunteers tab and emails the owner. */
 function recordApplication(app) {
   const ss = SpreadsheetApp.getActiveSpreadsheet()
-  let sheet = ss.getSheetByName(APPS)
+  let sheet = ss.getSheetByName(VOLS)
   if (!sheet) {
     setUpSheet()
-    sheet = ss.getSheetByName(APPS)
+    sheet = ss.getSheetByName(VOLS)
   }
 
   const id = text(app.submissionId)
   if (id && sheet.getLastRow() >= FIRST_DATA_ROW) {
     const found = sheet
-      .getRange(FIRST_DATA_ROW, COL['Submission ID'], sheet.getLastRow() - FIRST_DATA_ROW + 1, 1)
+      .getRange(FIRST_DATA_ROW, VOL['Submission ID'], sheet.getLastRow() - FIRST_DATA_ROW + 1, 1)
       .createTextFinder(id)
       .matchEntireCell(true)
       .findNext()
@@ -169,14 +195,14 @@ function recordApplication(app) {
     'New',
     safe(app.name),
     safe(app.email),
-    safe(app.role),
-    safe(app.department + (app.conditional ? ' (if confirmed)' : '')),
-    safe(app.roleLevel),
-    safe(app.second_role),
-    safe(app.stage),
-    safe(app.discipline),
+    // Kept as text so a leading + or 0 isn't lost.
+    "'" + text(app.phone),
+    safe(text(app.team) + (app.conditional ? ' (subject to confirmation)' : '')),
+    safe(app.second_team),
+    safe(app.attendance),
+    safe(app.briefing),
     safe(app.experience),
-    safe(app.message),
+    safe(app.teamLevel),
     '',
     safe(id),
   ]
@@ -198,20 +224,17 @@ function emailOwner(app, rowUrl) {
   const to = Session.getEffectiveUser().getEmail()
   if (!to) return
   const name = text(app.name) || 'Someone'
-  const role = text(app.role) || 'a role'
+  const role = text(app.team) || 'a team'
   const details = [
     ['Email', text(app.email)],
-    ['First choice', role],
-    ['Department', text(app.department) + (app.conditional ? ' (only if the marketplace is confirmed)' : '')],
-    ['Level', text(app.roleLevel)],
-    ['Second choice', text(app.second_role) || 'None'],
-    ['Describes them', text(app.stage) || 'Not given'],
-    ['Field / course', text(app.discipline) || 'Not given'],
+    ['Phone / WhatsApp', text(app.phone)],
+    ['First choice', role + (app.conditional ? ' (subject to confirmation)' : '')],
+    ['Team level', text(app.teamLevel)],
+    ['Second choice', text(app.second_team) || 'None'],
+    ['In person / online', text(app.attendance)],
+    ['Can attend briefing', text(app.briefing) || 'Not given'],
   ]
-  const long = [
-    ['Experience', text(app.experience) || 'Not given'],
-    ['Why they want to volunteer', text(app.message) || 'Not given'],
-  ]
+  const long = [['Experience or links', text(app.experience) || 'Not given']]
 
   const rows = details
     .map(
@@ -234,6 +257,8 @@ function emailOwner(app, rowUrl) {
     )
     .join('')
   const replyHref = 'mailto:' + encodeURIComponent(text(app.email)) + '?subject=' + encodeURIComponent('Creators Hub 001: your volunteer application')
+  const digits = text(app.phone).replace(/[^0-9]/g, '').replace(/^0/, '234')
+  const whatsapp = digits.length >= 8 ? 'https://wa.me/' + digits : ''
 
   const html =
     '<div style="background:' + C.cream + ';padding:32px 12px;font-family:Inter,Helvetica,Arial,sans-serif">' +
@@ -249,7 +274,8 @@ function emailOwner(app, rowUrl) {
     '<table role="presentation" style="width:100%;border-collapse:collapse;margin-top:16px">' + rows + '</table>' +
     blocks +
     '<div style="margin-top:32px">' +
-    '<a href="' + replyHref + '" style="display:inline-block;background:' + C.electric + ';color:' + C.ink + ';text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;font-size:14px">Reply to ' + esc(name.split(' ')[0]) + '</a>' +
+    '<a href="' + replyHref + '" style="display:inline-block;background:' + C.electric + ';color:' + C.ink + ';text-decoration:none;font-weight:600;padding:12px 22px;border-radius:999px;font-size:14px">Email ' + esc(name.split(' ')[0]) + '</a>' +
+    (whatsapp ? '<a href="' + esc(whatsapp) + '" style="display:inline-block;margin-left:12px;color:' + C.forest + ';font-size:14px;padding:12px 4px">WhatsApp →</a>' : '') +
     '<a href="' + esc(rowUrl) + '" style="display:inline-block;margin-left:12px;color:' + C.forest + ';font-size:14px;padding:12px 4px">Open in the sheet →</a>' +
     '</div></div>' +
     '<div style="background:' + C.forest + ';padding:14px 32px;color:#CFE3D9;font-size:12px">Saved to your volunteer applications sheet with the status “New”.</div>' +
@@ -278,15 +304,18 @@ function setUpSheet() {
   if (/^Untitled/i.test(ss.getName()) || /Volunteer Applications$/.test(ss.getName())) ss.rename('Creators Hub 001')
 
   const sheets = ss.getSheets()
-  const blank = sheets.length === 1 && sheets[0].getLastRow() === 0 && !ss.getSheetByName(REGS) && !ss.getSheetByName(APPS) ? sheets[0] : null
+  const blank = sheets.length === 1 && sheets[0].getLastRow() === 0 && !ss.getSheetByName(REGS) && !ss.getSheetByName(VOLS) ? sheets[0] : null
 
   let regs = ss.getSheetByName(REGS)
   if (!regs) regs = blank ? blank.setName(REGS) : ss.insertSheet(REGS, 0)
-  let apps = ss.getSheetByName(APPS)
-  if (!apps) apps = ss.insertSheet(APPS, 1)
+  let vols = ss.getSheetByName(VOLS)
+  if (!vols) vols = ss.insertSheet(VOLS, 1)
 
   styleRegistrations(regs)
-  styleApplications(apps)
+  styleVolunteers(vols)
+  // The earlier volunteer form's tab, if this sheet has one: restyled, never deleted.
+  const apps = ss.getSheetByName(APPS)
+  if (apps) styleApplications(apps)
   styleOverview(ss)
   ss.setActiveSheet(regs)
   getOrCreateKey()
@@ -366,25 +395,50 @@ function styleRegistrations(sheet) {
   sheet.getRange(FIRST_DATA_ROW, REG['Ticket ID'], dataRows, 1).setFontFamily('Roboto Mono').setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, REG['Name'], dataRows, 1).setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, REG['Reference'], dataRows, 1).setFontColor('#A8A8A0').setFontSize(8)
+  const att = sheet.getRange(FIRST_DATA_ROW, REG['Attendance'], dataRows, 1).setHorizontalAlignment('center').setFontWeight('bold')
+  sheet.setConditionalFormatRules([
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Online').setBackground('#E1E9F2').setFontColor('#24405E').setRanges([att]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('In person').setBackground('#D9EDE3').setFontColor(C.forest).setRanges([att]).build(),
+  ])
+}
+
+function styleVolunteers(sheet) {
+  sheet.setTabColor(C.forest)
+  const dataRows = styleTable(sheet, 'Volunteers', '●  CREATORS HUB 001 · THE FIRST ROOM · VOLUNTEER APPLICATIONS', VOL_COLUMNS, 3)
+  sheet.getRange(FIRST_DATA_ROW, VOL['Name'], dataRows, 1).setFontWeight('bold')
+  sheet.getRange(FIRST_DATA_ROW, VOL['Status'], dataRows, 1).setHorizontalAlignment('center').setFontWeight('bold')
+  sheet.getRange(FIRST_DATA_ROW, VOL['Briefing'], dataRows, 1).setHorizontalAlignment('center')
+  sheet.getRange(FIRST_DATA_ROW, VOL['Phone / WhatsApp'], dataRows, 1).setNumberFormat('@')
+  sheet.getRange(FIRST_DATA_ROW, VOL['Submission ID'], dataRows, 1).setFontColor('#A8A8A0').setFontSize(8)
+  statusRules(sheet, VOL['Status'], dataRows, [])
 }
 
 function styleApplications(sheet) {
   sheet.setTabColor(C.forest)
   const n = COLUMNS.length
-  const dataRows = styleTable(sheet, 'Volunteer applications', '●  CREATORS HUB 001 · THE FIRST ROOM · VOLUNTEERS', COLUMNS, 3)
+  sheet.setTabColor('#A8A8A0')
+  const dataRows = styleTable(sheet, 'Earlier applications', '●  VOLUNTEER APPLICATIONS FROM THE EARLIER FORM · NEW ONES ARE ON THE VOLUNTEERS TAB', COLUMNS, 3)
   sheet.getRange(FIRST_DATA_ROW, COL['Name'], dataRows, 1).setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, COL['Status'], dataRows, 1).setHorizontalAlignment('center').setFontWeight('bold')
   sheet.getRange(FIRST_DATA_ROW, COL['Submission ID'], dataRows, 1).setFontColor('#A8A8A0').setFontSize(8)
 
-  // Status dropdown and colours
-  const statusRange = sheet.getRange(FIRST_DATA_ROW, COL['Status'], dataRows, 1)
+  const levelRange = sheet.getRange(FIRST_DATA_ROW, COL['Level'], dataRows, 1)
+  statusRules(sheet, COL['Status'], dataRows, [
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Beginners welcome').setFontColor('#1F7A57').setRanges([levelRange]).build(),
+    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Experience preferred').setFontColor('#6A4B00').setRanges([levelRange]).build(),
+  ])
+  return n
+}
+
+/** Status dropdown and colours. */
+function statusRules(sheet, col, dataRows, extraRules) {
+  const statusRange = sheet.getRange(FIRST_DATA_ROW, col, dataRows, 1)
   statusRange.setDataValidation(
     SpreadsheetApp.newDataValidation()
       .requireValueInList(STATUSES.map((s) => s.name), true)
       .setAllowInvalid(false)
       .build(),
   )
-  const levelRange = sheet.getRange(FIRST_DATA_ROW, COL['Level'], dataRows, 1)
   const rules = STATUSES.map((s) =>
     SpreadsheetApp.newConditionalFormatRule()
       .whenTextEqualTo(s.name)
@@ -392,18 +446,16 @@ function styleApplications(sheet) {
       .setFontColor(s.fg)
       .setRanges([statusRange])
       .build(),
-  ).concat([
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Beginners welcome').setFontColor('#1F7A57').setRanges([levelRange]).build(),
-    SpreadsheetApp.newConditionalFormatRule().whenTextEqualTo('Experience preferred').setFontColor('#6A4B00').setRanges([levelRange]).build(),
-  ])
-  sheet.setConditionalFormatRules(rules)
-  return n
+  )
+  sheet.setConditionalFormatRules(rules.concat(extraRules))
 }
 
 function styleOverview(ss) {
   let sheet = ss.getSheetByName(OVERVIEW)
   if (!sheet) sheet = ss.insertSheet(OVERVIEW, 2)
+  const hasOld = !!ss.getSheetByName(APPS)
   sheet.clear()
+  sheet.getRange(1, 1, sheet.getMaxRows(), sheet.getMaxColumns()).breakApart()
   sheet.clearConditionalFormatRules()
   if (sheet.getMaxColumns() > 8) sheet.deleteColumns(9, sheet.getMaxColumns() - 8)
   sheet.setHiddenGridlines(true)
@@ -412,7 +464,7 @@ function styleOverview(ss) {
   ;[24, 260, 160, 24, 260, 160, 24, 24].forEach((w, i) => sheet.setColumnWidth(i + 1, w))
 
   const r = "'" + REGS + "'!"
-  const a = "'" + APPS + "'!"
+  const v = "'" + VOLS + "'!"
   const last = String(ROWS)
   sheet.getRange('A1:H3').setBackground(C.ink)
   sheet.getRange('B1:F1').merge().setValue('Overview').setFontFamily(DISPLAY_FONT).setFontSize(22).setFontWeight('bold').setFontColor(C.cream).setVerticalAlignment('bottom')
@@ -427,26 +479,34 @@ function styleOverview(ss) {
     sheet.getRange(row, col + 1).setFormula(formula).setFontFamily(DISPLAY_FONT).setFontSize(18).setFontWeight('bold').setHorizontalAlignment('right')
     sheet.setRowHeight(row, 38)
   }
-  stat(5, 2, 'Registrations (free tickets)', '=COUNTA(' + r + 'B5:B' + last + ')')
-  stat(6, 2, 'Registered today', '=COUNTIFS(' + r + 'A5:A' + last + ',">="&TODAY())')
-  stat(5, 5, 'Volunteer applications', '=COUNTA(' + a + 'C5:C' + last + ')')
-  stat(6, 5, 'New, not yet reviewed', '=COUNTIF(' + a + 'B5:B' + last + ',"New")')
-  stat(7, 5, 'Volunteers selected', '=COUNTIF(' + a + 'B5:B' + last + ',"Selected")')
-  sheet.getRange('B5:C6').setBorder(null, null, true, null, null, true, '#E1D9CB', SpreadsheetApp.BorderStyle.SOLID)
-  sheet.getRange('E5:F7').setBorder(null, null, true, null, null, true, '#E1D9CB', SpreadsheetApp.BorderStyle.SOLID)
+  // Rows saved before the online option have no Attendance: they're in person.
+  stat(5, 2, 'Registrations (all)', '=COUNTA(' + r + 'B5:B' + last + ')')
+  stat(6, 2, 'In person (QR tickets)', '=COUNTA(' + r + 'B5:B' + last + ')-COUNTIF(' + r + 'H5:H' + last + ',"Online")')
+  stat(7, 2, 'Online', '=COUNTIF(' + r + 'H5:H' + last + ',"Online")')
+  stat(8, 2, 'Registered today', '=COUNTIFS(' + r + 'A5:A' + last + ',">="&TODAY())')
+  stat(5, 5, 'Volunteer applications', '=COUNTA(' + v + 'C5:C' + last + ')')
+  stat(6, 5, 'New, not yet reviewed', '=COUNTIF(' + v + 'B5:B' + last + ',"New")')
+  stat(7, 5, 'Volunteers selected', '=COUNTIF(' + v + 'B5:B' + last + ',"Selected")')
+  stat(8, 5, 'Can attend the briefing', '=COUNTIF(' + v + 'I5:I' + last + ',"Yes")')
+  sheet.getRange('B5:C8').setBorder(null, null, true, null, null, true, '#E1D9CB', SpreadsheetApp.BorderStyle.SOLID)
+  sheet.getRange('E5:F8').setBorder(null, null, true, null, null, true, '#E1D9CB', SpreadsheetApp.BorderStyle.SOLID)
+  if (hasOld) {
+    stat(9, 5, 'Earlier form (Applications tab)', "=COUNTA('" + APPS + "'!C5:C" + last + ')')
+    sheet.getRange(9, 5, 1, 2).setFontColor(C.muted)
+  }
 
   const table = (row, col, title, formula) => {
     sheet.getRange(row, col, 1, 2).merge().setValue(title.toUpperCase()).setFontFamily(DISPLAY_FONT).setFontSize(9).setFontWeight('bold').setFontColor(C.forest)
     sheet.getRange(row + 1, col).setFormula(formula)
     sheet.getRange(row + 1, col, 1, 2).setBackground(C.forest).setFontColor(C.cream).setFontWeight('bold').setFontSize(9)
-    sheet.getRange(row + 2, col + 1, 40, 1).setHorizontalAlignment('right').setFontWeight('bold')
+    sheet.getRange(row + 2, col + 1, 8, 1).setHorizontalAlignment('right').setFontWeight('bold')
   }
   const query = (range, col, label) =>
     '=IFERROR(QUERY(' + range + ',"select ' + col + ', count(' + col + ') where ' + col + " <> '' group by " + col + ' order by count(' + col + ") desc label " + col + " '" + label + "', count(" + col + ") 'Count'\",0),\"None yet\")"
-  table(10, 2, 'Registrations by creative arm', query(r + 'E5:E' + last, 'E', 'Creative arm'))
-  table(10, 5, 'Volunteers by role', query(a + 'E5:E' + last, 'E', 'Role'))
-  table(30, 5, 'Volunteers by status', query(a + 'B5:B' + last, 'B', 'Status'))
-  table(40, 5, 'Who is volunteering', query(a + 'I5:I' + last, 'I', 'Describes them'))
+  table(11, 2, 'Registrations by creative arm', query(r + 'E5:E' + last, 'E', 'Creative arm'))
+  table(11, 5, 'Volunteers by first-choice team', query(v + 'F5:F' + last, 'F', 'Team'))
+  table(22, 2, 'Volunteers in person / online', query(v + 'H5:H' + last, 'H', 'Attending'))
+  table(22, 5, 'Volunteers by status', query(v + 'B5:B' + last, 'B', 'Status'))
 }
 
 /* ───────────────────────────── Key & test ───────────────────────────── */
@@ -481,6 +541,8 @@ function sendTestRegistration() {
     name: 'Test Attendee',
     email: 'test@example.com',
     arm: 'Film & Storytelling',
+    attendance: 'Online',
+    location: 'Accra, Ghana',
     registeredAt: new Date().toISOString(),
   })
   try {
@@ -492,20 +554,19 @@ function sendTestApplication() {
   recordApplication({
     name: 'Test Applicant',
     email: 'test@example.com',
-    role: 'Speaker Liaison',
-    department: 'Speaker & Programme Support',
-    roleLevel: 'Beginners welcome',
-    conditional: false,
-    second_role: 'Programme Timekeeper',
-    stage: 'Student',
-    discipline: 'Film & storytelling',
+    phone: '+234 801 234 5678',
+    team: 'Online Host',
+    second_team: 'Welcome & Registration',
+    attendance: 'Online (Online Host only)',
     experience: 'None yet. This is a test row: delete it whenever you like.',
-    message: 'Checking that applications reach the sheet and my inbox.',
+    briefing: 'Yes',
+    teamLevel: 'Beginners welcome',
+    conditional: false,
     submittedAt: new Date().toISOString(),
     submissionId: 'test-' + Date.now(),
   })
   try {
-    SpreadsheetApp.getUi().alert('Test sent', 'A test row was added and an email is on its way to you.', SpreadsheetApp.getUi().ButtonSet.OK)
+    SpreadsheetApp.getUi().alert('Test sent', 'A test row was added to Volunteers and an email is on its way to you.', SpreadsheetApp.getUi().ButtonSet.OK)
   } catch (e) {}
 }
 

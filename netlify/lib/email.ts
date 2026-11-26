@@ -1,7 +1,7 @@
 import { firstRoom } from '../../src/content/event'
 import { categoryStyle, designById, EVENT_TAGLINE } from '../../src/content/ticketDesigns'
 import { registrationUrl, ticketQrUrl } from './http'
-import type { Registration } from './registrations'
+import { attendanceOf, type Registration } from './registrations'
 import type { Ticket } from './tickets'
 
 export type Email = { to: string; subject: string; html: string; text: string; idempotencyKey: string }
@@ -145,6 +145,7 @@ export function renderRegistrationEmail(
   origin: string,
   idempotencyKey = `registration-email-${registration.ref}`,
 ): Email {
+  if (attendanceOf(registration) === 'online') return renderOnlineEmail(registration, ticket, origin, idempotencyKey)
   const firstName = registration.name.split(/\s+/)[0] ?? registration.name
   const subject = `Your ticket for ${firstRoom.name}, ${firstRoom.dateLabel} (${ticket.id})`
   const viewUrl = registrationUrl(origin, registration.ref, registration.accessKey)
@@ -154,7 +155,7 @@ export function renderRegistrationEmail(
     subject,
     `<tr><td class="t-head" style="padding:0 4px;font:500 32px/1.1 ${SERIF};color:${L.head}">You’re in the room, ${esc(firstName)}.</td></tr>
     <tr><td class="t-body" style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:${L.body}">Thank you for registering for ${esc(firstRoom.fullName)}. Your ticket is below. It admits one person: show its QR code at the door, on your phone or printed.</td></tr>
-    <tr><td class="t-head" style="padding:8px 4px 28px;font:600 15px/1.6 ${SANS};color:${L.head}">${esc(firstRoom.dateLabel)} · ${esc(firstRoom.timeRange)} (WAT) · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}<br><span class="t-muted" style="font-weight:400;color:${L.muted}">Venue: ${esc(firstRoom.venue ?? 'to be announced')}</span></td></tr>
+    <tr><td class="t-head" style="padding:8px 4px 28px;font:600 15px/1.6 ${SANS};color:${L.head}">${esc(firstRoom.dateLabel)} · ${esc(firstRoom.timeRange)} · ${esc(firstRoom.city)}, ${esc(firstRoom.country)}<br><span class="t-muted" style="font-weight:400;color:${L.muted}">Venue: ${esc(firstRoom.venue ?? 'to be announced')}</span></td></tr>
     ${ticketBlock(ticket, origin)}
     <tr><td align="center" style="padding:4px 4px 8px">
       <a href="${esc(viewUrl)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View and download your ticket</a>
@@ -169,7 +170,7 @@ export function renderRegistrationEmail(
     `Thank you for registering for ${firstRoom.fullName}. Your ticket is below. It admits one person: show its QR code at the door, on your phone or printed.`,
     '',
     `${firstRoom.fullName}`,
-    `${firstRoom.dateLabel} · ${firstRoom.timeRange} (WAT) · ${firstRoom.city}, ${firstRoom.country}`,
+    `${firstRoom.dateLabel} · ${firstRoom.timeRange} · ${firstRoom.city}, ${firstRoom.country}`,
     `Venue: ${firstRoom.venue ?? 'to be announced'}`,
     '',
     `${ticket.id} · ${designById(ticket.design).name} · ${categoryStyle[ticket.category].label}`,
@@ -179,6 +180,57 @@ export function renderRegistrationEmail(
     `Registration ${registration.ref}`,
     '',
     `You’re receiving this because you registered for ${firstRoom.fullName}. Questions? Just reply to this email.`,
+  ].join('\n')
+
+  return { to: registration.email, subject, html, text, idempotencyKey }
+}
+
+/** Confirmation for online attendees: no QR code, an online pass, and the joining-link promise. */
+export const ONLINE_CONFIRMATION = `You’re registered to join ${firstRoom.name} online on ${firstRoom.dateCompact}, ${firstRoom.timeCompact}. We’ll send your joining link before the event.`
+
+function renderOnlineEmail(registration: Registration, ticket: Ticket, origin: string, idempotencyKey: string): Email {
+  const firstName = registration.name.split(/\s+/)[0] ?? registration.name
+  const subject = `You’re registered to join ${firstRoom.name} online (${ticket.id})`
+  const viewUrl = registrationUrl(origin, registration.ref, registration.accessKey)
+  const arm = designById(ticket.design).name
+
+  const html = emailShell(
+    origin,
+    subject,
+    `<tr><td class="t-head" style="padding:0 4px;font:500 32px/1.1 ${SERIF};color:${L.head}">See you online, ${esc(firstName)}.</td></tr>
+    <tr><td class="t-body" style="padding:12px 4px 8px;font:400 15px/1.6 ${SANS};color:${L.body}">${esc(ONLINE_CONFIRMATION)}</td></tr>
+    <tr><td class="t-head" style="padding:8px 4px 24px;font:600 15px/1.6 ${SANS};color:${L.head}">${esc(firstRoom.fullName)}<br><span class="t-muted" style="font-weight:400;color:${L.muted}">${esc(firstRoom.dateLabel)} · ${esc(firstRoom.timeRange)} · Online, from anywhere</span></td></tr>
+    <tr><td style="padding:0 4px 28px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.card};border-radius:12px">
+        <tr><td style="padding:22px 24px">
+          <div style="font:700 11px/1 ${SANS};letter-spacing:.16em;color:${C.electric}">ONLINE PASS</div>
+          <div style="padding-top:12px;font:500 22px/1.2 ${SERIF};color:${C.cream}">${esc(ticket.attendeeName)}</div>
+          <div style="padding-top:8px;font:400 13px/1.5 ${SANS};color:${C.muted}">${esc(arm)}${registration.location ? ` · ${esc(registration.location)}` : ''}</div>
+          <div style="padding-top:12px;font:600 12px/1 ${SANS};letter-spacing:.06em;color:${C.cream}">${esc(ticket.id)}</div>
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td align="center" style="padding:4px 4px 8px">
+      <a href="${esc(viewUrl)}" style="display:inline-block;background:${C.electric};color:${C.ink};font:700 14px/1 ${SANS};text-decoration:none;padding:16px 26px;border-radius:999px">View your online pass</a>
+    </td></tr>
+    <tr><td class="t-muted" style="padding:24px 4px 0;font:400 13px/1.6 ${SANS};color:${L.muted}">Registration ${esc(registration.ref)}. No QR code is needed to join online. Keep this email: we’ll send your joining link to this address before the event.</td></tr>
+    <tr><td class="t-foot" style="padding:24px 4px 0;font:400 12px/1.6 ${SANS};color:${L.foot}">You’re receiving this because you registered to join ${esc(firstRoom.fullName)} online. Questions? Just reply to this email.</td></tr>`,
+  )
+
+  const text = [
+    `See you online, ${firstName}.`,
+    '',
+    ONLINE_CONFIRMATION,
+    '',
+    `${firstRoom.fullName}`,
+    `${firstRoom.dateLabel} · ${firstRoom.timeRange} · Online, from anywhere`,
+    '',
+    `Online pass ${ticket.id} · ${ticket.attendeeName} · ${arm}${registration.location ? ` · ${registration.location}` : ''}`,
+    '',
+    `View your online pass: ${viewUrl}`,
+    `Registration ${registration.ref}`,
+    '',
+    `You’re receiving this because you registered to join ${firstRoom.fullName} online. Questions? Just reply to this email.`,
   ].join('\n')
 
   return { to: registration.email, subject, html, text, idempotencyKey }

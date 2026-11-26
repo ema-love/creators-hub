@@ -16,8 +16,15 @@ export const TICKET_CATEGORY: TicketTierId = 'free'
 export const registrationCopy = {
   eyebrow: 'Free registration',
   title: ['Claim your place', 'in the room.'],
-  lede: 'Registration for The First Room is free. One ticket per person, and each email address can register once.',
-  points: ['Free to attend', 'One ticket per person', 'Your own QR ticket, ready instantly'],
-  full: 'Registration is full. Every place for The First Room has been claimed.',
+  lede: 'Join us in Lagos or online. Free. One registration per person.',
+  points: ['Free to attend', 'In Lagos or online', 'One registration per person'],
+  full: 'In-person places are full. You can still join online.',
   closed: 'Registration isn’t open right now. Check back soon.',
 }
+
+/** How someone will attend. */
+export type Attendance = 'in_person' | 'online'
+export const attendanceOptions: Array<{ id: Attendance; label: string; hint: string }> = [
+  { id: 'in_person', label: 'In person, in Lagos', hint: 'Your QR ticket admits you at the door.' },
+  { id: 'online', label: 'Online, from anywhere', hint: 'We’ll send your joining link before the event.' },
+]

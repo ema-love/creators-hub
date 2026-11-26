@@ -369,11 +369,16 @@ function OverviewTab({ pin, onAuthError }: TabProps) {
             <p className="mt-2 text-sm text-cream/55">{data.totals.issued - data.totals.checkedIn} still to arrive</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="rounded-[16px] border border-cream/15 p-4">
-              <p className="eyebrow text-cream/50">Registered</p>
+              <p className="eyebrow text-cream/50">In person</p>
               <p className="mt-2 font-display text-2xl tabular-nums">{data.totals.issued}</p>
-              <p className="text-xs text-cream/50">free tickets issued</p>
+              <p className="text-xs text-cream/50">QR tickets issued</p>
+            </div>
+            <div className="rounded-[16px] border border-cream/15 p-4">
+              <p className="eyebrow text-cream/50">Online</p>
+              <p className="mt-2 font-display text-2xl tabular-nums">{data.online ?? 0}</p>
+              <p className="text-xs text-cream/50">joining online</p>
             </div>
             <div className="rounded-[16px] border border-cream/15 p-4">
               <p className="eyebrow text-cream/50">Places left</p>
@@ -385,7 +390,7 @@ function OverviewTab({ pin, onAuthError }: TabProps) {
           </div>
 
           <div className="rounded-[16px] border border-cream/15 p-5">
-            <p className="eyebrow text-cream/50">By creative arm</p>
+            <p className="eyebrow text-cream/50">By creative arm (in person)</p>
             <ul className="mt-4 space-y-3">
               {data.byDesign.map((d) => (
                 <li key={d.id}>

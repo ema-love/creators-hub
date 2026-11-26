@@ -1,7 +1,7 @@
 import { designById } from '../../src/content/ticketDesigns'
 import { renderRegistrationEmail, type Mailer } from './email'
 import type { Kv } from './kv'
-import type { Registration, RegistrationStore } from './registrations'
+import { attendanceLabel, attendanceOf, type Registration, type RegistrationStore } from './registrations'
 import { postToSheet, type SheetConfig } from './sheet'
 import type { Ticket } from './tickets'
 
@@ -20,6 +20,8 @@ export const sheetRow = (r: Registration, t: Ticket) => ({
   email: r.email,
   arm: designById(t.design).name,
   registeredAt: r.createdAt,
+  attendance: attendanceLabel(attendanceOf(r)),
+  location: r.location ?? '',
 })
 
 /**

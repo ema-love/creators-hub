@@ -73,7 +73,7 @@ src/
 4. **Disciplines & ecosystem**: the four disciplines; choosing one brings its illustrated studio into view, with a small map showing its connections to the others
 5. **The First Room 001**: pinned scroll sequence where a doorway opens into the event (own rust-and-ink treatment)
 6. **Community & opportunities**: stated as intentions, not confirmed programmes
-7. **Volunteer**: interest form
+7. **Volunteer**: six core teams and the application form (`/volunteer#apply`)
 8. **Partnership**: partnership types + enquiry form
 9. **Contact** + footer
 
@@ -144,7 +144,8 @@ Tickets for The First Room are **free**. Registration is on `/tickets`. There is
 ### Rules
 - **One ticket per person.** The form has no quantity: each registration is one person and one ticket.
 - **One registration per email.** Addresses that reach the same inbox count as the same: capitals, `+tags`, and dots in Gmail addresses (`a.b+x@gmail.com` = `ab@googlemail.com`). This holds even if the same email is submitted many times at once. Only the first request can claim the email's create-only-if-new record.
-- **Capacity is configurable** with `EVENT_CAPACITY` in Netlify: a number such as `300`, empty for no limit, or `0` to close registration. Each registration claims a numbered place the same way, so the limit holds even when many people register at the same moment. When it's full, the page says so, and the server refuses new registrations. Raising the number reopens registration.
+- **In person or online.** Everyone registers in the same list, with `attendance` set to `in_person` or `online` (records saved before this option have no field and count as in person). In-person registrants get the QR ticket (`CH001-S-0001`…); online registrants get an online pass (`CH001-O-0001`…) with no QR code, which the door scanner refuses. One registration per email covers both. `/admin` shows in person and online counts, exports both in the CSV, and can message everyone, in person only or online only (e.g. the joining link).
+- **Capacity is configurable** with `EVENT_CAPACITY` in Netlify: a number such as `300` (in-person places only; online is unlimited), empty for no limit, or `0` to close registration. Each registration claims a numbered place the same way, so the limit holds even when many people register at the same moment. When it's full, the page says so, and the server refuses new registrations. Raising the number reopens registration.
 - Basic protection: a hidden field that bots fill in, and at most 40 registrations per network per hour.
 
 ### How it works
@@ -200,7 +201,7 @@ In Netlify, add these environment variables, then redeploy:
 - `GMAIL_MAILER_URL` and `GMAIL_MAILER_KEY`: from the mailer setup.
 - `CHECKIN_PIN`: the passcode door staff will use. Make it long, e.g. 8+ characters.
 - `ADMIN_PIN`: the organisers' passcode for `/admin`. Use a different one from `CHECKIN_PIN`.
-- `EVENT_CAPACITY` (optional): total places, e.g. `300`.
+- `EVENT_CAPACITY` (optional): in-person places, e.g. `300`.
 
 With a domain later, `RESEND_API_KEY` and `TICKET_EMAIL_FROM` send through Resend instead; they're only used when the Gmail mailer isn't set. Without any email service, registration and tickets still work: attendees see and download their ticket straight away, and the page doesn't promise an email.
 
@@ -210,7 +211,7 @@ With a domain later, `RESEND_API_KEY` and `TICKET_EMAIL_FROM` send through Resen
 
 ## Google Sheet: registrations and volunteers
 
-One Google Sheet receives both ticket registrations (Registrations tab) and volunteer applications (Applications tab, each also emailed to the sheet's owner). Volunteer applications post to Netlify Forms (`volunteer`), and `netlify/functions/submission-created.ts` passes each genuine one to the sheet. Setup takes about 10 minutes: see [`integrations/google-sheets/README.md`](integrations/google-sheets/README.md). It needs `GOOGLE_SHEET_URL` and `GOOGLE_SHEET_KEY` in Netlify (the older `VOLUNTEER_SHEET_*` names also work). Without them, registrations are queued until the sheet is connected, and applications are kept in Netlify → Forms.
+One Google Sheet receives both registrations (Registrations tab, with Attendance and City / country columns) and volunteer applications (Volunteers tab, each also emailed to the sheet's owner; applications from the earlier form stay on the Applications tab). Volunteer applications post to Netlify Forms (`volunteer`), and `netlify/functions/submission-created.ts` passes each genuine one to the sheet. Setup takes about 10 minutes: see [`integrations/google-sheets/README.md`](integrations/google-sheets/README.md). It needs `GOOGLE_SHEET_URL` and `GOOGLE_SHEET_KEY` in Netlify (the older `VOLUNTEER_SHEET_*` names also work). Without them, registrations are queued until the sheet is connected, and applications are kept in Netlify → Forms.
 
 ## Search engines (Google Search Console)
 

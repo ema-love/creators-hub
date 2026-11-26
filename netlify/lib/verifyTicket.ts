@@ -1,8 +1,9 @@
 import { claim, type Kv } from './kv'
 import { checkStaffPin } from './staffAuth'
+import { attendanceOf } from './registrations'
 import { findTicketSlot, publicView, withCheckIn, type Ticket, type TicketView } from './tickets'
 
-export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid'
+export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid' | 'online'
 
 export type VerifyRequest = {
   token?: string | null
@@ -39,6 +40,9 @@ export async function verifyTicket(
   const slot = by ? await findTicketSlot(kv, by) : null
   const stored = slot ? await kv.get<Ticket>(slot) : null
   if (!stored || stored.status === 'void') return { ok: true, outcome: 'invalid', staff, ticket: null }
+
+  // An online pass is a registration to join online, not an entry ticket.
+  if (attendanceOf(stored) === 'online') return { ok: true, outcome: 'online', staff, ticket: publicView(stored) }
 
   const ticket = await withCheckIn(kv, stored)
   if (ticket.status === 'checked_in') return { ok: true, outcome: 'checked_in', staff, ticket: publicView(ticket) }

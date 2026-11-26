@@ -105,7 +105,7 @@ export function MobileMenu({ open, onClose }: MobileMenuProps) {
           </nav>
 
           <div className={cn('container-edge pb-10 text-sm', light ? 'text-ink/65' : 'text-cream/70')}>
-            {firstRoom.fullName} — {firstRoom.dateLabel}, {firstRoom.city}
+            {firstRoom.fullName} — {firstRoom.dateLabel}, {firstRoom.timeRange}, {firstRoom.city} & online
           </div>
         </motion.div>
       )}

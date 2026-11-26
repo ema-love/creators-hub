@@ -12,7 +12,7 @@ export type TicketView = {
   checkedInAt?: string
 }
 
-export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid'
+export type VerifyOutcome = 'valid' | 'admitted' | 'checked_in' | 'invalid' | 'online'
 
 export class StaffAuthError extends Error {}
 
@@ -55,6 +55,8 @@ export const formatTime = (iso: string) =>
 
 export type StaffSummary = {
   totals: { issued: number; checkedIn: number }
+  /** Registered to join online. */
+  online?: number
   /** EVENT_CAPACITY, or null for no limit. */
   capacity: number | null
   byDesign: Array<{ id: TicketDesignId; name: string; issued: number; checkedIn: number }>

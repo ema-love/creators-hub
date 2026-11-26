@@ -2,27 +2,29 @@ import { describe, expect, it, vi } from 'vitest'
 import { createGmailMailer, renderRegistrationEmail, type Email, type Mailer } from './email'
 import { memoryKv } from './kv'
 import { canonicalEmail, capacityFromEnv, findByEmail, parseRegistration, registerAttendee, seatsTaken } from './register'
-import { deliverRegistration, EMAIL_PENDING, flushEmailQueue, flushSheetQueue, SHEET_PENDING } from './registrationDelivery'
+import { deliverRegistration, EMAIL_PENDING, flushEmailQueue, flushSheetQueue, SHEET_PENDING, sheetRow } from './registrationDelivery'
 import { memoryRegistrationStore } from './registrations'
 import { staffSummary } from './staffSummary'
-import { findTicketSlot, ticketForRegistration } from './tickets'
+import { findTicketSlot, ownerView, ticketForRegistration } from './tickets'
 import { verifyTicket } from './verifyTicket'
 
 const PIN = 'door-2026'
-const ada = { name: 'Ada Obi', email: 'ada@example.com', design: 'fashion' as const }
+const ada = { name: 'Ada Obi', email: 'ada@example.com', design: 'fashion' as const, attendance: 'in_person' as const }
 const setup = () => ({ kv: memoryKv(), store: memoryRegistrationStore() })
 const noLimit = { capacity: null }
 
 describe('parseRegistration', () => {
   it('accepts a name, email and creative arm', () => {
-    expect(parseRegistration({ name: '  Ada   Obi ', email: ' ADA@Example.com ', design: 'film' })).toEqual({
+    expect(parseRegistration({ name: '  Ada   Obi ', email: ' ADA@Example.com ', design: 'film', attendance: 'in_person' })).toEqual({
       ok: true,
-      value: { name: 'Ada Obi', email: 'ada@example.com', design: 'film' },
+      value: { name: 'Ada Obi', email: 'ada@example.com', design: 'film', attendance: 'in_person' },
     })
   })
 
   it('rejects missing or invalid details', () => {
-    expect(parseRegistration({ name: 'A', email: 'a@b.co', design: 'film' }).ok).toBe(false)
+    expect(parseRegistration({ name: 'A', email: 'a@b.co', design: 'film', attendance: 'online' }).ok).toBe(false)
+    expect(parseRegistration({ name: 'Ada Obi', email: 'a@b.co', design: 'film' }).ok).toBe(false) // attendance required
+    expect(parseRegistration({ name: 'Ada Obi', email: 'a@b.co', design: 'film', attendance: 'maybe' }).ok).toBe(false)
     expect(parseRegistration({ name: 'Ada Obi', email: 'not-an-email', design: 'film' }).ok).toBe(false)
     expect(parseRegistration({ name: 'Ada Obi', email: 'a@b.co', design: 'music' }).ok).toBe(false)
   })
@@ -63,7 +65,7 @@ describe('registerAttendee', () => {
     const { kv, store } = setup()
     const ids = []
     for (const [email, design] of [['a@x.co', 'fashion'], ['b@x.co', 'film'], ['c@x.co', 'fashion']] as const) {
-      const r = await registerAttendee(kv, store, { name: 'Some One', email, design }, noLimit)
+      const r = await registerAttendee(kv, store, { name: 'Some One', email, design, attendance: 'in_person' }, noLimit)
       ids.push(r.state === 'registered' ? r.ticket.id : r.state)
     }
     expect(ids).toEqual(['CH001-F-0001', 'CH001-S-0001', 'CH001-F-0002'])
@@ -89,7 +91,7 @@ describe('registerAttendee', () => {
 
   it('never goes over capacity, even with everyone registering at once', async () => {
     const { kv, store } = setup()
-    const people = Array.from({ length: 10 }, (_, i) => ({ name: `Person ${i}`, email: `p${i}@x.co`, design: 'technology' as const }))
+    const people = Array.from({ length: 10 }, (_, i) => ({ name: `Person ${i}`, email: `p${i}@x.co`, design: 'technology' as const, attendance: 'in_person' as const }))
     const results = await Promise.all(people.map((p) => registerAttendee(kv, store, p, { capacity: 3 })))
     expect(results.filter((r) => r.state === 'registered')).toHaveLength(3)
     expect(results.filter((r) => r.state === 'full')).toHaveLength(7)
@@ -100,7 +102,7 @@ describe('registerAttendee', () => {
   it('lets someone turned away by a full event register once capacity is raised', async () => {
     const { kv, store } = setup()
     await registerAttendee(kv, store, ada, { capacity: 1 })
-    const ben = { name: 'Ben Ade', email: 'ben@x.co', design: 'film' as const }
+    const ben = { name: 'Ben Ade', email: 'ben@x.co', design: 'film' as const, attendance: 'in_person' as const }
     expect((await registerAttendee(kv, store, ben, { capacity: 1 })).state).toBe('full')
     expect((await registerAttendee(kv, store, ben, { capacity: 2 })).state).toBe('registered')
   })
@@ -162,7 +164,7 @@ describe('tickets at the door', () => {
   it('summarises registrations and check-ins for staff', async () => {
     const { kv, store } = setup()
     const a = await registerAttendee(kv, store, ada, noLimit)
-    await registerAttendee(kv, store, { name: 'Ben Ade', email: 'ben@x.co', design: 'film' }, noLimit)
+    await registerAttendee(kv, store, { name: 'Ben Ade', email: 'ben@x.co', design: 'film', attendance: 'in_person' }, noLimit)
     if (a.state !== 'registered') throw new Error('not registered')
     await verifyTicket(kv, { token: a.ticket.token, pin: PIN, admit: true }, { staffPin: PIN })
     const s = await staffSummary(kv, { capacity: 100 })
@@ -185,7 +187,8 @@ describe('confirmation email and Google Sheet', () => {
     if (r.state !== 'registered') throw new Error('not registered')
     const email = renderRegistrationEmail(r.registration, r.ticket, 'https://site.test')
     expect(email.to).toBe('ada@example.com')
-    expect(email.subject).toBe('Your ticket for The First Room, 19 December 2026 (CH001-F-0001)')
+    expect(email.subject).toBe('Your ticket for The First Room, Saturday 19 December 2026 (CH001-F-0001)')
+    expect(email.html).toContain('9:00 AM – 3:00 PM (WAT)')
     expect(email.html).toContain('CH001-F-0001')
     // One link only (fewer links reads less like spam), plus the images.
     expect(email.html.match(/<a\s/g)).toHaveLength(1)
@@ -293,5 +296,87 @@ describe('Gmail mailer', () => {
     await expect(createGmailMailer('u', 'k', quota as unknown as typeof fetch).send(email)).rejects.toThrow(/quota/)
     const html = vi.fn(async () => new Response('<html>Sign in</html>'))
     await expect(createGmailMailer('u', 'k', html as unknown as typeof fetch).send(email)).rejects.toThrow(/refused/)
+  })
+})
+
+describe('online registration', () => {
+  const bola = { name: 'Bola Ade', email: 'bola@example.com', design: 'film' as const, attendance: 'online' as const, location: 'Accra, Ghana' }
+
+  it('keeps the city / country only for online attendees', () => {
+    const r = parseRegistration({ ...bola, location: '  Accra,   Ghana ' })
+    expect(r.ok && r.value).toEqual({ name: 'Bola Ade', email: 'bola@example.com', design: 'film', attendance: 'online', location: 'Accra, Ghana' })
+    const p = parseRegistration({ ...ada, location: 'Lagos' })
+    expect(p.ok && p.value).toEqual(ada)
+  })
+
+  it('goes in the same list, with an online pass and no QR token', async () => {
+    const { kv, store } = setup()
+    const r = await registerAttendee(kv, store, bola, noLimit)
+    if (r.state !== 'registered') throw new Error('not registered')
+    expect(r.registration).toMatchObject({ attendance: 'online', location: 'Accra, Ghana', ticketId: 'CH001-O-0001' })
+    expect(r.ticket).toMatchObject({ id: 'CH001-O-0001', attendance: 'online', design: 'film' })
+    expect(ownerView(r.ticket)).toMatchObject({ attendance: 'online', token: '' })
+    // Same email list: they can't register again, in person or online.
+    expect((await registerAttendee(kv, store, { ...bola, attendance: 'in_person' }, noLimit)).state).toBe('already_registered')
+    // In-person numbering is unaffected by online passes.
+    const a = await registerAttendee(kv, store, { ...ada, design: 'film' }, noLimit)
+    expect(a.state === 'registered' && a.ticket.id).toBe('CH001-S-0001')
+  })
+
+  it('is never admitted at the door', async () => {
+    const { kv, store } = setup()
+    const r = await registerAttendee(kv, store, bola, noLimit)
+    if (r.state !== 'registered') throw new Error('not registered')
+    expect(await verifyTicket(kv, { token: r.ticket.token, pin: PIN, admit: true }, { staffPin: PIN })).toMatchObject({ ok: true, outcome: 'online' })
+    expect(await verifyTicket(kv, { ticketId: 'CH001-O-0001', pin: PIN, admit: true }, { staffPin: PIN })).toMatchObject({ ok: true, outcome: 'online' })
+    expect((await ticketForRegistration(kv, r.registration.ref))?.status).toBe('valid')
+  })
+
+  it('does not use up in-person places, and stays open when they are full', async () => {
+    const { kv, store } = setup()
+    expect((await registerAttendee(kv, store, ada, { capacity: 1 })).state).toBe('registered')
+    expect((await registerAttendee(kv, store, { ...ada, email: 'x@x.co' }, { capacity: 1 })).state).toBe('full')
+    expect((await registerAttendee(kv, store, bola, { capacity: 1 })).state).toBe('registered')
+    expect(await seatsTaken(kv)).toBe(1)
+  })
+
+  it('sends the online confirmation, not a ticket', async () => {
+    const { kv, store } = setup()
+    const r = await registerAttendee(kv, store, bola, noLimit)
+    if (r.state !== 'registered') throw new Error('not registered')
+    const email = renderRegistrationEmail(r.registration, r.ticket, 'https://site.test')
+    expect(email.subject).toBe('You’re registered to join The First Room online (CH001-O-0001)')
+    expect(email.text).toContain('You’re registered to join The First Room online on Sat 19 Dec, 9 AM–3 PM WAT. We’ll send your joining link before the event.')
+    expect(email.html).toContain('ONLINE PASS')
+    expect(email.html).not.toContain('ticket-qr')
+    expect(email.html).toContain('Accra, Ghana')
+  })
+
+  it('shows in the sheet row and the staff numbers', async () => {
+    const { kv, store } = setup()
+    const r = await registerAttendee(kv, store, bola, noLimit)
+    await registerAttendee(kv, store, ada, noLimit)
+    if (r.state !== 'registered') throw new Error('not registered')
+    expect(sheetRow(r.registration, r.ticket)).toMatchObject({ attendance: 'Online', location: 'Accra, Ghana' })
+    const s = await staffSummary(kv, { capacity: null })
+    expect(s.totals).toEqual({ issued: 1, checkedIn: 0 })
+    expect(s.online).toBe(1)
+  })
+
+  it('treats registrations from before the online option as in person', async () => {
+    const { kv, store } = setup()
+    const r = await registerAttendee(kv, store, ada, noLimit)
+    if (r.state !== 'registered') throw new Error('not registered')
+    // Strip the new field, as on records saved before this update.
+    const oldReg = { ...r.registration }
+    delete oldReg.attendance
+    await store.save(oldReg)
+    const oldTicket = { ...r.ticket }
+    delete oldTicket.attendance
+    await kv.put(`slot/${r.registration.ref}`, oldTicket)
+    expect(await verifyTicket(kv, { token: r.ticket.token, pin: PIN, admit: true }, { staffPin: PIN })).toMatchObject({ outcome: 'admitted' })
+    expect(sheetRow(oldReg, oldTicket)).toMatchObject({ attendance: 'In person' })
+    expect(ownerView(oldTicket)).toMatchObject({ attendance: 'in_person', token: r.ticket.token })
+    expect(renderRegistrationEmail(oldReg, oldTicket, 'https://site.test').subject).toContain('Your ticket')
   })
 })

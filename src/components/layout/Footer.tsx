@@ -26,7 +26,7 @@ export function Footer() {
             <Link to="/the-first-room" className="group mt-4 block">
               <span className="font-display text-title font-medium">{firstRoom.fullName}</span>
               <span className={cn('mt-2 block', muted)}>
-                {firstRoom.dateLabel} · {firstRoom.city}, {firstRoom.country}
+                {firstRoom.dateLabel} · {firstRoom.timeRange} · {firstRoom.city} & online
               </span>
             </Link>
           </div>

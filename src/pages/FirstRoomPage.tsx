@@ -13,7 +13,7 @@ import { daysUntil } from '../lib/date'
 export default function FirstRoomPage() {
   useDocumentTitle(
     firstRoom.fullName,
-    `${firstRoom.fullName}: ${firstRoom.dateLabel}, ${firstRoom.timeRange}, ${firstRoom.city}. ${firstRoom.direction}`,
+    `${firstRoom.fullName}: ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in ${firstRoom.city} and online. ${firstRoom.direction}`,
   )
   const days = daysUntil(firstRoom.dateISO)
 
@@ -118,7 +118,7 @@ export default function FirstRoomPage() {
             </EventBlock>
             <EventBlock title="Tickets">
               <ArrowLink to="/tickets" variant="text">
-                Free registration, one ticket per person
+                Free registration in Lagos or online, one per person
               </ArrowLink>
             </EventBlock>
             <EventBlock title="Partners">

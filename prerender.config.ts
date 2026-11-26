@@ -4,7 +4,7 @@ import type { Plugin } from 'vite'
 import { firstRoom } from './src/content/event.ts'
 import { disciplines, hero, manifesto } from './src/content/site.ts'
 import { registrationCopy } from './src/content/tickets.ts'
-import { volunteerDepartments, volunteerIntro, volunteerWhy, experienceLabel } from './src/content/volunteer.ts'
+import { experienceText, volunteerBenefits, volunteerIntro, volunteerTeams } from './src/content/volunteer.ts'
 
 /**
  * Ready-made HTML for the public pages, written at build time.
@@ -22,7 +22,7 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 type Page = { path: string; title: string; description: string; body: string }
 
-const when = `${firstRoom.dateLabel} · ${firstRoom.timeRange} (WAT) · ${firstRoom.city}, ${firstRoom.country}`
+const when = `${firstRoom.dateLabel} · ${firstRoom.timeRange} · ${firstRoom.city}, ${firstRoom.country}, and online`
 const venue = `Venue: ${firstRoom.venue ?? 'to be announced'}`
 const nav = `<nav aria-label="Pages"><a href="/">Home</a> · <a href="/the-first-room">Creators Hub 001: The First Room</a> · <a href="/tickets">Free registration</a> · <a href="/volunteer">Volunteer</a></nav>`
 const arms = `<ul>${disciplines.map((d) => `<li><strong>${esc(d.name)}</strong>: ${esc(d.line)}</li>`).join('')}</ul>`
@@ -31,8 +31,8 @@ export function staticPages(): Page[] {
   return [
     {
       path: '/',
-      title: `Creators Hub · The First Room, Lagos · ${firstRoom.dateLabel}`,
-      description: `Creators Hub is a creative community in Lagos, Nigeria, bringing together fashion, technology, film and storytelling, and arts and design. Register free for ${firstRoom.fullName} on ${firstRoom.dateLabel}.`,
+      title: 'Creators Hub · The First Room · Lagos & online · 19 Dec 2026',
+      description: `Creators Hub is a creative community in Lagos, Nigeria, bringing together fashion, technology, film and storytelling, and arts and design. Register free for ${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in Lagos or online.`,
       body: `<h1>Creators Hub</h1>
 <p>${esc(hero.eyebrow)}. ${esc(hero.statement)}</p>
 ${manifesto.paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n')}
@@ -44,37 +44,38 @@ ${manifesto.paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n')}
     },
     {
       path: '/the-first-room',
-      title: `${firstRoom.fullName} · ${firstRoom.dateLabel}, ${firstRoom.city}`,
-      description: `${firstRoom.fullName}: ${firstRoom.dateLabel}, ${firstRoom.timeRange} in ${firstRoom.city}, ${firstRoom.country}. ${firstRoom.direction} Free registration.`,
+      title: `${firstRoom.fullName} · Sat 19 Dec 2026, Lagos & online`,
+      description: `${firstRoom.fullName}: ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in ${firstRoom.city}, ${firstRoom.country} and online. ${firstRoom.direction} Free registration.`,
       body: `<h1>${esc(firstRoom.fullName)}</h1>
 <p>The inaugural Creators Hub event. ${esc(firstRoom.direction)} ${esc(firstRoom.intro)}</p>
-<dl><dt>Date</dt><dd>${esc(firstRoom.dateLabel)}</dd><dt>Time</dt><dd>${esc(firstRoom.timeRange)} (West Africa Time)</dd><dt>City</dt><dd>${esc(firstRoom.city)}, ${esc(firstRoom.country)}</dd><dt>Venue</dt><dd>${esc(firstRoom.venue ?? 'To be announced')}</dd><dt>Entry</dt><dd>Free, one ticket per person</dd></dl>
+<dl><dt>Date</dt><dd>${esc(firstRoom.dateLabel)}</dd><dt>Time</dt><dd>${esc(firstRoom.timeRange)}</dd><dt>Where</dt><dd>${esc(firstRoom.city)}, ${esc(firstRoom.country)}, and online from anywhere</dd><dt>Venue</dt><dd>${esc(firstRoom.venue ?? 'To be announced')}</dd><dt>Entry</dt><dd>Free, one registration per person</dd></dl>
 <h2>Who it's for</h2>${arms}
 <p><a href="/tickets">Register free for ${esc(firstRoom.fullName)}</a></p>`,
     },
     {
       path: '/tickets',
       title: `Free registration · ${firstRoom.fullName}`,
-      description: `Register free for ${firstRoom.fullName}, ${firstRoom.dateLabel} in ${firstRoom.city}. One ticket per person, with your own QR ticket issued instantly.`,
+      description: `Register free for ${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.timeRange}. Join in ${firstRoom.city} or online. One registration per person.`,
       body: `<h1>Free registration: ${esc(firstRoom.fullName)}</h1>
 <p>${esc(registrationCopy.lede)}</p>
 <ul>${registrationCopy.points.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
 <p>${esc(when)}. ${esc(venue)}.</p>
-<p>Enter your name and email, choose your creative arm (fashion, technology, film and storytelling, or arts and design), and your QR ticket is issued straight away.</p>`,
+<p>Enter your name and email, choose your creative arm (fashion, technology, film and storytelling, or arts and design), and choose how you’ll attend. In person, your QR ticket is issued straight away; online, you get an online pass and we email your joining link before the event.</p>`,
     },
     {
       path: '/volunteer',
       title: `Volunteer · ${firstRoom.fullName}`,
-      description: `Join the Creators Hub Volunteer Collective for ${firstRoom.fullName} in ${firstRoom.city}. Roles in technology, programme, media and community. No experience required.`,
+      description: `Volunteer at ${firstRoom.fullName}, ${firstRoom.dateCompact} in ${firstRoom.city} and online. Six teams: welcome, programme, media, online host, community and marketplace. Beginners welcome.`,
       body: `<h1>The Volunteer Collective · ${esc(firstRoom.fullName)}</h1>
 <p>${esc(volunteerIntro.lede)} ${esc(volunteerIntro.body)}</p>
-<p>${esc(volunteerWhy.openCall)}</p>
-${volunteerDepartments
+<h2>${esc(volunteerBenefits.eyebrow)}</h2>
+<ul>${volunteerBenefits.items.map((b) => `<li>${esc(b.title)}</li>`).join('')}</ul>
+${volunteerTeams
   .map(
-    (d) =>
-      `<h2>${esc(d.title)}${d.status === 'conditional' ? ' (subject to confirmation)' : ''}</h2><ul>${d.roles
-        .map((r) => `<li><strong>${esc(r.title)}</strong> (${esc(experienceLabel[r.experience])}): ${esc(r.duties.join(' '))}</li>`)
-        .join('')}</ul>`,
+    (t) =>
+      `<h2>${esc(t.title)}${t.status === 'conditional' ? ' (subject to confirmation)' : ''}</h2><p>${esc(t.summary)} ${esc(t.duties.join(' '))}</p><p>${esc(
+        [experienceText(t), ...(t.notes ?? [])].join(' · '),
+      )}</p>`,
   )
   .join('\n')}
 <p><a href="/volunteer#apply">Apply to volunteer</a></p>`,

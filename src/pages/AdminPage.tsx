@@ -9,8 +9,16 @@ import { formatTime } from '../lib/ticketApi'
 const API = '/.netlify/functions/admin'
 const PIN_KEY = 'ch:admin-pin'
 
-type Announcement = { id: string; subject: string; createdAt: string; total: number; sent: number; status: 'sending' | 'done' }
-type Summary = { registered: number; emailEnabled: boolean; announcements: Announcement[] }
+type Audience = 'all' | 'in_person' | 'online'
+type Announcement = { id: string; subject: string; audience?: Audience; createdAt: string; total: number; sent: number; status: 'sending' | 'done' }
+type Summary = { registered: number; inPerson?: number; online?: number; emailEnabled: boolean; announcements: Announcement[] }
+
+const AUDIENCES: Array<{ id: Audience; label: string }> = [
+  { id: 'all', label: 'Everyone' },
+  { id: 'in_person', label: 'In person only' },
+  { id: 'online', label: 'Online only' },
+]
+const audienceLabel = (a?: Audience) => AUDIENCES.find((x) => x.id === (a ?? 'all'))!.label
 
 class AuthError extends Error {}
 
@@ -191,6 +199,12 @@ function Dashboard({ pin, onAuthError }: { pin: string; onAuthError: () => void 
         <div>
           <p className="eyebrow text-cream/50">Registered</p>
           <p className="mt-2 font-display text-5xl font-medium tabular-nums">{summary?.registered ?? '…'}</p>
+          {summary && (
+            <p className="mt-2 text-sm text-cream/65">
+              <span className="tabular-nums text-cream">{summary.inPerson ?? summary.registered}</span> in person ·{' '}
+              <span className="tabular-nums text-cream">{summary.online ?? 0}</span> online
+            </p>
+          )}
         </div>
         <div className="flex flex-col items-end gap-3">
           <button
@@ -212,7 +226,12 @@ function Dashboard({ pin, onAuthError }: { pin: string; onAuthError: () => void 
         </p>
       )}
 
-      <Compose pin={pin} registered={summary?.registered ?? 0} onSent={load} onAuthError={onAuthError} />
+      <Compose
+        pin={pin}
+        counts={{ all: summary?.registered ?? 0, in_person: summary?.inPerson ?? summary?.registered ?? 0, online: summary?.online ?? 0 }}
+        onSent={load}
+        onAuthError={onAuthError}
+      />
 
       {summary && summary.announcements.length > 0 && (
         <div className="rounded-[16px] border border-cream/15 p-5">
@@ -221,7 +240,9 @@ function Dashboard({ pin, onAuthError }: { pin: string; onAuthError: () => void 
             {summary.announcements.map((a) => (
               <li key={a.id} className="py-3">
                 <div className="flex items-baseline justify-between gap-3">
-                  <span className="min-w-0 truncate">{a.subject}</span>
+                  <span className="min-w-0 truncate">
+                    {a.subject} <span className="text-xs text-cream/45">· {audienceLabel(a.audience)}</span>
+                  </span>
                   <span className="shrink-0 text-sm text-cream/55">{formatTime(a.createdAt)}</span>
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-cream/10">
@@ -241,7 +262,20 @@ function Dashboard({ pin, onAuthError }: { pin: string; onAuthError: () => void 
   )
 }
 
-function Compose({ pin, registered, onSent, onAuthError }: { pin: string; registered: number; onSent: () => void; onAuthError: () => void }) {
+function Compose({
+  pin,
+  counts,
+  onSent,
+  onAuthError,
+}: {
+  pin: string
+  counts: Record<Audience, number>
+  onSent: () => void
+  onAuthError: () => void
+}) {
+  const [audience, setAudience] = useState<Audience>('all')
+  const registered = counts[audience]
+  const who = audience === 'all' ? 'registered attendees' : audience === 'online' ? 'online attendees' : 'in-person attendees'
   const [subject, setSubject] = useState(VENUE_TEMPLATE.subject)
   const [message, setMessage] = useState(VENUE_TEMPLATE.message)
   const [testTo, setTestTo] = useState('')
@@ -251,11 +285,11 @@ function Compose({ pin, registered, onSent, onAuthError }: { pin: string; regist
   const run = async (action: 'test' | 'send') => {
     if (action === 'send') {
       if (hasPlaceholders) return setStatus({ kind: 'error', text: 'Replace the parts in [square brackets] before sending.' })
-      if (!window.confirm(`Send “${subject}” to all ${registered} registered attendees? This can’t be undone.`)) return
+      if (!window.confirm(`Send “${subject}” to all ${registered} ${who}? This can’t be undone.`)) return
     }
     setStatus({ kind: 'busy' })
     try {
-      const res = await call(pin, { action, subject, message, to: testTo })
+      const res = await call(pin, { action, subject, message, to: testTo, audience })
       const body = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(body.error ?? 'Couldn’t send.')
       setStatus({
@@ -288,6 +322,27 @@ function Compose({ pin, registered, onSent, onAuthError }: { pin: string; regist
         <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={14} maxLength={5000} className={cn(field, 'mt-1.5 font-sans leading-relaxed')} />
       </label>
 
+      <fieldset>
+        <legend className="text-sm text-cream/70">Send to</legend>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {AUDIENCES.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              aria-pressed={audience === a.id}
+              onClick={() => setAudience(a.id)}
+              className={cn(
+                'rounded-full border px-4 py-2 text-sm transition-colors',
+                audience === a.id ? 'border-electric bg-electric font-medium text-ink' : 'border-cream/25 text-cream/80 hover:border-cream',
+              )}
+            >
+              {a.label} <span className="tabular-nums opacity-70">({counts[a.id]})</span>
+            </button>
+          ))}
+        </div>
+        <p className="mt-2 text-xs text-cream/50">To send online attendees their joining link, choose “Online only”.</p>
+      </fieldset>
+
       <div className="flex flex-col gap-3 border-t border-cream/10 pt-4 sm:flex-row sm:items-end">
         <label className="block flex-1 text-sm text-cream/70">
           Send a test to
@@ -309,7 +364,7 @@ function Compose({ pin, registered, onSent, onAuthError }: { pin: string; regist
         className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-electric px-6 py-4 font-display font-medium text-ink hover:bg-cream disabled:opacity-50"
       >
         <Send className="h-4 w-4" aria-hidden="true" />
-        {status.kind === 'busy' ? 'Sending…' : `Send to all ${registered} attendees`}
+        {status.kind === 'busy' ? 'Sending…' : `Send to all ${registered} ${who}`}
       </button>
       <div aria-live="polite" className="min-h-5 text-sm">
         {status.kind === 'ok' && <p className="text-electric">{status.text}</p>}

@@ -2,11 +2,15 @@ import { randomBytes } from 'node:crypto'
 import { designById, formatTicketId, type TicketDesignId } from '../../src/content/ticketDesigns'
 import { TICKET_CATEGORY, type TicketTierId } from '../../src/content/tickets'
 import { claim, type Kv } from './kv'
-import type { Registration } from './registrations'
+import { attendanceOf, type Attendance, type Registration } from './registrations'
 
 export type TicketStatus = 'valid' | 'checked_in' | 'void'
 
-/** One free admission, issued when someone registers. */
+/**
+ * One registration's ticket. In person: a QR ticket that admits one person
+ * (CH001-F-0001 …). Online: an online pass (CH001-O-0001 …) that is never
+ * shown as a QR code and can't be admitted at the door.
+ */
 export type Ticket = {
   id: string
   /** Registration reference. */
@@ -15,6 +19,8 @@ export type Ticket = {
   email: string
   category: TicketTierId
   design: TicketDesignId
+  /** Missing on tickets from before the online option (= in person). */
+  attendance?: Attendance
   status: TicketStatus
   /** Secret, random; encoded in the QR code. */
   token: string
@@ -47,6 +53,9 @@ async function claimNumber(kv: Kv, letter: string, slot: string): Promise<number
 
 export const newTicketToken = () => randomBytes(16).toString('base64url')
 
+/** Letter used in online pass IDs: CH001-O-0001. */
+export const ONLINE_LETTER = 'O'
+
 /**
  * Issues the registration's ticket, or returns it if it already exists.
  * Only the request that won the email claim calls this, so there is no
@@ -57,14 +66,17 @@ export async function issueTicket(kv: Kv, registration: Registration, now = new 
   const existing = await kv.get<Ticket>(slot)
   if (existing) return existing
 
-  const design = designById(registration.design)
+  const attendance = attendanceOf(registration)
+  // Online passes have their own number series, so door ticket numbers stay continuous.
+  const letter = attendance === 'online' ? ONLINE_LETTER : designById(registration.design).letter
   const ticket: Ticket = {
-    id: formatTicketId(design.letter, await claimNumber(kv, design.letter, slot)),
+    id: formatTicketId(letter, await claimNumber(kv, letter, slot)),
     ref: registration.ref,
     attendeeName: registration.name,
     email: registration.email,
     category: TICKET_CATEGORY,
     design: registration.design,
+    attendance,
     status: 'valid',
     token: newTicketToken(),
     issuedAt: now.toISOString(),
@@ -101,13 +113,17 @@ export function publicView(ticket: Ticket): TicketView {
   return view as TicketView
 }
 
-/** Ticket fields the holder's own pages need, including the QR token. */
-export const ownerView = (t: Ticket) => ({
-  id: t.id,
-  attendeeName: t.attendeeName,
-  category: t.category,
-  design: t.design,
-  status: t.status,
-  token: t.token,
-  checkedInAt: t.checkedInAt ?? null,
-})
+/** Ticket fields the holder's own pages need. The QR token is only for in-person tickets. */
+export const ownerView = (t: Ticket) => {
+  const attendance = attendanceOf(t)
+  return {
+    id: t.id,
+    attendeeName: t.attendeeName,
+    category: t.category,
+    design: t.design,
+    attendance,
+    status: t.status,
+    token: attendance === 'online' ? '' : t.token,
+    checkedInAt: t.checkedInAt ?? null,
+  }
+}

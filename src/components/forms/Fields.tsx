@@ -10,14 +10,17 @@ const fieldBase =
 type TextFieldProps = {
   label: string
   name: string
-  type?: 'text' | 'email'
+  type?: 'text' | 'email' | 'tel'
   required?: boolean
   autoComplete?: string
   multiline?: boolean
+  /** For single-line fields: a pattern the value must match, and the message shown when it doesn't. */
+  pattern?: string
+  patternMessage?: string
 }
 
 /** Editorial text field: underline only, with a label that floats on focus. */
-export function TextField({ label, name, type = 'text', required, autoComplete, multiline }: TextFieldProps) {
+export function TextField({ label, name, type = 'text', required, autoComplete, multiline, pattern, patternMessage }: TextFieldProps) {
   const id = useId()
   const shared = {
     id,
@@ -31,7 +34,22 @@ export function TextField({ label, name, type = 'text', required, autoComplete, 
       {multiline ? (
         <textarea {...shared} rows={3} />
       ) : (
-        <input {...shared} type={type} autoComplete={autoComplete} />
+        <input
+          {...shared}
+          type={type}
+          autoComplete={autoComplete}
+          inputMode={type === 'tel' ? 'tel' : undefined}
+          pattern={pattern}
+          title={patternMessage}
+          onInput={patternMessage ? (e) => e.currentTarget.setCustomValidity('') : undefined}
+          onInvalid={
+            patternMessage
+              ? (e) => {
+                  if (e.currentTarget.validity.patternMismatch) e.currentTarget.setCustomValidity(patternMessage)
+                }
+              : undefined
+          }
+        />
       )}
       <label
         htmlFor={id}
@@ -53,10 +71,14 @@ type ChoiceFieldProps = {
   name: string
   options: readonly string[]
   required?: boolean
+  /** Make it controlled, e.g. to react to the choice. */
+  value?: string
+  onChange?: (value: string) => void
+  hint?: React.ReactNode
 }
 
 /** Single-choice pills (radio inputs) — keyboard navigable with arrow keys. */
-export function ChoiceField({ legend, name, options, required }: ChoiceFieldProps) {
+export function ChoiceField({ legend, name, options, required, value, onChange, hint }: ChoiceFieldProps) {
   return (
     <fieldset>
       <legend className="mb-4 text-sm opacity-70">
@@ -66,13 +88,21 @@ export function ChoiceField({ legend, name, options, required }: ChoiceFieldProp
       <div className="flex flex-wrap gap-2">
         {options.map((option) => (
           <label key={option} className="cursor-pointer">
-            <input type="radio" name={name} value={option} required={required} className="peer sr-only" />
+            <input
+              type="radio"
+              name={name}
+              value={option}
+              required={required}
+              className="peer sr-only"
+              {...(onChange ? { checked: value === option, onChange: () => onChange(option) } : {})}
+            />
             <span className="inline-block rounded-full border border-current/25 px-4 py-2 text-sm transition-colors duration-300 hover:border-current peer-checked:border-electric peer-checked:bg-electric peer-checked:text-ink peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-electric">
               {option}
             </span>
           </label>
         ))}
       </div>
+      {hint && <p className="mt-3 text-xs opacity-60">{hint}</p>}
     </fieldset>
   )
 }

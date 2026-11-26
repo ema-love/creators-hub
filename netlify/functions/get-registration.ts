@@ -2,7 +2,7 @@ import { timingSafeEqual } from 'node:crypto'
 import { mailerFromEnv } from '../lib/delivery'
 import { json } from '../lib/http'
 import { blobKv } from '../lib/kv'
-import { blobRegistrationStore } from '../lib/registrations'
+import { attendanceOf, blobRegistrationStore } from '../lib/registrations'
 import { ownerView, ticketForRegistration } from '../lib/tickets'
 
 const same = (a: string, b: string) => a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b))
@@ -26,6 +26,8 @@ export default async (req: Request) => {
       name: registration.name,
       emailSent: Boolean(registration.emailSentAt),
       emailEnabled: mailerFromEnv() !== null,
+      attendance: attendanceOf(registration),
+      location: registration.location ?? null,
     },
     ticket: ownerView(ticket),
   })

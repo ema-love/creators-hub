@@ -38,7 +38,7 @@ export function sitemapXml(site = origin(), lastmod = new Date().toISOString().s
 const toLagosTime = (utc: string) => new Date(Date.parse(utc) + 3600_000).toISOString().replace(/\.\d{3}Z$/, '+01:00')
 
 export function eventJsonLd(site = origin()) {
-  // Free registration, one ticket per person.
+  // Free registration, one per person, in Lagos or online.
   const offers = [
     {
       '@type': 'Offer',
@@ -56,17 +56,21 @@ export function eventJsonLd(site = origin()) {
     '@context': 'https://schema.org',
     '@type': 'Event',
     name: firstRoom.fullName,
-    description: firstRoom.direction,
+    description: `${firstRoom.direction} In Lagos and online.`,
     startDate: toLagosTime(firstRoom.startUtc),
     ...(firstRoom.endUtc ? { endDate: toLagosTime(firstRoom.endUtc) } : {}),
     image: [`${site}/og-image.jpg`],
     eventStatus: 'https://schema.org/EventScheduled',
-    eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    location: {
-      '@type': 'Place',
-      name: firstRoom.venue ?? `Venue to be announced, ${firstRoom.city}`,
-      address: { '@type': 'PostalAddress', addressLocality: firstRoom.city, addressCountry: 'NG' },
-    },
+    // In person in Lagos, plus a virtual option.
+    eventAttendanceMode: 'https://schema.org/MixedEventAttendanceMode',
+    location: [
+      {
+        '@type': 'Place',
+        name: firstRoom.venue ?? `Venue to be announced, ${firstRoom.city}`,
+        address: { '@type': 'PostalAddress', addressLocality: firstRoom.city, addressCountry: 'NG' },
+      },
+      { '@type': 'VirtualLocation', url: `${site}/tickets` },
+    ],
     organizer: { '@type': 'Organization', name: 'Creators Hub', url: site },
     ...(performers.length ? { performer: performers } : {}),
     url: `${site}/the-first-room`,

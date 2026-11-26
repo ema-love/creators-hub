@@ -1,22 +1,24 @@
 import { useId, useState } from 'react'
-import { ArrowDown, ArrowRight, Check, ChevronDown, Info, Plus } from 'lucide-react'
+import { ArrowDown, ArrowRight, Check, ChevronDown, Info, Laptop, Plus } from 'lucide-react'
 import { volunteer } from '../content/site'
 import { firstRoom } from '../content/event'
 import { formNames } from '../content/forms'
 import { disciplineStories } from '../content/disciplineStories'
 import {
-  allVolunteerRoles,
+  briefingOptions,
+  conditionalNote,
   experienceLabel,
-  volunteerArrangementsNote,
-  volunteerDepartments,
+  experienceText,
+  teamByTitle,
+  volunteerAttendance,
+  volunteerBenefits,
   volunteerFaqs,
   volunteerIntro,
-  volunteerStages,
+  volunteerSuccess,
+  volunteerTeams,
   volunteerValues,
-  volunteerWhy,
-  type ExperienceLevel,
-  type VolunteerDepartment,
-  type VolunteerRole,
+  type ExperienceTag,
+  type VolunteerTeam,
 } from '../content/volunteer'
 import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
@@ -40,7 +42,7 @@ export function VolunteerTeaser() {
           <p className="mt-6 max-w-xl text-cream/75">{volunteer.body}</p>
         </div>
         <Reveal className="flex flex-col gap-4 md:col-span-4 md:col-start-9 md:items-end">
-          <ArrowLink to="/volunteer">See volunteer roles</ArrowLink>
+          <ArrowLink to="/volunteer">See the volunteer teams</ArrowLink>
           <p className="eyebrow text-silver">
             {firstRoom.fullName} · {firstRoom.dateLabel}
           </p>
@@ -50,13 +52,8 @@ export function VolunteerTeaser() {
   )
 }
 
-const confirmed = volunteerDepartments.filter((d) => d.status === 'confirmed')
-const conditional = volunteerDepartments.filter((d) => d.status === 'conditional')
-const openRoles = confirmed.reduce((n, d) => n + d.roles.length, 0)
-const conditionalRoles = conditional.reduce((n, d) => n + d.roles.length, 0)
-const words = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten']
-const inWords = (n: number) => words[n] ?? String(n)
-const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
+const ONLINE_HOST = volunteerTeams.find((t) => t.remote)!
 
 const heroPhotos = [
   disciplineStories.technology.montage[1],
@@ -67,21 +64,22 @@ const heroPhotos = [
 
 /** The volunteer opportunities page (/volunteer). */
 export function Volunteer() {
-  const [role, setRole] = useState('')
+  const [team, setTeam] = useState('')
 
-  const applyFor = (roleTitle: string) => {
-    setRole(roleTitle)
+  const applyFor = (teamTitle: string) => {
+    setTeam(teamTitle)
     document.getElementById('apply')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (window.location.hash !== '#apply') window.history.replaceState(null, '', '#apply')
   }
 
   return (
     <>
       <VolunteerHero />
-      <WhyVolunteer />
+      <Benefits />
+      <Teams onApply={applyFor} />
       <Values />
-      <Roles onApply={applyFor} />
       <Faq />
-      <Apply role={role} onRoleChange={setRole} />
+      <Apply team={team} onTeamChange={setTeam} />
     </>
   )
 }
@@ -109,8 +107,8 @@ function VolunteerHero() {
             <p className="mt-5 max-w-lg text-cream/65">{volunteerIntro.body}</p>
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
               <ArrowLink to="/volunteer#apply">Apply to volunteer</ArrowLink>
-              <a href="#roles" className="group inline-flex items-center gap-2 font-display text-[0.9375rem] font-medium">
-                <span className="link-draw">See the roles</span>
+              <a href="#teams" className="group inline-flex items-center gap-2 font-display text-[0.9375rem] font-medium">
+                <span className="link-draw">See the teams</span>
                 <ArrowDown className="h-4 w-4 transition-transform duration-500 group-hover:translate-y-0.5" aria-hidden="true" />
               </a>
             </div>
@@ -128,10 +126,10 @@ function VolunteerHero() {
         </div>
 
         <dl className="mt-20 grid grid-cols-2 gap-x-8 gap-y-8 border-t border-cream/15 pt-8 md:grid-cols-4">
-          <Fact label="Event" value={`${firstRoom.fullName}`} />
-          <Fact label="Date" value={`${firstRoom.dateLabel} · ${firstRoom.city}`} />
-          <Fact label="Open roles" value={`${openRoles} across ${confirmed.length} departments`} />
-          <Fact label="Experience" value="Not required" accent />
+          <Fact label="Event" value={firstRoom.fullName} />
+          <Fact label="Date" value={`${firstRoom.dateCompact} · ${firstRoom.timeCompact}`} />
+          <Fact label="Teams" value={`${volunteerTeams.length} core teams, in Lagos and online`} />
+          <Fact label="Experience" value="Beginners welcome" accent />
         </dl>
       </div>
     </Section>
@@ -147,24 +145,21 @@ function Fact({ label, value, accent }: { label: string; value: string; accent?:
   )
 }
 
-function WhyVolunteer() {
+function Benefits() {
   return (
-    <Section surface="light" aria-labelledby="why-volunteer" className="py-28 md:py-36">
+    <Section surface="light" aria-labelledby="volunteer-benefits" className="py-28 md:py-36">
       <div className="container-edge">
         <div className="grid gap-12 md:grid-cols-12">
-          <div className="md:col-span-5">
-            <Eyebrow className="text-bright">{volunteerWhy.eyebrow}</Eyebrow>
-            <h2 id="why-volunteer" className="mt-6 text-headline font-medium">
-              <MaskText lines={volunteerWhy.title} />
+          <div className="md:col-span-6">
+            <Eyebrow className="text-bright">{volunteerBenefits.eyebrow}</Eyebrow>
+            <h2 id="volunteer-benefits" className="mt-6 text-headline font-medium">
+              <MaskText lines={volunteerBenefits.title} />
             </h2>
           </div>
-          <Reveal className="md:col-span-6 md:col-start-7 md:pt-14">
-            <p className="font-display text-title leading-snug tracking-[-0.02em] text-ink/85">{volunteerWhy.openCall}</p>
-          </Reveal>
         </div>
 
-        <ol className="mt-20 grid gap-px overflow-hidden rounded-sm bg-ink/10 sm:grid-cols-2 lg:grid-cols-4">
-          {volunteerWhy.points.map((p, i) => (
+        <ol className="mt-16 grid gap-px overflow-hidden rounded-sm bg-ink/10 md:grid-cols-3">
+          {volunteerBenefits.items.map((p, i) => (
             <Reveal as="li" key={p.title} delay={i * 0.06} className="bg-cream p-8 md:p-10">
               <span className="font-display text-sm tabular-nums text-bright">{String(i + 1).padStart(2, '0')}</span>
               <h3 className="mt-10 font-display text-xl font-medium">{p.title}</h3>
@@ -213,151 +208,101 @@ function Values() {
   )
 }
 
-function Roles({ onApply }: { onApply: (roleId: string) => void }) {
+function Teams({ onApply }: { onApply: (teamTitle: string) => void }) {
   return (
-    <Section id="roles" surface="dark" aria-labelledby="volunteer-roles" className="scroll-mt-0 py-28 md:py-36">
+    <Section id="teams" surface="dark" aria-labelledby="volunteer-teams" className="scroll-mt-0 py-28 md:py-36">
       <div className="container-edge">
         <div className="grid gap-10 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
-            <Eyebrow className="text-electric">Departments & positions</Eyebrow>
-            <h2 id="volunteer-roles" className="mt-6 text-headline font-medium">
-              <MaskText lines={[`${openRoles} ways in.`]} />
+            <Eyebrow className="text-electric">The teams</Eyebrow>
+            <h2 id="volunteer-teams" className="mt-6 text-headline font-medium">
+              <MaskText lines={['Six teams.', 'One room.']} />
             </h2>
           </div>
           <Reveal className="md:col-span-5">
             <p className="text-cream/70">
-              {capital(inWords(confirmed.length))} departments are open now
-              {conditionalRoles > 0 &&
-                `, plus ${inWords(conditionalRoles)} Creative Marketplace roles that only go ahead if the marketplace is confirmed`}
-              . Each role shows whether beginners are welcome or some experience is preferred. Experience is never required.
+              Every team welcomes beginners. Each card shows what you’ll do and any experience that helps. All teams are in
+              person in Lagos, except Online Host, which you can do from anywhere.
             </p>
           </Reveal>
         </div>
 
-        <Reveal className="mt-10 flex items-start gap-3 rounded-sm border border-cream/15 bg-ink-2 p-5 text-sm text-cream/75">
-          <Info className="mt-0.5 h-4 w-4 shrink-0 text-electric" aria-hidden="true" />
-          <p>{volunteerArrangementsNote}</p>
-        </Reveal>
-
-        <div className="mt-16 grid gap-16 lg:grid-cols-12">
-          <nav aria-label="Departments" className="hidden lg:col-span-3 lg:block">
-            <ol className="sticky top-32 space-y-1">
-              {volunteerDepartments.map((d, i) => (
-                <li key={d.id}>
-                  <a
-                    href={`#dept-${d.id}`}
-                    className="group flex items-baseline gap-3 py-2 text-cream/60 transition-colors hover:text-cream"
-                  >
-                    <span className="font-display text-xs tabular-nums text-cream/40">{String(i + 1).padStart(2, '0')}</span>
-                    <span>
-                      {d.title}
-                      {d.status === 'conditional' && <span className="ml-2 text-xs text-rust">If confirmed</span>}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ol>
-          </nav>
-
-          <div className="space-y-20 lg:col-span-9">
-            {volunteerDepartments.map((d, i) => (
-              <Department key={d.id} department={d} index={i} onApply={onApply} />
-            ))}
-          </div>
-        </div>
+        <ul className="mt-16 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {volunteerTeams.map((t, i) => (
+            <TeamCard key={t.id} team={t} delay={(i % 3) * 0.06} onApply={onApply} />
+          ))}
+        </ul>
       </div>
     </Section>
   )
 }
 
-function Department({ department: d, index, onApply }: { department: VolunteerDepartment; index: number; onApply: (id: string) => void }) {
-  const conditional = d.status === 'conditional'
-  return (
-    <section id={`dept-${d.id}`} aria-labelledby={`dept-${d.id}-title`} className="scroll-mt-28">
-      <Reveal className="flex flex-wrap items-end justify-between gap-4 border-b border-cream/15 pb-6">
-        <div>
-          <p className="font-display text-sm tabular-nums text-cream/40">{String(index + 1).padStart(2, '0')}</p>
-          <h3 id={`dept-${d.id}-title`} className="mt-3 font-display text-title font-medium tracking-[-0.02em]">
-            {d.title}
-          </h3>
-          <p className="mt-2 text-cream/60">{d.summary}</p>
-        </div>
-        <p className="eyebrow text-[0.6875rem] text-cream/50">
-          {d.roles.length} {d.roles.length === 1 ? 'position' : 'positions'}
-        </p>
-      </Reveal>
-
-      {conditional && (
-        <Reveal className="mt-6 rounded-sm border border-dashed border-rust/60 p-5">
-          <p className="eyebrow text-[0.6875rem] text-rust">Optional · Subject to confirmation</p>
-          <p className="mt-2 text-sm text-cream/75">{d.note}</p>
-        </Reveal>
-      )}
-
-      <ul className={cn('mt-6 grid gap-4 md:grid-cols-2', conditional && 'opacity-90')}>
-        {d.roles.map((r, i) => (
-          <RoleCard key={r.id} role={r} conditional={conditional} delay={(i % 2) * 0.06} onApply={onApply} />
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-function RoleCard({
-  role,
-  conditional,
-  delay,
-  onApply,
-}: {
-  role: VolunteerRole
-  conditional: boolean
-  delay: number
-  onApply: (id: string) => void
-}) {
+function TeamCard({ team, delay, onApply }: { team: VolunteerTeam; delay: number; onApply: (title: string) => void }) {
+  const conditional = team.status === 'conditional'
   return (
     <Reveal
       as="li"
       delay={delay}
       className={cn(
         'group flex flex-col rounded-sm border bg-ink-2 p-7 transition-colors duration-500 hover:border-cream/35',
-        conditional ? 'border-dashed border-cream/20' : 'border-cream/12',
+        conditional ? 'border-dashed border-rust/50' : 'border-cream/12',
       )}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <ExperienceBadge level={role.experience} />
-        {conditional && <span className="rounded-full border border-rust/50 px-3 py-1 text-xs text-rust">If marketplace is confirmed</span>}
+      <div className="flex items-start justify-between gap-4">
+        <span className="font-display text-2xl text-electric" aria-hidden="true">
+          {team.number}
+        </span>
+        {conditional && (
+          <span className="rounded-full border border-rust/60 px-3 py-1 text-xs font-medium text-rust">{conditionalNote}</span>
+        )}
       </div>
-      <h4 className="mt-6 font-display text-xl font-medium">{role.title}</h4>
-      <ul className="mt-4 flex-1 space-y-2.5 text-[0.9375rem] text-cream/70">
-        {role.duties.map((duty) => (
+      <h3 className="mt-6 font-display text-xl font-medium">{team.title}</h3>
+      <p className="mt-2 text-cream/85">{team.summary}</p>
+
+      <p className="eyebrow mt-6 text-[0.6875rem] text-cream/45">What you’ll do</p>
+      <ul className="mt-3 flex-1 space-y-2.5 text-[0.9375rem] text-cream/70">
+        {team.duties.map((duty) => (
           <li key={duty} className="flex gap-3">
             <span aria-hidden="true" className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-electric/80" />
             {duty}
           </li>
         ))}
       </ul>
+
+      <div className="mt-6 flex flex-wrap gap-2">
+        {team.experience.map((e) => (
+          <ExperienceBadge key={e.level + (e.for ?? '')} tag={e} />
+        ))}
+        {team.notes?.map((n) => (
+          <span key={n} className="inline-flex items-center gap-1.5 rounded-full border border-cream/25 px-3 py-1 text-xs text-cream/80">
+            {n.includes('laptop') && <Laptop className="h-3.5 w-3.5" aria-hidden="true" />}
+            {n}
+          </span>
+        ))}
+      </div>
+
       <button
         type="button"
-        onClick={() => onApply(role.title)}
+        onClick={() => onApply(team.title)}
         className="mt-8 inline-flex items-center gap-2 self-start font-display text-[0.9375rem] font-medium text-cream"
       >
-        <span className="link-draw">{conditional ? 'Register interest' : 'Apply for this role'}</span>
+        <span className="link-draw">Apply for this team</span>
         <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1" aria-hidden="true" />
-        <span className="sr-only">: {role.title}</span>
+        <span className="sr-only">: {team.title}</span>
       </button>
     </Reveal>
   )
 }
 
-function ExperienceBadge({ level }: { level: ExperienceLevel }) {
+function ExperienceBadge({ tag }: { tag: ExperienceTag }) {
   return (
     <span
       className={cn(
         'rounded-full px-3 py-1 text-xs font-medium',
-        level === 'beginners' ? 'bg-electric text-ink' : 'border border-silver/50 text-silver',
+        tag.level === 'beginners' ? 'bg-electric text-ink' : 'border border-silver/50 text-silver',
       )}
     >
-      {experienceLabel[level]}
+      {tag.for ? `${tag.for}: ${experienceLabel[tag.level].toLowerCase()}` : experienceLabel[tag.level]}
     </span>
   )
 }
@@ -390,9 +335,25 @@ function Faq() {
   )
 }
 
-function Apply({ role, onRoleChange }: { role: string; onRoleChange: (id: string) => void }) {
-  const { status, onSubmit } = useNetlifyForm(formNames.volunteer)
+function Apply({ team, onTeamChange }: { team: string; onTeamChange: (title: string) => void }) {
+  const { status, onSubmit, reset } = useNetlifyForm(formNames.volunteer)
   const [second, setSecond] = useState('')
+  const [attendance, setAttendance] = useState('')
+  const [onlineError, setOnlineError] = useState(false)
+
+  const online = attendance === volunteerAttendance.online
+  const hasOnlineHost = team === ONLINE_HOST.title || second === ONLINE_HOST.title
+  const onlineMismatch = online && !hasOnlineHost
+
+  const submit = (e: React.FormEvent<HTMLFormElement>) => {
+    if (onlineMismatch && e.currentTarget.checkValidity()) {
+      e.preventDefault()
+      setOnlineError(true)
+      return
+    }
+    setOnlineError(false)
+    void onSubmit(e)
+  }
 
   return (
     <Section id="apply" surface="dark" aria-labelledby="volunteer-apply" className="grain scroll-mt-0 py-28 md:py-36">
@@ -404,11 +365,11 @@ function Apply({ role, onRoleChange }: { role: string; onRoleChange: (id: string
               <MaskText lines={['Join the', 'collective.']} />
             </h2>
             <p className="mt-6 max-w-md text-cream/75">
-              It takes a few minutes. Tell us which role you’d like and a little about yourself. No CV, no portfolio, and no
-              experience needed.
+              It takes two minutes. Pick a team, tell us how to reach you, and share anything relevant. No CV and no
+              portfolio needed.
             </p>
             <p className="mt-8 eyebrow text-silver">
-              For {firstRoom.fullName} · {firstRoom.dateLabel}
+              For {firstRoom.fullName} · {firstRoom.dateCompact} · {firstRoom.timeCompact}
             </p>
           </div>
         </div>
@@ -419,10 +380,12 @@ function Apply({ role, onRoleChange }: { role: string; onRoleChange: (id: string
             method="POST"
             data-netlify="true"
             netlify-honeypot="bot-field"
-            onSubmit={onSubmit}
+            onSubmit={submit}
+            onChange={() => status === 'error' && reset()}
             onReset={() => {
-              onRoleChange('')
+              onTeamChange('')
               setSecond('')
+              setAttendance('')
             }}
             className="space-y-8"
             noValidate
@@ -433,17 +396,40 @@ function Apply({ role, onRoleChange }: { role: string; onRoleChange: (id: string
               <TextField label="Full name" name="name" required autoComplete="name" />
               <TextField label="Email" name="email" type="email" required autoComplete="email" />
             </div>
-            <RoleSelect label="First-choice role" name="role" value={role} onChange={onRoleChange} required />
-            <RoleSelect label="Second choice (optional)" name="second_role" value={second} onChange={setSecond} exclude={role} />
-            <ChoiceField legend="Which best describes you?" name="stage" options={volunteerStages} />
-            <TextField label="Your creative field or course of study (optional)" name="discipline" />
-            <TextField label="Any relevant experience? “None yet” is a fine answer." name="experience" multiline />
-            <TextField label="Why would you like to volunteer?" name="message" multiline />
-            <SubmitRow
-              status={status}
-              label="Submit application"
-              successMessage="Thank you. Your application is in, and we’ll be in touch."
+            <TextField
+              label="Phone / WhatsApp"
+              name="phone"
+              type="tel"
+              required
+              autoComplete="tel"
+              pattern="[\+0-9][0-9 \(\)\-]{6,}"
+              patternMessage="Enter a phone number we can reach you on WhatsApp, e.g. +234 801 234 5678."
             />
+            <TeamSelect label="First-choice team" name="team" value={team} onChange={onTeamChange} required />
+            <TeamSelect label="Second-choice team (optional)" name="second_team" value={second} onChange={setSecond} exclude={team} />
+            <ChoiceField
+              legend="In person or online?"
+              name="attendance"
+              options={[volunteerAttendance.inPerson, volunteerAttendance.online]}
+              required
+              value={attendance}
+              onChange={(v) => {
+                setAttendance(v)
+                setOnlineError(false)
+              }}
+              hint={
+                online && (
+                  <span role={onlineError ? 'alert' : undefined} className={cn(onlineMismatch && onlineError && 'text-rust opacity-100')}>
+                    {hasOnlineHost
+                      ? 'You’ll host from home: you need good internet and a laptop.'
+                      : 'Online volunteering is for the Online Host team. Choose Online Host as your first or second choice, or pick In person.'}
+                  </span>
+                )
+              }
+            />
+            <TextField label="Relevant experience or links (optional)" name="experience" multiline />
+            <ChoiceField legend="Can you attend a short volunteer briefing before the event?" name="briefing" options={briefingOptions} required />
+            <SubmitRow status={status} label="Submit application" successMessage={volunteerSuccess} />
           </form>
         </Reveal>
       </div>
@@ -451,7 +437,7 @@ function Apply({ role, onRoleChange }: { role: string; onRoleChange: (id: string
   )
 }
 
-function RoleSelect({
+function TeamSelect({
   label,
   name,
   value,
@@ -467,7 +453,7 @@ function RoleSelect({
   exclude?: string
 }) {
   const id = useId()
-  const selected = allVolunteerRoles.find((r) => r.title === value)
+  const selected = teamByTitle(value)
   return (
     <div>
       <label htmlFor={id} className="mb-2 block text-sm opacity-70">
@@ -484,30 +470,27 @@ function RoleSelect({
           className="w-full appearance-none border-0 border-b border-current/25 bg-transparent py-3 pr-10 text-lg outline-none transition-colors focus:border-current"
         >
           <option value="" className="bg-ink">
-            {required ? 'Choose a role' : 'No second choice'}
+            {required ? 'Choose a team' : 'No second choice'}
           </option>
-          {volunteerDepartments.map((d) => (
-            <optgroup
-              key={d.id}
-              label={d.status === 'conditional' ? `${d.title} (subject to confirmation)` : d.title}
-              className="bg-ink"
-            >
-              {d.roles
-                .filter((r) => r.title !== exclude)
-                .map((r) => (
-                  <option key={r.id} value={r.title} className="bg-ink">
-                    {r.title}
-                  </option>
-                ))}
-            </optgroup>
-          ))}
+          {volunteerTeams
+            .filter((t) => t.title !== exclude)
+            .map((t) => (
+              <option key={t.id} value={t.title} className="bg-ink">
+                {t.number} {t.title}
+                {t.status === 'conditional' ? ` (${conditionalNote.toLowerCase()})` : ''}
+              </option>
+            ))}
         </select>
         <ChevronDown className="pointer-events-none absolute right-0 top-1/2 h-5 w-5 -translate-y-1/2 opacity-60" aria-hidden="true" />
       </div>
       {selected && (
-        <p className="mt-2 text-xs text-cream/50">
-          {selected.department.title} · {experienceLabel[selected.experience]}
-          {selected.department.status === 'conditional' && ' · Only goes ahead if the marketplace is confirmed'}
+        <p className="mt-2 flex items-start gap-1.5 text-xs text-cream/50">
+          <Info className="mt-px h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          <span>
+            {experienceText(selected)}
+            {selected.notes?.length ? ` · ${selected.notes.join(' · ')}` : ''}
+            {selected.status === 'conditional' ? ` · ${conditionalNote}` : ''}
+          </span>
         </p>
       )}
     </div>

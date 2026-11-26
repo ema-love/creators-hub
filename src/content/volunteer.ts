@@ -1,66 +1,156 @@
 /**
- * The Creators Hub Volunteer Collective: departments, positions and FAQ for
- * Creators Hub 001: The First Room. Supplied by Creators Hub.
+ * The Creators Hub Volunteer Collective: the six core teams, what volunteers
+ * get, and the FAQ for Creators Hub 001: The First Room.
  *
- * Keep to what is confirmed: no benefits, dates, deadlines or contact details
- * that haven't been agreed. A department with `status: 'conditional'` is shown
- * as subject to confirmation; switch it to 'confirmed' once it is final.
+ * Keep to what is confirmed. A team with `status: 'conditional'` is shown as
+ * "Subject to confirmation"; switch it to 'confirmed' once it is final.
+ *
+ * The team `title`s are what the application form sends and what appears in
+ * the Google Sheet, so avoid renaming a team once applications are coming in.
  */
+
+import { firstRoom } from './event'
 
 /** 'beginners': no experience needed. 'preferred': some experience helps, but it isn't required. */
 export type ExperienceLevel = 'beginners' | 'preferred'
-
-export type VolunteerRole = {
-  id: string
-  title: string
-  duties: string[]
-  experience: ExperienceLevel
-}
-
-export type VolunteerDepartment = {
-  id: string
-  title: string
-  summary: string
-  status: 'confirmed' | 'conditional'
-  /** Shown on conditional departments. */
-  note?: string
-  roles: VolunteerRole[]
-}
 
 export const experienceLabel: Record<ExperienceLevel, string> = {
   beginners: 'Beginners welcome',
   preferred: 'Experience preferred',
 }
 
+export type ExperienceTag = { level: ExperienceLevel; /** What the tag applies to, when a team is mixed. */ for?: string }
+
+export type VolunteerTeam = {
+  id: string
+  number: string
+  title: string
+  /** One line: why the team matters. */
+  summary: string
+  /** What volunteers on this team do. */
+  duties: string[]
+  experience: ExperienceTag[]
+  /** Extra requirements or conditions, shown as small tags on the card. */
+  notes?: string[]
+  /** True if the team can be done remotely (lets the applicant choose "Online"). */
+  remote?: boolean
+  status: 'confirmed' | 'conditional'
+}
+
 export const volunteerIntro = {
   eyebrow: 'Creators Hub 001 · Volunteer',
   title: ['The Volunteer', 'Collective'],
-  lede: 'A team of students, emerging creatives and curious people helping to build The First Room, and learning by doing it.',
-  body: 'You don’t need event experience to join. You need to show up, care about the work and be ready to learn. Pick a role that fits you, or one that stretches you.',
+  lede: `The First Room runs on people who build. Volunteer with us on ${firstRoom.dateCompact} and get front-row access to Lagos’ next generation of creatives.`,
+  body: 'Six core teams, and most of them welcome beginners. Pick the one that fits you, or the one that stretches you.',
 }
 
-export const volunteerWhy = {
-  eyebrow: 'Why volunteer',
-  title: ['Get in the room', 'while it’s being built.'],
-  openCall:
-    'If you’re a student, an emerging creative, or someone looking for real experience and the right people to learn from, this is for you. Many of the people in this room never had a way in. We want to change that.',
-  points: [
-    {
-      title: 'Practical experience',
-      body: 'Work on a real creative event, alongside the people running it, rather than reading about how it’s done.',
-    },
-    {
-      title: 'A community across disciplines',
-      body: 'Meet people working in fashion, technology, film and storytelling, and arts and design, in one place.',
-    },
-    {
-      title: 'Be part of the first edition',
-      body: 'The First Room is the inaugural Creators Hub event. Volunteers help set the tone for everything that follows.',
-    },
-    {
-      title: 'Learn something new',
-      body: 'Try a side of creative work you haven’t done before. Most roles are open to beginners.',
-    },
+export const volunteerTeams: VolunteerTeam[] = [
+  {
+    id: 'welcome',
+    number: '①',
+    title: 'Welcome & Registration',
+    summary: 'Be the first face people see.',
+    duties: [
+      'Scan QR tickets at check-in.',
+      'Hand out name tags.',
+      'Help guests find seats and their creative “room”.',
+      'Answer questions at the welcome desk.',
+    ],
+    experience: [{ level: 'beginners' }],
+    status: 'confirmed',
+  },
+  {
+    id: 'programme',
+    number: '②',
+    title: 'Programme & Speakers',
+    summary: 'Keep the day running on time.',
+    duties: [
+      'Greet and look after speakers.',
+      'Guide them to the green room and stage.',
+      'Keep time for each session.',
+      'Help with smooth handovers between segments.',
+    ],
+    experience: [{ level: 'beginners' }],
+    status: 'confirmed',
+  },
+  {
+    id: 'media',
+    number: '③',
+    title: 'Media: photo, video & live Stories',
+    summary: 'Capture The First Room.',
+    duties: [
+      'Photograph and film key moments.',
+      'Post live Instagram Stories through the day.',
+      'Collect short interviews and quotes.',
+      'Gather footage for the highlight Reel.',
+    ],
+    experience: [
+      { level: 'preferred', for: 'Photo & video' },
+      { level: 'beginners', for: 'Stories' },
+    ],
+    status: 'confirmed',
+  },
+  {
+    id: 'online-host',
+    number: '④',
+    title: 'Online Host',
+    summary: 'Look after everyone joining online.',
+    duties: [
+      'Welcome virtual attendees.',
+      'Run the chat.',
+      'Pass their questions to the stage.',
+      'Share links and updates.',
+      'Make online guests feel like they’re in the room.',
+    ],
+    experience: [{ level: 'beginners' }],
+    notes: ['Good internet and a laptop needed', 'Can be done remotely'],
+    remote: true,
+    status: 'confirmed',
+  },
+  {
+    id: 'community',
+    number: '⑤',
+    title: 'Community & Networking',
+    summary: 'Help people meet the right people.',
+    duties: [
+      'Make introductions across tech, design, fashion and film.',
+      'Run the Reels corner, where guests film their ideas.',
+      'Help host the Frozen Ideas “thaw” at the end of the day.',
+    ],
+    experience: [{ level: 'beginners' }],
+    status: 'confirmed',
+  },
+  {
+    id: 'marketplace',
+    number: '⑥',
+    title: 'Marketplace',
+    summary: 'Support creatives showcasing and selling their work.',
+    duties: ['Help exhibitors set up.', 'Guide guests around the marketplace.', 'Document the stands.'],
+    experience: [{ level: 'beginners' }],
+    status: 'conditional',
+  },
+]
+
+export const conditionalNote = 'Subject to confirmation'
+
+export const teamByTitle = (title: string) => volunteerTeams.find((t) => t.title === title)
+
+/** "Beginners welcome", or "Photo & video: Experience preferred · Stories: Beginners welcome" for mixed teams. */
+export const experienceText = (team: VolunteerTeam) =>
+  team.experience.map((e) => (e.for ? `${e.for}: ${experienceLabel[e.level]}` : experienceLabel[e.level])).join(' · ')
+
+/**
+ * What volunteers get.
+ * ✏️ EDIT ME: these are placeholders. Change the wording, add or remove items
+ * once the benefits are confirmed. They appear on /volunteer.
+ */
+export const volunteerBenefits = {
+  eyebrow: 'What volunteers get',
+  title: ['Give a day.', 'Leave with more.'],
+  items: [
+    { title: 'Volunteer certificate & recognition', body: 'A certificate for every volunteer, and recognition on the day.' },
+    { title: 'A feature on our page', body: 'A Creators Hub volunteer feature on our page, introducing you and your work.' },
+    { title: 'Connections that last', body: 'Time with the speakers and partners behind The First Room.' },
   ],
 }
 
@@ -68,269 +158,52 @@ export const volunteerValues = {
   eyebrow: 'What the collective stands for',
   items: [
     { title: 'Inclusion and accessibility', body: 'The collective is open to people from every background and level of experience.' },
-    { title: 'Practical experience and learning', body: 'Every role is a chance to learn real skills on a real event.' },
+    { title: 'Practical experience and learning', body: 'Every team is a chance to learn real skills on a real event.' },
     { title: 'Community building', body: 'We look after each other, and we leave with people we can call on.' },
     { title: 'Creativity and collaboration', body: 'Good ideas come from anyone on the team, whatever their role.' },
     { title: 'Professionalism and respect', body: 'Towards guests, speakers, partners and one another.' },
     { title: 'Equal opportunity', body: 'Every application is read on its own merits. Who you know doesn’t come into it.' },
   ],
-  commitments: ['No fee to take part', 'No equipment to buy', 'No previous event experience required'],
+  commitments: ['No fee to take part', 'No equipment to buy', 'Most teams welcome beginners'],
 }
 
-export const volunteerDepartments: VolunteerDepartment[] = [
-  {
-    id: 'technology',
-    title: 'Technology & Digital Support',
-    summary: 'Keep the room’s tools, screens and systems working.',
-    status: 'confirmed',
-    roles: [
-      {
-        id: 'digital-technical-support',
-        title: 'Digital & Technical Support Assistant',
-        experience: 'preferred',
-        duties: [
-          'Assist with event-related digital tools and technology.',
-          'Support ticketing and digital registration systems where necessary.',
-          'Assist with presentations and technical equipment.',
-          'Help troubleshoot basic technical issues during the event.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'programme',
-    title: 'Speaker & Programme Support',
-    summary: 'Help speakers feel at home and keep the programme moving.',
-    status: 'confirmed',
-    roles: [
-      {
-        id: 'speaker-liaison',
-        title: 'Speaker Liaison',
-        experience: 'beginners',
-        duties: [
-          'Assist speakers with event arrival and orientation.',
-          'Communicate relevant programme information to speakers.',
-          'Help speakers navigate the event venue.',
-          'Support speaker coordination before and during the event.',
-        ],
-      },
-      {
-        id: 'programme-support',
-        title: 'Programme Support Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist the programme team with event transitions.',
-          'Help ensure programme activities are organized.',
-          'Support communication between programme staff and speakers.',
-        ],
-      },
-      {
-        id: 'programme-timekeeper',
-        title: 'Programme Timekeeper',
-        experience: 'beginners',
-        duties: [
-          'Monitor programme timing.',
-          'Help communicate timing reminders to speakers and programme staff.',
-          'Support smooth transitions between programme segments.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'media',
-    title: 'Marketing, Media & Communications',
-    summary: 'Capture the day and help its stories travel.',
-    status: 'confirmed',
-    roles: [
-      {
-        id: 'social-media',
-        title: 'Social Media Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist with event-related social media coverage.',
-          'Capture live updates and behind-the-scenes moments.',
-          'Help document activities for social media content.',
-        ],
-      },
-      {
-        id: 'photography',
-        title: 'Photography Assistant',
-        experience: 'preferred',
-        duties: [
-          'Support event photography.',
-          'Capture candid moments, attendees, and event activities.',
-          'Assist with organizing photographs.',
-        ],
-      },
-      {
-        id: 'videography',
-        title: 'Videography Assistant',
-        experience: 'preferred',
-        duties: [
-          'Assist with video recording.',
-          'Capture behind-the-scenes footage and event highlights.',
-          'Support video documentation activities.',
-        ],
-      },
-      {
-        id: 'content-documentation',
-        title: 'Content Documentation Assistant',
-        experience: 'beginners',
-        duties: [
-          'Document important event moments.',
-          'Collect quotes, highlights, and key observations.',
-          'Assist with creating post-event content.',
-        ],
-      },
-      {
-        id: 'interview',
-        title: 'Interview Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist with coordinating interviews.',
-          'Help prepare interview questions and identify interview participants.',
-          'Support interviews with speakers, attendees, and creative exhibitors.',
-        ],
-      },
-      {
-        id: 'media-communications',
-        title: 'Media & Communications Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist with communications activities.',
-          'Help coordinate media-related tasks.',
-          'Support the collection and organization of event content.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'marketplace',
-    title: 'Creative Marketplace',
-    summary: 'Support the makers selling their work at The First Room.',
-    status: 'conditional',
-    note: 'The Creative Marketplace hasn’t been confirmed yet. These roles will only go ahead if it is. You’re welcome to register your interest in the meantime.',
-    roles: [
-      {
-        id: 'vendor-relations',
-        title: 'Vendor Relations Assistant',
-        experience: 'beginners',
-        duties: [
-          'Communicate with marketplace vendors.',
-          'Assist vendors with event-related information.',
-          'Help address vendor questions.',
-        ],
-      },
-      {
-        id: 'marketplace-support',
-        title: 'Marketplace Support Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist vendors with marketplace setup.',
-          'Help vendors navigate the marketplace area.',
-          'Provide general support during the event.',
-        ],
-      },
-      {
-        id: 'marketplace-documentation',
-        title: 'Marketplace Documentation Assistant',
-        experience: 'beginners',
-        duties: [
-          'Document marketplace activities.',
-          'Capture participating vendors and their creative products.',
-          'Assist with marketplace content creation.',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'community',
-    title: 'Partnerships & Community Engagement',
-    summary: 'Grow the circle, before the event and on the day.',
-    status: 'confirmed',
-    roles: [
-      {
-        id: 'community-engagement',
-        title: 'Community Engagement Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist with outreach to creative communities and student groups.',
-          'Help strengthen connections with local creative networks.',
-          'Support community engagement activities.',
-        ],
-      },
-      {
-        id: 'partnership-support',
-        title: 'Partnership Support Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist with partner communication.',
-          'Help organize partnership information and documentation.',
-          'Support partner coordination and follow-up activities.',
-        ],
-      },
-      {
-        id: 'networking',
-        title: 'Networking Assistant',
-        experience: 'beginners',
-        duties: [
-          'Help attendees connect with other creatives.',
-          'Encourage meaningful networking between attendees, speakers, and partners.',
-          'Support networking activities during the event.',
-        ],
-      },
-      {
-        id: 'community-outreach',
-        title: 'Community Outreach Assistant',
-        experience: 'beginners',
-        duties: [
-          'Assist with reaching potential attendees, volunteers, and community organizations.',
-          'Help distribute event information.',
-          'Support community recruitment and engagement.',
-        ],
-      },
-    ],
-  },
-]
+/** Application form options. The values are what's saved in Netlify Forms and the sheet. */
+export const volunteerAttendance = {
+  inPerson: 'In person, in Lagos',
+  online: 'Online (Online Host only)',
+} as const
+export const briefingOptions = ['Yes', 'No'] as const
 
-export const volunteerArrangementsNote =
-  'Some positions may change depending on final event arrangements. If a role you apply for changes, we’ll let you know and talk through the options.'
-
-export const allVolunteerRoles = volunteerDepartments.flatMap((d) => d.roles.map((r) => ({ ...r, department: d })))
-
-export const volunteerStages = ['Student', 'Emerging creative', 'Looking for practical experience', 'Working professional', 'Other'] as const
+export const volunteerSuccess =
+  'Thank you! We’ve received your application and will be in touch on WhatsApp/email before 15 December.'
 
 export const volunteerFaqs: { q: string; a: string }[] = [
   {
     q: 'Do I need previous experience?',
-    a: 'No. You don’t need to have volunteered at an event before. Most roles are marked “Beginners welcome”. A few say “Experience preferred”: some familiarity helps there, but it isn’t a requirement, so apply anyway and tell us where you’re starting from.',
+    a: 'No. Every team welcomes beginners. On the Media team, some photo or video experience is preferred for shooting, but anyone can help with live Stories.',
   },
   {
     q: 'Who can apply?',
     a: 'Anyone who wants to contribute. We especially encourage students, emerging creatives and people looking for practical experience or a way into creative networks they don’t yet have access to.',
   },
   {
+    q: 'Can I volunteer online?',
+    a: 'Yes, on the Online Host team, which looks after everyone joining online. You’ll need good internet and a laptop. All other teams are in person in Lagos.',
+  },
+  {
     q: 'Does it cost anything, or do I need my own equipment?',
-    a: 'No. There’s no fee to volunteer, and you won’t be asked to buy equipment to qualify for any role, including photography and videography. If you do have your own kit, you’re welcome to mention it.',
+    a: 'No. There’s no fee to volunteer, and you won’t be asked to buy equipment for any team. If you do have your own camera or kit, mention it in your application.',
   },
   {
-    q: 'How are volunteers selected?',
-    a: 'Every application is read. We look for enthusiasm, reliability and how well your interests match the roles we need to fill, not for a long CV or who you know. We’ll contact applicants using the email address on their application.',
+    q: 'Can I apply for more than one team?',
+    a: 'Choose a first choice and, if you like, a second. We’ll do our best to place you on one of them.',
   },
   {
-    q: 'What will I be responsible for?',
-    a: 'Each role above lists its main responsibilities. Selected volunteers will be briefed on their role, who they’ll be working with and what’s expected on the day before the event.',
+    q: 'When will I hear back?',
+    a: 'We’ll be in touch on WhatsApp or email before 15 December. Selected volunteers are briefed on their team, who they’ll work with and what’s expected on the day.',
   },
   {
-    q: 'What do volunteers get out of it?',
-    a: 'Hands-on experience at a real creative event, people to learn from, and a place in a community across fashion, technology, film and storytelling, and arts and design. Any further volunteer benefits will be shared with selected volunteers once they’re confirmed.',
-  },
-  {
-    q: 'Can I apply for more than one role?',
-    a: 'Yes. Choose your first choice and, if you like, a second. We’ll do our best to match you to one of them.',
-  },
-  {
-    q: 'Are all positions confirmed?',
-    a: 'Some positions may change depending on final event arrangements. The Creative Marketplace roles depend on the marketplace being confirmed, and are marked as such.',
+    q: 'Is the Marketplace confirmed?',
+    a: 'Not yet. The Marketplace team is subject to confirmation. You’re welcome to apply now; if it doesn’t go ahead, we’ll talk to you about your second choice.',
   },
 ]

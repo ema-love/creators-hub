@@ -5,11 +5,23 @@ import { firstRoom } from '../content/event'
 import { Section } from '../components/layout/Section'
 import { ArrowLink } from '../components/ui/ArrowLink'
 import { TicketList, type OwnedTicket } from '../components/tickets/TicketCard'
+import { OnlinePass } from '../components/tickets/OnlinePass'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 type State =
   | { kind: 'loading' }
-  | { kind: 'ready'; registration: { reference: string; name: string; emailSent: boolean; emailEnabled?: boolean }; ticket: OwnedTicket }
+  | {
+      kind: 'ready'
+      registration: {
+        reference: string
+        name: string
+        emailSent: boolean
+        emailEnabled?: boolean
+        attendance?: 'in_person' | 'online'
+        location?: string | null
+      }
+      ticket: OwnedTicket
+    }
   | { kind: 'error'; message: string }
 
 /**
@@ -43,6 +55,7 @@ export default function TicketOrderPage() {
 
   const ready = state.kind === 'ready' ? state : null
   const firstName = ready?.registration.name.split(' ')[0]
+  const online = ready?.registration.attendance === 'online'
 
   return (
     <Section surface="dark" aria-labelledby="order-title" className="grain min-h-[85svh] bg-[#0c0b0a] pt-32 pb-24">
@@ -51,7 +64,7 @@ export default function TicketOrderPage() {
           {welcome && ready && <CheckCircle2 className="mb-6 h-8 w-8 text-electric" aria-hidden="true" />}
           <p className="eyebrow text-electric">{firstRoom.fullName}</p>
           <h1 id="order-title" className="mt-4 text-headline font-medium">
-            {welcome && ready ? `You’re registered, ${firstName}.` : 'Your ticket'}
+            {welcome && ready ? `You’re registered, ${firstName}.` : online ? 'Your online pass' : 'Your ticket'}
           </h1>
         </div>
         <div aria-live="polite" className="mt-8">
@@ -62,7 +75,36 @@ export default function TicketOrderPage() {
               <ArrowLink to="/tickets/find">Find my ticket</ArrowLink>
             </div>
           )}
-          {ready && (
+          {ready && online && (
+            <>
+              <div className="max-w-2xl space-y-3 text-cream/75 print:hidden">
+                <p className="text-lede text-cream">
+                  You’re registered to join {firstRoom.name} online on {firstRoom.dateCompact}, {firstRoom.timeCompact}. We’ll send
+                  your joining link before the event.
+                </p>
+                <p>
+                  {ready.registration.emailSent
+                    ? 'We’ve also emailed this to you from Creators Hub (check Spam or Promotions if you can’t see it).'
+                    : ready.registration.emailEnabled
+                      ? 'We’re also emailing this to you from Creators Hub. If it isn’t in your inbox in a few minutes, check your Spam or Promotions folder.'
+                      : 'Bookmark this page: it’s your private link back to your registration.'}
+                </p>
+                <p className="text-sm text-cream/55">
+                  Registration <span className="select-all font-mono text-cream">{ready.registration.reference}</span>. No QR code is
+                  needed to join online.
+                </p>
+              </div>
+              <div className="mt-14 w-full max-w-[300px]">
+                <OnlinePass
+                  attendeeName={ready.ticket.attendeeName}
+                  design={ready.ticket.design}
+                  passId={ready.ticket.id}
+                  location={ready.registration.location}
+                />
+              </div>
+            </>
+          )}
+          {ready && !online && (
             <>
               <div className="max-w-2xl space-y-3 text-cream/75 print:hidden">
                 <p>
