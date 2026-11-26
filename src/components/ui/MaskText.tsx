@@ -3,7 +3,7 @@ import { ease } from '../../lib/motion'
 import { cn } from '../../lib/cn'
 
 type MaskTextProps = {
-  lines: string[]
+  lines: React.ReactNode[]
   className?: string
   lineClassName?: string
   delay?: number

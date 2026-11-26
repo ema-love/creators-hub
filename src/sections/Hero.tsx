@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { Link } from 'react-router'
 import { motion, useMotionValue, useReducedMotion, useScroll, useSpring, useTransform } from 'motion/react'
 import { ArrowDown, RotateCcw } from 'lucide-react'
-import { hero } from '../content/site'
+import { founding } from '../content/founding'
 import { firstRoom } from '../content/event'
 import { useIntro } from '../components/intro/IntroContext'
 import { MaskText } from '../components/ui/MaskText'
@@ -19,7 +19,7 @@ export function Hero() {
   const reduce = useReducedMotion()
   const finePointer = useFinePointer()
 
-  // Gentle scroll-away: the headline drifts up and dims as the manifesto arrives.
+  // Gentle scroll-away: the headline drifts up and dims as the mission arrives.
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start start', 'end start'] })
   const y = useTransform(scrollYProgress, [0, 1], ['0%', reduce ? '0%' : '18%'])
   const opacity = useTransform(scrollYProgress, [0, 0.85], [1, 0.15])
@@ -65,7 +65,7 @@ export function Hero() {
           animate={{ opacity: ready ? 1 : 0 }}
           transition={{ duration: 1, ease: ease.out, delay: 0.1 }}
         >
-          {hero.eyebrow}
+          {founding.eyebrow}
         </motion.p>
 
         <h1 id="hero-title" className="mt-8 text-display font-medium md:mt-12">
@@ -74,8 +74,8 @@ export function Hero() {
             inView={false}
             play={ready}
             delay={0.15}
-            lines={hero.headline}
-            className="[&>span:nth-child(2)]:pl-[8vw] [&>span:nth-child(3)]:pl-[3vw] [&>span:nth-child(4)]:pl-[14vw] [&>span:nth-child(4)]:text-electric"
+            lines={founding.headline}
+            className="[&>span:nth-child(2)]:pl-[8vw] [&>span:nth-child(2)]:text-electric"
           />
         </h1>
 
@@ -86,7 +86,7 @@ export function Hero() {
             animate={ready ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 1, ease: ease.out, delay: 0.6 }}
           >
-            {hero.statement}
+            {founding.statement}
           </motion.p>
 
           <motion.div
@@ -97,8 +97,8 @@ export function Hero() {
           >
             <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
               <ArrowLink to="/the-first-room">Enter The First Room</ArrowLink>
-              <ArrowLink to="/#manifesto" variant="text">
-                Read the manifesto
+              <ArrowLink to="/#mission" variant="text">
+                Why we exist
               </ArrowLink>
             </div>
           </motion.div>
@@ -122,7 +122,7 @@ export function Hero() {
               <RotateCcw className="h-4 w-4 transition-transform duration-700 group-hover:-rotate-[360deg]" aria-hidden="true" />
               <span className="link-draw">Replay intro</span>
             </button>
-            <a href="#manifesto" className="hidden items-center gap-2 hover:text-cream sm:inline-flex">
+            <a href="#mission" className="hidden items-center gap-2 hover:text-cream sm:inline-flex">
               <span>Scroll</span>
               <ArrowDown className="h-4 w-4 motion-safe:animate-bounce" aria-hidden="true" />
             </a>

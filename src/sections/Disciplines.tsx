@@ -10,7 +10,7 @@ import { ease } from '../lib/motion'
 import { cn } from '../lib/cn'
 
 /**
- * Four disciplines. Choosing one recomposes its photographs into a mosaic;
+ * The First Room's four arms. Choosing one recomposes its photographs into a mosaic;
  * the small map shows it connected to every other discipline.
  */
 export function Disciplines() {
@@ -18,7 +18,7 @@ export function Disciplines() {
   const active = disciplines.find((d) => d.id === activeId) ?? disciplines[0]!
 
   return (
-    <Section id="disciplines" surface="forest" aria-labelledby="disciplines-title" className="overflow-hidden py-28 md:py-40">
+    <Section id="arms" surface="forest" aria-labelledby="disciplines-title" className="overflow-hidden py-28 md:py-40">
       <div className="container-edge">
         <div className="grid gap-8 md:grid-cols-12 md:items-end">
           <div className="md:col-span-7">
@@ -31,7 +31,7 @@ export function Disciplines() {
         </div>
 
         <div className="mt-16 grid gap-10 md:mt-24 md:grid-cols-12 md:items-center md:gap-12">
-          <ul className="md:col-span-4" aria-label="Disciplines">
+          <ul className="md:col-span-4" aria-label="The four arms">
             {disciplines.map((d, i) => {
               const isActive = d.id === activeId
               return (

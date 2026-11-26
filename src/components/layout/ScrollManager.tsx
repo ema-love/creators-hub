@@ -16,15 +16,24 @@ export function ScrollManager() {
     const samePage = lastPath.current === pathname
     lastPath.current = pathname
 
-    const frame = requestAnimationFrame(() => {
-      ScrollTrigger.refresh()
+    // Pages load on demand, so the target may not exist yet: keep looking for up to 2s.
+    let frame = 0
+    const started = performance.now()
+    const go = () => {
       if (!hash) {
+        ScrollTrigger.refresh()
         if (!samePage) window.scrollTo({ top: 0, behavior: 'instant' })
         return
       }
       const target = document.getElementById(decodeURIComponent(hash.slice(1)))
-      target?.scrollIntoView({ behavior: samePage ? 'smooth' : 'instant' })
-    })
+      if (!target) {
+        if (performance.now() - started < 2000) frame = requestAnimationFrame(go)
+        return
+      }
+      ScrollTrigger.refresh()
+      target.scrollIntoView({ behavior: samePage ? 'smooth' : 'instant' })
+    }
+    frame = requestAnimationFrame(go)
     return () => cancelAnimationFrame(frame)
   }, [pathname, hash])
 

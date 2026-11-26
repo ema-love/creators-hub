@@ -1,5 +1,7 @@
 import { useRef } from 'react'
+import { Link } from 'react-router'
 import { firstRoom, firstRoomDetails } from '../content/event'
+import { disciplines } from '../content/site'
 import { Section } from '../components/layout/Section'
 import { ArrowLink } from '../components/ui/ArrowLink'
 import { Placeholder } from '../components/ui/Placeholder'
@@ -82,6 +84,18 @@ export function FirstRoom() {
               {firstRoom.name}
             </h2>
             <p className="mt-6 max-w-xl text-lede text-cream/80">{firstRoom.direction}</p>
+            <ul className="mt-6 flex flex-wrap gap-2" aria-label="The First Room’s four arms">
+              {disciplines.map((d) => (
+                <li key={d.id}>
+                  <Link
+                    to="/the-first-room#arms"
+                    className="inline-block rounded-full border border-cream/25 px-4 py-1.5 text-sm text-cream/85 transition-colors hover:border-rust hover:text-cream"
+                  >
+                    {d.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
 
             <dl className="mt-10 grid max-w-3xl grid-cols-2 gap-x-8 gap-y-6 border-t border-cream/15 pt-8 md:grid-cols-4">
               {firstRoomDetails.map((d) => (

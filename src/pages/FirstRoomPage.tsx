@@ -7,6 +7,7 @@ import { ArrowLink } from '../components/ui/ArrowLink'
 import { Placeholder } from '../components/ui/Placeholder'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { Disciplines } from '../sections/Disciplines'
 import { firstRoomCalendarHref } from '../lib/calendar'
 import { daysUntil } from '../lib/date'
 
@@ -73,6 +74,8 @@ export default function FirstRoomPage() {
           </dl>
         </div>
       </Section>
+
+      <Disciplines />
 
       <Section surface="light" aria-labelledby="event-programme" className="py-28 md:py-36">
         <div className="container-edge grid gap-16 md:grid-cols-12">

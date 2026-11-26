@@ -2,7 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
 import { firstRoom } from './src/content/event.ts'
-import { disciplines, hero, manifesto } from './src/content/site.ts'
+import { disciplines } from './src/content/site.ts'
+import { founding, mission, oath, philosophy, pillars, problem, roadmap } from './src/content/founding.ts'
 import { registrationCopy } from './src/content/tickets.ts'
 import { experienceText, volunteerBenefits, volunteerIntro, volunteerTeams } from './src/content/volunteer.ts'
 
@@ -32,13 +33,25 @@ export function staticPages(): Page[] {
     {
       path: '/',
       title: 'Creators Hub · The First Room · Lagos & online · 19 Dec 2026',
-      description: `Creators Hub is a creative community in Lagos, Nigeria, bringing together fashion, technology, film and storytelling, and arts and design. Register free for ${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in Lagos or online.`,
+      description: `Creators Hub is a pan-African ecosystem where young thinkers get the education, community and creative space to turn their own ideas into reality. Register free for ${firstRoom.fullName}, ${firstRoom.dateLabel}, ${firstRoom.timeRange}, in Lagos or online.`,
       body: `<h1>Creators Hub</h1>
-<p>${esc(hero.eyebrow)}. ${esc(hero.statement)}</p>
-${manifesto.paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n')}
-<h2>Four disciplines</h2>${arms}
+<p>${esc(founding.eyebrow)}</p>
+<p><strong>${esc(founding.headline.join(' '))}</strong> ${esc(founding.statement)}</p>
+<h2>${esc(mission.title.join(' '))}</h2>
+<p><strong>Mission:</strong> ${esc(mission.mission)}</p>
+<p><strong>Vision:</strong> ${esc(mission.vision)}</p>
+<h2>${esc(problem.title.join(' '))}</h2>
+<ul>${problem.items.map((i) => `<li><strong>${esc(i.title)}</strong>: ${esc(i.body)}</li>`).join('')}</ul>
+<h2>${esc(pillars.title.join(' '))} The four pillars</h2>
+<ul>${pillars.items.map((i) => `<li><strong>${esc(i.title)}</strong>: ${esc(i.body)}</li>`).join('')}</ul>
+<h2>${esc(philosophy.title.join(' '))}</h2>
+<ul>${philosophy.shifts.map((s) => `<li>“${esc(s.from)}” → ${esc(s.to)}</li>`).join('')}</ul>
+<h2>${esc(roadmap.title.join(' '))}</h2>
+<ol>${roadmap.phases.map((p) => `<li><strong>${esc(p.phase)} · ${esc(p.when)} · ${esc(p.where)}: ${esc(p.title)}</strong>. ${esc(p.body)}</li>`).join('')}</ol>
+<h2>${esc(oath.eyebrow)}</h2>
+<blockquote><p>${esc(oath.before)} ${esc(oath.highlight)} ${esc(oath.after)}</p><p>${esc(oath.signature)}</p></blockquote>
 <h2>${esc(firstRoom.fullName)}</h2>
-<p>${esc(firstRoom.direction)} ${esc(firstRoom.intro)}</p>
+<p>The first Creators Hub event. ${esc(firstRoom.direction)} ${esc(firstRoom.intro)}</p>
 <p>${esc(when)}. ${esc(venue)}.</p>
 <p><a href="/tickets">Register free for ${esc(firstRoom.fullName)}</a> · <a href="/volunteer">Volunteer</a></p>`,
     },
@@ -49,7 +62,7 @@ ${manifesto.paragraphs.map((p) => `<p>${esc(p)}</p>`).join('\n')}
       body: `<h1>${esc(firstRoom.fullName)}</h1>
 <p>The inaugural Creators Hub event. ${esc(firstRoom.direction)} ${esc(firstRoom.intro)}</p>
 <dl><dt>Date</dt><dd>${esc(firstRoom.dateLabel)}</dd><dt>Time</dt><dd>${esc(firstRoom.timeRange)}</dd><dt>Where</dt><dd>${esc(firstRoom.city)}, ${esc(firstRoom.country)}, and online from anywhere</dd><dt>Venue</dt><dd>${esc(firstRoom.venue ?? 'To be announced')}</dd><dt>Entry</dt><dd>Free, one registration per person</dd></dl>
-<h2>Who it's for</h2>${arms}
+<h2>The four arms</h2>${arms}
 <p><a href="/tickets">Register free for ${esc(firstRoom.fullName)}</a></p>`,
     },
     {

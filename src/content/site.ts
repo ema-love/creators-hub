@@ -6,58 +6,19 @@
  */
 
 export const nav = [
-  { label: 'Manifesto', href: '/#manifesto' },
-  { label: 'Disciplines', href: '/#disciplines' },
+  { label: 'Mission', href: '/#mission' },
+  { label: 'Roadmap', href: '/#roadmap' },
   { label: 'The First Room', href: '/the-first-room' },
   { label: 'Tickets', href: '/tickets' },
   { label: 'Volunteer', href: '/volunteer' },
   { label: 'Partner', href: '/#partner' },
 ] as const
 
-export const hero = {
-  eyebrow: 'A multidisciplinary creative organisation and community',
-  // Working headline, not an approved tagline.
-  headline: ['Fashion, technology,', 'film & storytelling,', 'arts & design —', 'in one room.'],
-  statement:
-    'Creators Hub brings together the people who make things — engineers and image-makers, painters and designers, tailors and storytellers — and gives them a room to meet in.',
-}
-
-export const manifesto = {
-  eyebrow: 'Manifesto',
-  // Each string is one paragraph. Words are revealed individually on scroll.
-  paragraphs: [
-    'Creativity was never meant to live in separate buildings. The coder and the costume designer are solving the same problem from different ends: how to turn an idea into something people can hold.',
-    'Creators Hub exists for the space in between. We gather people across disciplines, put them in the same room, and see what they make together.',
-  ],
-  signature: 'Creators Hub',
-}
-
-export const represents = {
-  eyebrow: 'What Creators Hub represents',
-  title: 'Four commitments, in no particular order.',
-  items: [
-    {
-      n: '01',
-      title: 'Craft',
-      body: 'Respect for the work itself — the hours of practice, the tools, the materials, the hand that makes the final cut.',
-    },
-    {
-      n: '02',
-      title: 'Exchange',
-      body: 'Disciplines learn fastest from each other. A fashion designer’s eye can change a product; an engineer’s logic can change a film.',
-    },
-    {
-      n: '03',
-      title: 'Possibility',
-      body: 'Opening doors to collaborators, audiences and opportunities that are hard to find alone.',
-    },
-    {
-      n: '04',
-      title: 'Culture',
-      body: 'Rooted in African creativity and confident about where it is going. Built by the community, for the community.',
-    },
-  ],
-}
+/*
+ * What Creators Hub is (mission, problem, pillars, philosophy, roadmap, oath)
+ * lives in ./founding.ts. The four creative arms below belong to The First
+ * Room, the first Creators Hub event, not to Creators Hub as a whole.
+ */
 
 export type DisciplineId = 'fashion' | 'technology' | 'film' | 'artdesign'
 
@@ -76,34 +37,23 @@ export const disciplines: Discipline[] = [
   { id: 'artdesign', name: 'Arts & Design', line: 'Painting, illustration, visual and product design: ideas given form.', angle: 180 },
 ]
 
+/** The four arms of The First Room (shown on /the-first-room). */
 export const disciplinesSection = {
-  eyebrow: 'Disciplines & ecosystem',
-  title: 'Four disciplines. One shared room.',
-  body: 'Fashion, technology, film and storytelling, arts and design — four ways of making, gathered around the same table.',
-}
-
-export const community = {
-  eyebrow: 'Community & opportunities',
-  title: 'What we are building towards',
-  note: 'These describe intentions for the community. Specific programmes will be announced as they are confirmed.',
-  items: [
-    { title: 'Cross-disciplinary collaboration', body: 'Introductions between people who would not otherwise meet, around real projects.' },
-    { title: 'Learning in the open', body: 'Talks, critiques and working sessions where process is shared, not hidden.' },
-    { title: 'Showcasing work', body: 'Moments for members to put their work in front of new audiences.' },
-    { title: 'Access to opportunity', body: 'A network that surfaces collaborators, partners and openings across industries.' },
-  ],
+  eyebrow: 'The First Room · Four arms',
+  title: 'Four arms. One room.',
+  body: 'The First Room brings four creative arms together: fashion, technology, film and storytelling, and arts and design. Every guest registers under one of them.',
 }
 
 export const volunteer = {
   eyebrow: 'The Volunteer Collective',
   title: 'The first room needs builders.',
-  body: 'Students, emerging creatives and anyone looking for real experience: join the team behind The First Room, across technology, programme, media and community. No experience required, no fee to take part.',
+  body: 'Join the team behind The First Room. Six core teams, in Lagos and online. Beginners welcome, and no fee to take part.',
 }
 
 export const partnership = {
   eyebrow: 'Partnership & collaboration',
   title: 'Build the room with us.',
-  body: 'We are looking for organisations that care about creative work across disciplines. Partnerships can take many forms — tell us what you have in mind.',
+  body: 'Africa grows from within. We are looking for organisations that want to back Africa’s next generation of builders. Partnerships can take many forms — tell us what you have in mind.',
   types: [
     { title: 'Event partner', body: 'Support The First Room and future Creators Hub gatherings.' },
     { title: 'Venue & production', body: 'Spaces, equipment and technical production.' },

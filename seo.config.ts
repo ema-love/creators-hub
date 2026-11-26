@@ -88,7 +88,7 @@ export function brandJsonLd(site = origin()) {
       alternateName: ["Creator's Hub", 'Creators Hub Lagos'],
       url: `${site}/`,
       logo: `${site}/logo.png`,
-      description: 'A creative community in Lagos, Nigeria, across fashion, technology, film and storytelling, and arts and design.',
+      description: 'A pan-African ecosystem where young thinkers are given the education, community, and creative space to turn their own ideas into reality. Founded in Lagos, Nigeria, in 2026.',
     },
     {
       '@context': 'https://schema.org',

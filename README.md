@@ -1,6 +1,6 @@
 # Creators Hub
 
-Website for **Creators Hub**, a multidisciplinary creative organisation and community, and its inaugural event, **Creators Hub 001: The First Room** (19 December 2026, Lagos, Nigeria).
+Website for **Creators Hub**, a pan-African ecosystem where young thinkers are given the education, community, and creative space to turn their own ideas into reality (see its Founding Document, in `src/content/founding.ts`), and its inaugural event, **Creators Hub 001: The First Room** (19 December 2026, Lagos, Nigeria).
 
 Built with React, TypeScript, Vite, Tailwind CSS v4, Motion for React, GSAP + ScrollTrigger, Lucide and React Router. Deployed on Netlify.
 
@@ -67,15 +67,19 @@ src/
 
 ### Homepage sections
 
-1. **Hero**: brand statement, pointer-following ambient light, link to the event, replay intro
-2. **Manifesto**: words brighten as you read (GSAP scrub)
-3. **What Creators Hub represents**: numbered editorial list with a sticky title
-4. **Disciplines & ecosystem**: the four disciplines; choosing one brings its illustrated studio into view, with a small map showing its connections to the others
-5. **The First Room 001**: pinned scroll sequence where a doorway opens into the event (own rust-and-ink treatment)
-6. **Community & opportunities**: stated as intentions, not confirmed programmes
-7. **Volunteer**: six core teams and the application form (`/volunteer#apply`)
-8. **Partnership**: partnership types + enquiry form
-9. **Contact** + footer
+The homepage tells the Creators Hub story in the order of its Founding Document. All of its words are in `src/content/founding.ts`.
+
+1. **Hero**: "Africa does not lack ideas.", pointer-following ambient light, link to the event, replay intro
+2. **01 Mission & vision** (`#mission`): words brighten as you read (GSAP scrub)
+3. **02 The problem**: the waiting trap, the confidence gap, the education mismatch, the isolation problem
+4. **03 The four pillars** (`#pillars`): Recognition, Creative Space, Education, Guidance
+5. **04 The philosophy**: each old belief is struck through as the new one arrives
+6. **05 The roadmap** (`#roadmap`): five phases on a timeline that fills as you scroll; Phase 01 is marked "We are here"
+7. **06 The founder's oath**
+8. **The First Room 001**: pinned scroll sequence where a doorway opens into the event (own rust-and-ink treatment), with its four arms
+9. **Volunteer**: six core teams and the application form (`/volunteer#apply`)
+10. **Partnership**: partnership types + enquiry form
+11. **Contact** + footer
 
 ---
 
@@ -124,7 +128,7 @@ GSAP owns every transform it animates. Initial states are set with `gsap.set`, n
 
 ### Disciplines and photography
 
-Creators Hub presents four disciplines: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`).
+The First Room has four creative arms: **Fashion**, **Technology**, **Film & Storytelling** and **Arts & Design** (defined in `src/content/site.ts`). They belong to the event, not to Creators Hub as a whole, and are shown on `/the-first-room#arms`.
 
 The photographs were cut from the Creators Hub moodboards and recomposed in the site's own layouts, so they share its type, colour and shapes:
 
