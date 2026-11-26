@@ -53,7 +53,6 @@ function Profile({ member: m }: { member: TeamMember }) {
             </h1>
             <Reveal delay={0.1}>
               <p className="mt-8 text-lede text-ink/85">{profile.about}</p>
-              <p className="mt-5 text-ink/65">{m.bio}</p>
               <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
                 {m.linkedin && (
                   <a

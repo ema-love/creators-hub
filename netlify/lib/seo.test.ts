@@ -97,7 +97,7 @@ describe('search: structured data', () => {
     expect(pages['/']).toContain('The team behind Creator’s Hub')
     const ema = pages['/team/erioluwa-akintayo']!
     expect(ema).toContain("<title>Erioluwa Mercy Akintayo (Ema) · Founder of Creator's Hub</title>")
-    expect(ema).toContain('is the founder of Creator’s Hub')
+    expect(ema).toContain('is the founder of Creator’s Hub, a community built to turn idealists into builders. She leads the vision')
     expect(ema).toContain(`<link rel="canonical" href="${SITE}/team/erioluwa-akintayo" />`)
     const [profile] = jsonLdIn(ema) as Array<Record<string, unknown>>
     expect(profile).toMatchObject({

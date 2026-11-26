@@ -5,7 +5,7 @@
  * the /team page and Google's organisation data all update from this list.
  *
  * ✏️ PLACEHOLDERS to fill in are marked "PLACEHOLDER" below:
- *   - bio:      one line about the person (the current lines are examples)
+ *   - bio:      one line about the person (Divine's is still an example)
  *   - photo:    a square photo in public/team/ (e.g. '/team/divine-moses.jpg');
  *               null shows a neutral placeholder with their initials
  *   - linkedin: their LinkedIn profile URL; null hides the LinkedIn link
@@ -54,19 +54,18 @@ export const teamMembers: TeamMember[] = [
     name: 'Erioluwa Mercy Akintayo (Ema)',
     shortName: 'Ema',
     role: 'Founder',
-    // PLACEHOLDER: replace with Ema's own line.
-    bio: 'Founded Creator’s Hub to turn idealists into builders.',
+    bio: 'Leads the vision of creating spaces where young people can explore their ideas, find support, and bring their creativity to life.',
     photo: '/team/erioluwa-akintayo.jpg',
     linkedin: 'https://www.linkedin.com/in/erioluwa-akintayo-76449037a',
     founder: true,
     profile: {
       path: '/team/erioluwa-akintayo',
       title: "Erioluwa Mercy Akintayo (Ema) · Founder of Creator's Hub",
-      description:
-        "Erioluwa Mercy Akintayo (Ema) is the founder of Creator's Hub, a community in Lagos for young African creatives and builders, established in 2026.",
+      description: "Erioluwa Mercy Akintayo (Ema) is the founder of Creator's Hub, a community built to turn idealists into builders.",
       alternateNames: ['Ema', 'Erioluwa Akintayo', 'Ema Akintayo'],
+      // Ema's own words.
       about:
-        'Erioluwa Mercy Akintayo, known as Ema, is the founder of Creator’s Hub: a community for young African creatives and builders, established in Lagos in 2026. Creator’s Hub’s first event is Creator’s Hub 001: The First Room, on 19 December 2026.',
+        'Erioluwa Mercy Akintayo (Ema) is the founder of Creator’s Hub, a community built to turn idealists into builders. She leads the vision of creating spaces where young people can explore their ideas, find support, and bring their creativity to life.',
     },
   },
   {

@@ -119,7 +119,6 @@ ${volunteerTeams
 <p>${esc(m.role)} · Creator’s Hub</p>
 ${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)} of Creator’s Hub" width="320" height="320" />` : ''}
 <p>${esc(m.profile!.about)}</p>
-<p>${esc(m.bio)}</p>
 ${m.linkedin ? `<p><a href="${esc(m.linkedin)}" rel="me">${esc(m.shortName)} on LinkedIn</a></p>` : ''}
 ${m.founder ? `<h2>${esc(oath.eyebrow)}</h2><blockquote><p>${esc(oath.before)} ${esc(oath.highlight)} ${esc(oath.after)}</p><p>${esc(founderLine)}</p></blockquote>` : ''}
 <p><a href="/team">Meet the team</a> · <a href="/">Creator’s Hub</a></p>`,
