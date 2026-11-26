@@ -74,11 +74,12 @@ Creator’s Hub is a community for young African creatives and builders of every
 2. **Who we are** (`#about`): "Turning idealists into builders."; words brighten as you read
 3. **The manifesto** (`#manifesto`): "What we believe", eight numbered lines in large type
 4. **How we work**: Imagine → Gather → Connect → Build
-5. **The founder’s oath**, with the founder's signature line
-6. **Creator’s Hub 001: The First Room**: pinned scroll sequence where a doorway opens into the event, then the four arms of Creator’s Hub 001 as cards
-9. **Volunteer**: six core teams and the application form (`/volunteer#apply`)
-10. **Partnership**: partnership types + enquiry form
-11. **Contact** + footer
+5. **The team** (`#team`, also its own page at `/team`): a card per person from `src/content/team.ts` (photo, name, role, one line, LinkedIn). Add a person by copying an entry; bios, photos and LinkedIn links still to fill in are marked `PLACEHOLDER`. Photos are square, in `public/team/`; without one, a neutral card with initials shows
+6. **The founder’s oath**, with the founder's signature line
+7. **Creator’s Hub 001: The First Room**: pinned scroll sequence where a doorway opens into the event, then the four arms of Creator’s Hub 001 as cards
+8. **Volunteer**: six core teams and the application form (`/volunteer#apply`)
+9. **Partnership**: partnership types + enquiry form
+10. **Contact** + footer
 
 ---
 
@@ -221,8 +222,8 @@ One Google Sheet receives both registrations (Registrations tab, with Attendance
 ## Search engines (Google Search Console)
 
 `seo.config.ts` runs at build time. It produces:
-- `robots.txt` and `sitemap.xml`, covering the public pages: home, The First Room, Tickets and Volunteer;
-- structured data (JSON-LD), placed on its own page by `prerender.config.ts`: schema.org `Organization` (with Instagram, LinkedIn and the WhatsApp channel as `sameAs`) on the homepage, and `Event` for Creator’s Hub 001: The First Room on `/the-first-room` and `/tickets`;
+- `robots.txt` and `sitemap.xml`, covering the public pages: home, The First Room, Tickets, Volunteer and The Team;
+- structured data (JSON-LD), placed on its own page by `prerender.config.ts`: schema.org `Organization` (with Instagram, LinkedIn and the WhatsApp channel as `sameAs`, the founder as `founder` and the rest of the team as `member`, each a `Person` with their LinkedIn as `sameAs` once added) on the homepage, and `Event` for Creator’s Hub 001: The First Room on `/the-first-room` and `/tickets`;
 - a `lastmod` on every sitemap entry, set to the deploy date.
 
 Titles and descriptions for the homepage, `/the-first-room` and `/tickets`, the event's Google description and the social links are in `src/content/seo.ts`. Each public page is pre-rendered with its title, description, canonical link, structured data and main text, so Google receives them without running JavaScript. When the venue is confirmed, set `venue` and `venueAddress` in `src/content/event.ts`; the event data's `Place` updates on the next deploy. `netlify/lib/seo.test.ts` checks all of this.

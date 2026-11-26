@@ -1,6 +1,7 @@
 import type { Plugin } from 'vite'
 import { BRAND_PLAIN, brandSummary } from './src/content/founding.ts'
 import { eventSeo, socialProfiles } from './src/content/seo.ts'
+import { teamMembers, type TeamMember } from './src/content/team.ts'
 import { firstRoom } from './src/content/event.ts'
 
 const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
@@ -21,7 +22,7 @@ const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
 const FALLBACK_ORIGIN = 'https://thecreators-hub.netlify.app'
 
 /** Pages to list in the sitemap. Private pages (staff, tickets, orders) are left out on purpose. */
-export const PUBLIC_PAGES = ['/', '/the-first-room', '/tickets', '/volunteer']
+export const PUBLIC_PAGES = ['/', '/the-first-room', '/tickets', '/volunteer', '/team']
 
 /** Kept out of search: personal tickets, orders and the staff area. */
 export const PRIVATE_PATHS = ['/staff', '/admin', '/v/', '/tickets/order', '/tickets/confirmation', '/tickets/find', '/tickets/check-in', '/.netlify/']
@@ -80,8 +81,20 @@ export function eventJsonLd(site = origin()) {
   }
 }
 
-/** Google Organization data for Creator's Hub, on the homepage. */
+/** A team member as a schema.org Person. Their LinkedIn goes in sameAs once it is added in src/content/team.ts. */
+const person = (m: TeamMember, site: string) => ({
+  '@type': 'Person',
+  name: m.name.replace(/\s*\(.*?\)\s*/g, ' ').trim(),
+  ...(m.name.includes('(') ? { alternateName: m.name.match(/\((.*?)\)/)![1] } : {}),
+  jobTitle: m.role,
+  ...(m.photo ? { image: `${site}${m.photo}` } : {}),
+  ...(m.linkedin ? { sameAs: [m.linkedin] } : {}),
+})
+
+/** Google Organization data for Creator's Hub (with its founder and team), on the homepage. */
 export function organizationJsonLd(site = origin()) {
+  const founder = teamMembers.find((m) => m.founder)
+  const members = teamMembers.filter((m) => !m.founder)
   return [
     {
       '@context': 'https://schema.org',
@@ -92,6 +105,8 @@ export function organizationJsonLd(site = origin()) {
       logo: `${site}/logo.png`,
       description: brandSummary + ' Founded in Lagos, Nigeria, in 2026.',
       sameAs: socialProfiles,
+      ...(founder ? { founder: person(founder, site) } : {}),
+      ...(members.length ? { member: members.map((m) => person(m, site)) } : {}),
     },
     {
       '@context': 'https://schema.org',

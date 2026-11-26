@@ -55,13 +55,25 @@ describe('search: structured data', () => {
   })
 
   it('describes the organisation, with its profiles', () => {
-    const [org] = organizationJsonLd(SITE)
+    const [org] = organizationJsonLd(SITE) as Array<Record<string, unknown>>
     expect(org).toMatchObject({ '@type': 'Organization', name: "Creator's Hub", url: SITE, logo: `${SITE}/logo.png` })
     expect(org!.sameAs).toEqual([
       'https://www.instagram.com/creatorshubafrica/',
       'https://www.linkedin.com/company/creatorshubafrica',
       'https://whatsapp.com/channel/0029Vb9JcdRK5cDAX538aL1i',
     ])
+  })
+
+  it('names the founder and the team on the organisation', () => {
+    const [org] = organizationJsonLd(SITE) as Array<Record<string, unknown>>
+    expect(org!.founder).toEqual({
+      '@type': 'Person',
+      name: 'Erioluwa Mercy Akintayo',
+      alternateName: 'Ema',
+      jobTitle: 'Founder',
+      image: `${SITE}/team/erioluwa-akintayo.jpg`,
+    })
+    expect(org!.member).toEqual([{ '@type': 'Person', name: 'Divine Kamsi Moses', jobTitle: 'Community Lead' }])
   })
 
   it('puts each page’s own data, title, description and text in the HTML Google receives', () => {
@@ -77,11 +89,15 @@ describe('search: structured data', () => {
     expect(pages['/']).toContain('Turning idealists into builders.')
     expect(pages['/the-first-room']).toContain('The four arms of The First Room')
     expect(pages['/tickets']).toContain('One registration per person')
+    expect(pages['/team']).toContain('<title>The Team · Creator')
+    expect(pages['/team']).toContain('Divine Kamsi Moses')
+    expect(pages['/']).toContain('The team behind Creator’s Hub')
   })
 
   it('dates the sitemap with each deploy', () => {
     const xml = sitemapXml(SITE, '2026-11-26')
-    expect(xml.match(/<lastmod>2026-11-26<\/lastmod>/g)).toHaveLength(4)
+    expect(xml.match(/<lastmod>2026-11-26<\/lastmod>/g)).toHaveLength(5)
+    expect(xml).toContain(`<loc>${SITE}/team</loc>`)
     expect(xml).toContain(`<loc>${SITE}/tickets</loc>`)
   })
 })

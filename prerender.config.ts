@@ -6,6 +6,7 @@ import { disciplines } from './src/content/site.ts'
 import { BRAND_PLAIN, EVENT_NAME, firstRoomSection, founderLine, heroCopy, howWeWork, manifesto, oath, whoWeAre } from './src/content/founding.ts'
 import { registrationCopy } from './src/content/tickets.ts'
 import { pageMeta } from './src/content/seo.ts'
+import { teamMembers, teamSection } from './src/content/team.ts'
 import { eventJsonLd, jsonLdScript, organizationJsonLd } from './seo.config.ts'
 import { experienceText, volunteerBenefits, volunteerIntro, volunteerTeams } from './src/content/volunteer.ts'
 
@@ -27,7 +28,7 @@ type Page = { path: string; title: string; description: string; body: string; /*
 
 const when = `${firstRoom.dateLabel} · ${firstRoom.timeRange} · ${firstRoom.city}, ${firstRoom.country}, and online`
 const venue = `Venue: ${firstRoom.venue ?? 'to be announced'}`
-const nav = `<nav aria-label="Pages"><a href="/">Home</a> · <a href="/the-first-room">${esc(EVENT_NAME)}</a> · <a href="/tickets">Free registration</a> · <a href="/volunteer">Volunteer</a></nav>`
+const nav = `<nav aria-label="Pages"><a href="/">Home</a> · <a href="/the-first-room">${esc(EVENT_NAME)}</a> · <a href="/tickets">Free registration</a> · <a href="/volunteer">Volunteer</a> · <a href="/team">The team</a></nav>`
 const arms = `<ul>${disciplines.map((d) => `<li><strong>${esc(d.name)}</strong>: ${esc(d.line)}</li>`).join('')}</ul>`
 
 export function staticPages(site = FALLBACK_ORIGIN): Page[] {
@@ -46,6 +47,9 @@ export function staticPages(site = FALLBACK_ORIGIN): Page[] {
 <ol>${manifesto.lines.map((l) => `<li>${esc(l)}</li>`).join('')}</ol>
 <h2>${esc(howWeWork.eyebrow)}</h2>
 <ol>${howWeWork.steps.map((s) => `<li><strong>${esc(s.title)}</strong>: ${esc(s.body)}</li>`).join('')}</ol>
+<h2>${esc(teamSection.title.join(' '))}</h2>
+<p>${esc(teamSection.intro)}</p>
+<ul>${teamMembers.map((m) => `<li><strong>${esc(m.name)}</strong>, ${esc(m.role)}. ${esc(m.bio)}</li>`).join('')}</ul>
 <h2>${esc(oath.eyebrow)}</h2>
 <blockquote><p>${esc(oath.before)} ${esc(oath.highlight)} ${esc(oath.after)}</p><p>${esc(founderLine)}</p><p>${esc(oath.signature)}</p></blockquote>
 <h2>${esc(EVENT_NAME)}: ${esc(firstRoomSection.title.join(' '))}</h2>
@@ -93,6 +97,18 @@ ${volunteerTeams
   )
   .join('\n')}
 <p><a href="/volunteer#apply">Apply to volunteer</a></p>`,
+    },
+    {
+      path: '/team',
+      ...pageMeta['/team'],
+      body: `<h1>${esc(teamSection.title.join(' '))}</h1>
+<p>${esc(teamSection.intro)}</p>
+<ul>${teamMembers
+        .map(
+          (m) =>
+            `<li><strong>${esc(m.name)}</strong>, ${esc(m.role)}. ${esc(m.bio)}${m.linkedin ? ` <a href="${esc(m.linkedin)}">LinkedIn</a>` : ''}</li>`,
+        )
+        .join('')}</ul>`,
     },
   ]
 }

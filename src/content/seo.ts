@@ -25,6 +25,11 @@ export const pageMeta = {
     description:
       'Register free for The First Room, a one-day gathering for young creatives on 19 December 2026 in Lagos or online. One registration per person. Join us.',
   },
+  '/team': {
+    title: "The Team · Creator's Hub",
+    description:
+      "Meet the team behind Creator's Hub, building rooms where young creatives find each other. First up: The First Room, Lagos, 19 December 2026. Free.",
+  },
 } satisfies Record<string, PageMeta>
 
 /** Creator's Hub elsewhere (Google's organisation "sameAs"). Add or remove links here. */
