@@ -41,6 +41,8 @@ export type TeamMember = {
     alternateNames: string[]
     /** One or two sentences about the person, shown on the profile page. */
     about: string
+    /** A different photo for the profile page itself (any shape); the team card keeps `photo`. */
+    photo?: { src: string; width: number; height: number }
     /** Longer story in the person's own words: one string per paragraph. */
     story?: string[]
     /** Quick facts shown beside the story. */
@@ -78,12 +80,13 @@ export const teamMembers: TeamMember[] = [
       // Ema's own words.
       about:
         'Erioluwa Mercy Akintayo (Ema) is the founder of Creator’s Hub, a community built to turn idealists into builders. She leads the vision of creating spaces where young people can explore their ideas, find support, and bring their creativity to life.',
+      photo: { src: '/team/erioluwa-akintayo-portrait.jpg', width: 900, height: 1200 },
       // Ema's own words.
       story: [
         'I’m Erioluwa Mercy Akintayo, known as Ema, and I’m the founder of Creator’s Hub. I’m a Software Engineering student at African Leadership University, with a growing interest in artificial intelligence, technology, and building products that solve meaningful problems.',
         'Creator’s Hub was born from a belief I deeply hold: Africa doesn’t lack ideas; it lacks the space, support, and belief in the people behind those ideas. I wanted to build a community that gives young people, creatives, and aspiring builders the opportunity to move beyond imagining and begin creating.',
         'Creator’s Hub is about turning idealists into builders. It is a space for people figuring things out, exploring their potential, and bringing their ideas to life through community, collaboration, and real opportunities.',
-        'I’m currently based in Lagos, Nigeria, and I’m building Creator’s Hub with the long-term vision of growing it across Africa and beyond.',
+        'I’m building Creator’s Hub with the long-term vision of growing it across Africa and beyond.',
       ],
       facts: [
         { label: 'Role', value: 'Founder, Creator’s Hub' },

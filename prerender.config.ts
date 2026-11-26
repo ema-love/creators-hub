@@ -127,7 +127,7 @@ ${volunteerTeams
       ...(m.photo ? { image: { path: m.photo, alt: `${m.name}, ${m.role} of Creator’s Hub`, width: 720, height: 720 } } : {}),
       body: `<h1>${esc(m.name)}</h1>
 <p>${esc(m.role)} · Creator’s Hub</p>
-${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)} of Creator’s Hub" width="320" height="320" />` : ''}
+${m.profile!.photo ? `<img src="${esc(m.profile!.photo.src)}" alt="${esc(m.name)}, ${esc(m.role)} of Creator’s Hub" width="300" height="${Math.round((300 * m.profile!.photo.height) / m.profile!.photo.width)}" />` : m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)} of Creator’s Hub" width="320" height="320" />` : ''}
 <p>${esc(m.profile!.about)}</p>
 ${m.profile!.facts?.length ? `<dl>${m.profile!.facts.map((f) => `<dt>${esc(f.label)}</dt><dd>${esc(f.value)}</dd>`).join('')}</dl>` : ''}
 ${m.profile!.story?.length ? `<h2>In ${esc(m.shortName)}’s words</h2>${m.profile!.story.map((p) => `<p>${esc(p)}</p>`).join('')}` : ''}

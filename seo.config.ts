@@ -109,6 +109,7 @@ export function profileJsonLd(m: TeamMember, site = origin()) {
     mainEntity: {
       ...person(m, site),
       description: p.about.replace(/’/g, "'"),
+      ...(p.photo && m.photo ? { image: [`${site}${m.photo}`, `${site}${p.photo.src}`] } : {}),
       worksFor: { '@type': 'Organization', '@id': `${site}/#organization`, name: BRAND_PLAIN, url: site },
       ...(p.affiliation
         ? { affiliation: { '@type': 'CollegeOrUniversity', name: p.affiliation.name, ...(p.affiliation.url ? { url: p.affiliation.url } : {}) } }

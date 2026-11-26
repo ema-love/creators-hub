@@ -31,13 +31,16 @@ function Profile({ member: m }: { member: TeamMember }) {
       <Section surface="light" aria-labelledby="profile-title" className="pb-24 pt-28 md:pb-32 md:pt-44">
         <div className="container-edge grid gap-8 md:grid-cols-12 md:items-center md:gap-12">
           <Reveal className="md:col-span-5">
-            <div className="aspect-square w-48 overflow-hidden rounded-sm bg-[#E6DFD3] sm:w-64 md:w-full">
-              {m.photo && (
+            <div
+              className="w-48 overflow-hidden rounded-sm bg-[#E6DFD3] sm:w-64 md:w-full"
+              style={{ aspectRatio: profile.photo ? `${profile.photo.width} / ${profile.photo.height}` : '1 / 1' }}
+            >
+              {(profile.photo?.src ?? m.photo) && (
                 <img
-                  src={m.photo}
+                  src={profile.photo?.src ?? m.photo!}
                   alt={`${m.name}, ${m.role} of Creator’s Hub`}
-                  width={720}
-                  height={720}
+                  width={profile.photo?.width ?? 720}
+                  height={profile.photo?.height ?? 720}
                   className="h-full w-full object-cover"
                 />
               )}
