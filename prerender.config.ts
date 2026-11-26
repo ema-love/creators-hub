@@ -6,8 +6,8 @@ import { disciplines } from './src/content/site.ts'
 import { BRAND_PLAIN, EVENT_NAME, firstRoomSection, founderLine, heroCopy, howWeWork, manifesto, oath, whoWeAre } from './src/content/founding.ts'
 import { registrationCopy } from './src/content/tickets.ts'
 import { pageMeta } from './src/content/seo.ts'
-import { teamMembers, teamSection } from './src/content/team.ts'
-import { eventJsonLd, jsonLdScript, organizationJsonLd } from './seo.config.ts'
+import { profilePages, teamMembers, teamSection } from './src/content/team.ts'
+import { eventJsonLd, jsonLdScript, organizationJsonLd, profileJsonLd } from './seo.config.ts'
 import { experienceText, volunteerBenefits, volunteerIntro, volunteerTeams } from './src/content/volunteer.ts'
 
 /**
@@ -106,10 +106,24 @@ ${volunteerTeams
 <ul>${teamMembers
         .map(
           (m) =>
-            `<li><strong>${esc(m.name)}</strong>, ${esc(m.role)}. ${esc(m.bio)}${m.linkedin ? ` <a href="${esc(m.linkedin)}">LinkedIn</a>` : ''}</li>`,
+            `<li><strong>${m.profile ? `<a href="${esc(m.profile.path)}">${esc(m.name)}</a>` : esc(m.name)}</strong>, ${esc(m.role)}. ${esc(m.bio)}${m.linkedin ? ` <a href="${esc(m.linkedin)}">LinkedIn</a>` : ''}</li>`,
         )
         .join('')}</ul>`,
     },
+    ...profilePages.map((m) => ({
+      path: m.profile!.path,
+      title: m.profile!.title,
+      description: m.profile!.description,
+      jsonLd: [profileJsonLd(m, site)],
+      body: `<h1>${esc(m.name)}</h1>
+<p>${esc(m.role)} · Creator’s Hub</p>
+${m.photo ? `<img src="${esc(m.photo)}" alt="${esc(m.name)}, ${esc(m.role)} of Creator’s Hub" width="320" height="320" />` : ''}
+<p>${esc(m.profile!.about)}</p>
+<p>${esc(m.bio)}</p>
+${m.linkedin ? `<p><a href="${esc(m.linkedin)}" rel="me">${esc(m.shortName)} on LinkedIn</a></p>` : ''}
+${m.founder ? `<h2>${esc(oath.eyebrow)}</h2><blockquote><p>${esc(oath.before)} ${esc(oath.highlight)} ${esc(oath.after)}</p><p>${esc(founderLine)}</p></blockquote>` : ''}
+<p><a href="/team">Meet the team</a> · <a href="/">Creator’s Hub</a></p>`,
+    })),
   ]
 }
 

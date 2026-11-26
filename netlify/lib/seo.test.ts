@@ -68,10 +68,13 @@ describe('search: structured data', () => {
     const [org] = organizationJsonLd(SITE) as Array<Record<string, unknown>>
     expect(org!.founder).toEqual({
       '@type': 'Person',
+      '@id': `${SITE}/team/erioluwa-akintayo#person`,
       name: 'Erioluwa Mercy Akintayo',
-      alternateName: 'Ema',
+      alternateName: ['Ema', 'Erioluwa Akintayo', 'Ema Akintayo'],
       jobTitle: 'Founder',
+      url: `${SITE}/team/erioluwa-akintayo`,
       image: `${SITE}/team/erioluwa-akintayo.jpg`,
+      sameAs: ['https://www.linkedin.com/in/erioluwa-akintayo-76449037a'],
     })
     expect(org!.member).toEqual([{ '@type': 'Person', name: 'Divine Kamsi Moses', jobTitle: 'Community Lead' }])
   })
@@ -92,11 +95,27 @@ describe('search: structured data', () => {
     expect(pages['/team']).toContain('<title>The Team · Creator')
     expect(pages['/team']).toContain('Divine Kamsi Moses')
     expect(pages['/']).toContain('The team behind Creator’s Hub')
+    const ema = pages['/team/erioluwa-akintayo']!
+    expect(ema).toContain("<title>Erioluwa Mercy Akintayo (Ema) · Founder of Creator's Hub</title>")
+    expect(ema).toContain('is the founder of Creator’s Hub')
+    expect(ema).toContain(`<link rel="canonical" href="${SITE}/team/erioluwa-akintayo" />`)
+    const [profile] = jsonLdIn(ema) as Array<Record<string, unknown>>
+    expect(profile).toMatchObject({
+      '@type': 'ProfilePage',
+      mainEntity: {
+        '@type': 'Person',
+        name: 'Erioluwa Mercy Akintayo',
+        jobTitle: 'Founder',
+        worksFor: { '@type': 'Organization', name: "Creator's Hub" },
+        sameAs: ['https://www.linkedin.com/in/erioluwa-akintayo-76449037a'],
+      },
+    })
   })
 
   it('dates the sitemap with each deploy', () => {
     const xml = sitemapXml(SITE, '2026-11-26')
-    expect(xml.match(/<lastmod>2026-11-26<\/lastmod>/g)).toHaveLength(5)
+    expect(xml.match(/<lastmod>2026-11-26<\/lastmod>/g)).toHaveLength(6)
+    expect(xml).toContain(`<loc>${SITE}/team/erioluwa-akintayo</loc>`)
     expect(xml).toContain(`<loc>${SITE}/team</loc>`)
     expect(xml).toContain(`<loc>${SITE}/tickets</loc>`)
   })

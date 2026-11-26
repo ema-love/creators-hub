@@ -74,7 +74,7 @@ Creator’s Hub is a community for young African creatives and builders of every
 2. **Who we are** (`#about`): "Turning idealists into builders."; words brighten as you read
 3. **The manifesto** (`#manifesto`): "What we believe", eight numbered lines in large type
 4. **How we work**: Imagine → Gather → Connect → Build
-5. **The team** (`#team`, also its own page at `/team`): a card per person from `src/content/team.ts` (photo, name, role, one line, LinkedIn). Add a person by copying an entry; bios, photos and LinkedIn links still to fill in are marked `PLACEHOLDER`. Photos are square, in `public/team/`; without one, a neutral card with initials shows
+5. **The team** (`#team`, also its own page at `/team`): a card per person from `src/content/team.ts` (photo, name, role, one line, LinkedIn). Add a person by copying an entry; bios, photos and LinkedIn links still to fill in are marked `PLACEHOLDER`. Photos are square, in `public/team/`; without one, a neutral card with initials shows. A member with a `profile` also gets their own page (Ema's is `/team/erioluwa-akintayo`), with Google `ProfilePage` data naming them as a Person, their role at Creator’s Hub and their LinkedIn, so their name shows on Google with their role
 6. **The founder’s oath**, with the founder's signature line
 7. **Creator’s Hub 001: The First Room**: pinned scroll sequence where a doorway opens into the event, then the four arms of Creator’s Hub 001 as cards
 8. **Volunteer**: six core teams and the application form (`/volunteer#apply`)

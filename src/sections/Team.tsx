@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { ArrowUpRight } from 'lucide-react'
 import { initialsOf, teamMembers, teamSection, type TeamMember } from '../content/team'
 import { Section } from '../components/layout/Section'
@@ -72,7 +73,15 @@ function TeamCard({ member: m, delay }: { member: TeamMember; delay: number }) {
       </div>
       <div className="flex flex-1 flex-col border-t border-ink/15 pt-6 mt-6">
         <p className="eyebrow text-bright">{m.role}</p>
-        <h3 className="mt-3 font-display text-title font-medium leading-tight tracking-[-0.02em]">{m.name}</h3>
+        <h3 className="mt-3 font-display text-title font-medium leading-tight tracking-[-0.02em]">
+          {m.profile ? (
+            <Link to={m.profile.path} className="link-draw">
+              {m.name}
+            </Link>
+          ) : (
+            m.name
+          )}
+        </h3>
         <p className="mt-3 text-ink/70">{m.bio}</p>
         {m.linkedin && (
           <a

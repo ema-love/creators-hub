@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite'
 import { BRAND_PLAIN, brandSummary } from './src/content/founding.ts'
 import { eventSeo, socialProfiles } from './src/content/seo.ts'
-import { teamMembers, type TeamMember } from './src/content/team.ts'
+import { legalName, profilePages, teamMembers, type TeamMember } from './src/content/team.ts'
 import { firstRoom } from './src/content/event.ts'
 
 const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
@@ -22,7 +22,7 @@ const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
 const FALLBACK_ORIGIN = 'https://thecreators-hub.netlify.app'
 
 /** Pages to list in the sitemap. Private pages (staff, tickets, orders) are left out on purpose. */
-export const PUBLIC_PAGES = ['/', '/the-first-room', '/tickets', '/volunteer', '/team']
+export const PUBLIC_PAGES = ['/', '/the-first-room', '/tickets', '/volunteer', '/team', ...profilePages.map((m) => m.profile!.path)]
 
 /** Kept out of search: personal tickets, orders and the staff area. */
 export const PRIVATE_PATHS = ['/staff', '/admin', '/v/', '/tickets/order', '/tickets/confirmation', '/tickets/find', '/tickets/check-in', '/.netlify/']
@@ -84,12 +84,35 @@ export function eventJsonLd(site = origin()) {
 /** A team member as a schema.org Person. Their LinkedIn goes in sameAs once it is added in src/content/team.ts. */
 const person = (m: TeamMember, site: string) => ({
   '@type': 'Person',
-  name: m.name.replace(/\s*\(.*?\)\s*/g, ' ').trim(),
-  ...(m.name.includes('(') ? { alternateName: m.name.match(/\((.*?)\)/)![1] } : {}),
+  ...(m.profile ? { '@id': `${site}${m.profile.path}#person` } : {}),
+  name: legalName(m),
+  ...(m.profile ? { alternateName: m.profile.alternateNames } : m.name.includes('(') ? { alternateName: m.name.match(/\((.*?)\)/)![1] } : {}),
   jobTitle: m.role,
+  ...(m.profile ? { url: `${site}${m.profile.path}` } : {}),
   ...(m.photo ? { image: `${site}${m.photo}` } : {}),
   ...(m.linkedin ? { sameAs: [m.linkedin] } : {}),
 })
+
+/**
+ * Google ProfilePage data for a team member's own page: a Person who is the
+ * founder (or member) of Creator's Hub, linked to their LinkedIn, so their
+ * name can show on Google with their role.
+ */
+export function profileJsonLd(m: TeamMember, site = origin()) {
+  const p = m.profile!
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url: `${site}${p.path}`,
+    name: p.title,
+    description: p.description,
+    mainEntity: {
+      ...person(m, site),
+      description: p.about.replace(/’/g, "'"),
+      worksFor: { '@type': 'Organization', name: BRAND_PLAIN, url: site },
+    },
+  }
+}
 
 /** Google Organization data for Creator's Hub (with its founder and team), on the homepage. */
 export function organizationJsonLd(site = origin()) {
