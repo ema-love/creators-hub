@@ -8,7 +8,7 @@
  *   - bio:      one line about the person (Divine's is still an example)
  *   - photo:    a square photo in public/team/ (e.g. '/team/divine-moses.jpg');
  *               null shows a neutral placeholder with their initials
- *   - linkedin: their LinkedIn profile URL; null hides the LinkedIn link
+ *   - linkedin / instagram: profile URLs; null hides the link
  *
  * A member with `profile` also gets their own page (e.g. /team/erioluwa-akintayo),
  * listed in the sitemap, so their name shows on Google with their role.
@@ -24,6 +24,8 @@ export type TeamMember = {
   /** Square photo, at least 640 × 640, in public/team/. */
   photo: string | null
   linkedin: string | null
+  /** Instagram profile URL; null hides the link. */
+  instagram?: string | null
   /** The founder is listed as `founder` in Google's data; everyone else as `member`. */
   founder?: boolean
   /**
@@ -57,6 +59,7 @@ export const teamMembers: TeamMember[] = [
     bio: 'Leads the vision of creating spaces where young people can explore their ideas, find support, and bring their creativity to life.',
     photo: '/team/erioluwa-akintayo.jpg',
     linkedin: 'https://www.linkedin.com/in/erioluwa-akintayo-76449037a',
+    instagram: 'https://www.instagram.com/eri.by.ema/',
     founder: true,
     profile: {
       path: '/team/erioluwa-akintayo',
@@ -81,6 +84,13 @@ export const teamMembers: TeamMember[] = [
     linkedin: null,
   },
 ]
+
+/** A person's public profiles, in display order. Also used as `sameAs` in Google's data. */
+export const socialLinksOf = (m: TeamMember) =>
+  [
+    { label: 'LinkedIn', url: m.linkedin },
+    { label: 'Instagram', url: m.instagram ?? null },
+  ].filter((l): l is { label: string; url: string } => Boolean(l.url))
 
 /** Full name without the nickname in brackets: "Erioluwa Mercy Akintayo (Ema)" → "Erioluwa Mercy Akintayo". */
 export const legalName = (m: TeamMember) => m.name.replace(/\s*\(.*?\)\s*/g, ' ').trim()

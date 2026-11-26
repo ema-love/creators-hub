@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite'
 import { BRAND_PLAIN, brandSummary } from './src/content/founding.ts'
 import { eventSeo, socialProfiles } from './src/content/seo.ts'
-import { legalName, profilePages, teamMembers, type TeamMember } from './src/content/team.ts'
+import { legalName, profilePages, socialLinksOf, teamMembers, type TeamMember } from './src/content/team.ts'
 import { firstRoom } from './src/content/event.ts'
 
 const EVENT_NAME_PLAIN = `${BRAND_PLAIN} 001: The First Room`
@@ -90,7 +90,7 @@ const person = (m: TeamMember, site: string) => ({
   jobTitle: m.role,
   ...(m.profile ? { url: `${site}${m.profile.path}` } : {}),
   ...(m.photo ? { image: `${site}${m.photo}` } : {}),
-  ...(m.linkedin ? { sameAs: [m.linkedin] } : {}),
+  ...(socialLinksOf(m).length ? { sameAs: socialLinksOf(m).map((l) => l.url) } : {}),
 })
 
 /**

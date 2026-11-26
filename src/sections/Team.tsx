@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 import { ArrowUpRight } from 'lucide-react'
-import { initialsOf, teamMembers, teamSection, type TeamMember } from '../content/team'
+import { initialsOf, socialLinksOf, teamMembers, teamSection, type TeamMember } from '../content/team'
 import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { MaskText } from '../components/ui/MaskText'
@@ -83,17 +83,22 @@ function TeamCard({ member: m, delay }: { member: TeamMember; delay: number }) {
           )}
         </h3>
         <p className="mt-3 text-ink/70">{m.bio}</p>
-        {m.linkedin && (
-          <a
-            href={m.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-1.5 self-start font-display text-[0.9375rem] font-medium text-forest"
-          >
-            <span className="link-draw">LinkedIn</span>
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            <span className="sr-only"> profile of {m.shortName} (opens in a new tab)</span>
-          </a>
+        {socialLinksOf(m).length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+            {socialLinksOf(m).map((l) => (
+              <a
+                key={l.label}
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 font-display text-[0.9375rem] font-medium text-forest"
+              >
+                <span className="link-draw">{l.label}</span>
+                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                <span className="sr-only"> profile of {m.shortName} (opens in a new tab)</span>
+              </a>
+            ))}
+          </div>
         )}
       </div>
     </Reveal>

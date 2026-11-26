@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useParams } from 'react-router'
 import { ArrowUpRight } from 'lucide-react'
-import { profilePages, type TeamMember } from '../content/team'
+import { profilePages, socialLinksOf, type TeamMember } from '../content/team'
 import { Section } from '../components/layout/Section'
 import { Eyebrow } from '../components/ui/Eyebrow'
 import { MaskText } from '../components/ui/MaskText'
@@ -54,18 +54,23 @@ function Profile({ member: m }: { member: TeamMember }) {
             <Reveal delay={0.1}>
               <p className="mt-8 text-lede text-ink/85">{profile.about}</p>
               <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4">
-                {m.linkedin && (
+                {socialLinksOf(m).map((l, i) => (
                   <a
-                    href={m.linkedin}
+                    key={l.label}
+                    href={l.url}
                     target="_blank"
                     rel="noopener noreferrer me"
-                    className="group inline-flex items-center gap-3 rounded-full bg-forest px-6 py-3.5 font-display text-[0.9375rem] font-medium text-cream transition-colors hover:bg-ink"
+                    className={
+                      i === 0
+                        ? 'group inline-flex items-center gap-3 rounded-full bg-forest px-6 py-3.5 font-display text-[0.9375rem] font-medium text-cream transition-colors hover:bg-ink'
+                        : 'group inline-flex items-center gap-3 rounded-full border border-forest/40 px-6 py-3.5 font-display text-[0.9375rem] font-medium text-forest transition-colors hover:border-forest'
+                    }
                   >
-                    LinkedIn
+                    {l.label}
                     <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     <span className="sr-only"> (opens in a new tab)</span>
                   </a>
-                )}
+                ))}
                 <ArrowLink to="/team" variant="text">
                   Meet the team
                 </ArrowLink>

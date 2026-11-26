@@ -74,7 +74,7 @@ describe('search: structured data', () => {
       jobTitle: 'Founder',
       url: `${SITE}/team/erioluwa-akintayo`,
       image: `${SITE}/team/erioluwa-akintayo.jpg`,
-      sameAs: ['https://www.linkedin.com/in/erioluwa-akintayo-76449037a'],
+      sameAs: ['https://www.linkedin.com/in/erioluwa-akintayo-76449037a', 'https://www.instagram.com/eri.by.ema/'],
     })
     expect(org!.member).toEqual([{ '@type': 'Person', name: 'Divine Kamsi Moses', jobTitle: 'Community Lead' }])
   })
@@ -108,7 +108,7 @@ describe('search: structured data', () => {
         name: 'Erioluwa Mercy Akintayo',
         jobTitle: 'Founder',
         worksFor: { '@type': 'Organization', name: "Creator's Hub" },
-        sameAs: ['https://www.linkedin.com/in/erioluwa-akintayo-76449037a'],
+        sameAs: ['https://www.linkedin.com/in/erioluwa-akintayo-76449037a', 'https://www.instagram.com/eri.by.ema/'],
       },
     })
   })
